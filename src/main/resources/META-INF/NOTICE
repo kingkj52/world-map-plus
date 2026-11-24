@@ -1,0 +1,141 @@
+World Map Plus
+Copyright (c) 2026, KingKj52. Released under the BSD 2-Clause licence, see LICENSE.
+
+Created using intellectual property belonging to Jagex Limited under the terms of Jagex's Fan Content Policy.
+This content is not endorsed by or affiliated with Jagex.
+
+RuneScape and Old School RuneScape are trademarks of Jagex Limited. The policy is at
+https://legal.jagex.com/docs/policies/fan-content-policy. This plugin is also not affiliated with or endorsed by
+the OSRS Wiki or the authors of the plugins named below.
+
+This plugin bundles map imagery and reference data. None of it is fetched while the plugin runs. It was gathered
+once, at build time, by the plugin's build tools, which are kept outside this repository, and is refreshed only
+when the plugin is rebuilt for a release. The
+version of the wiki's map that the tiles were taken from is recorded in maps.json, in the plugin's jar. This file is
+also inside the jar, as META-INF/NOTICE, next to META-INF/LICENSE.
+
+----------------------------------------------------------------------------------------------------
+Map imagery
+----------------------------------------------------------------------------------------------------
+What is bundled: the map tiles of the game's maps (the surface, its floors, and the dungeon and other
+maps), and a few overview pictures made by averaging them.
+
+Where from: the Old School RuneScape Wiki's map server (https://maps.runescape.wiki/osrs/), fetched once at
+build time. The wiki's page RuneScape:Map (https://oldschool.runescape.wiki/w/RuneScape:Map) says the tiles are
+made with a modified version of RuneLite's MapImageDumper, which draws them from the game cache.
+
+Licence: the tiles are pictures of the game's own map, so they are content of Jagex Limited, used here under
+Jagex's Fan Content Policy as the credit above says. The wiki's footer says its content is under CC BY-NC-SA 3.0
+with additional terms, but the page above states no licence for the tiles, and the wiki's licensing page
+(https://meta.weirdgloop.org/w/Meta:Copyrights) says that non-text media on its wikis should not be assumed to be
+under the same licence as the text. For that reason this plugin does not claim that the tiles are under
+CC BY-NC-SA, and does not claim any licence for them. The BSD 2-Clause licence of this plugin covers its own
+source code only. The tiles are credited to the wiki as the place they were taken from and to Jagex as their
+owner. The plugin is free and non-commercial.
+
+What was changed: the tiles are stored in a compact form to keep the jar small, the overview pictures are
+averaged from them, and a few map squares that the wiki's tiles leave black are drawn at build time from the
+game's own map data, read from the local game cache with RuneLite's cache library
+(https://github.com/runelite/runelite, BSD 2-Clause) by the build tools. The picture content is
+otherwise as the wiki serves it.
+
+An index of which map squares exist is read from mejrs's public cartography repository
+(https://github.com/mejrs/layers_osrs) by the build tools, so the build does not ask the wiki about squares
+that have no tile. Only that listing is read. None of that repository's imagery is used.
+
+----------------------------------------------------------------------------------------------------
+Map icon pictures
+----------------------------------------------------------------------------------------------------
+What is bundled: the small pictures the game's own world map draws for its icons (banks, altars, anvils, dungeon entrances,
+the travel arrow and so on), 135 of them, in one atlas, gameicons/atlas.png, and the list of where the game puts each icon
+(inside map-elements.json). The atlas also holds one picture that is RuneLite's blue fairy ring icon (BSD 2-Clause, from the
+World Map plugin's resources), which is how RuneLite draws a fairy ring.
+
+Where from: the game's own cache, read once at build time by the build tools with RuneLite's cache library
+(https://github.com/runelite/runelite, BSD 2-Clause), the same way the map's text labels are.
+
+Licence: the pictures are the Jagex sprites of the map icons, content of Jagex Limited, used here under Jagex's Fan Content Policy
+as the credit above says, and bundled like the icons copied out of RuneLite (below). No licence is claimed for them. They are
+drawn by the plugin on top of the map and are not changed, except that a copy at a smaller size is made when the map is zoomed out.
+
+----------------------------------------------------------------------------------------------------
+Wiki data
+----------------------------------------------------------------------------------------------------
+What is bundled: shop stock and prices, shop keepers, monster, NPC and ground item spawn locations, quest start
+places and music track unlock spots, as short data files (spawns.bin, shops.json and similar), and monster
+drop tables and pickpocket loot (drops.bin: item, quantity, rarity and combat level per monster, with the item ids,
+from the wiki's drop, item and monster tables), and what agility courses, minigames, some dungeons, farming patches and
+transport networks ask of the player (requirements.json and the requires fields: levels, quests, quest points, checked
+against the wiki's pages). They were extracted at build time from the Old School RuneScape Wiki
+(https://oldschool.runescape.wiki) by the build tools. Names, numbers, coordinates and short place labels are
+kept. Passages of the wiki's prose are not.
+
+Licence: the wiki says its text is available under the Creative Commons Attribution-NonCommercial-ShareAlike 3.0
+licence (https://creativecommons.org/licenses/by-nc-sa/3.0/), with additional terms. Much of this data is facts
+about the game, and whether the wiki's licence applies to bare facts is not settled here. It is credited and
+treated as if the licence applies: attribution to the wiki, no commercial use, and anyone who redistributes
+these data files should keep this credit and the same licence for them. The data was reshaped into JSON (the drop
+tables into a compact binary file, with Deadman Mode only tables and drops left out) and snapped to the map's icons.
+Its content was not otherwise changed. Item values shown next to drops are not bundled: they are RuneLite's own item
+prices, read from RuneLite while the plugin runs.
+
+----------------------------------------------------------------------------------------------------
+Shortest Path (https://github.com/Skretzo/shortest-path), BSD 2-Clause
+----------------------------------------------------------------------------------------------------
+The bank, altar and anvil tables, the transport tables for boats, charter ships, canoes, carpets,
+minecarts, levers, portals, gliders, balloons, mushtrees, quetzals, spirit trees, obelisks and fairy
+rings that drive the transport hover cards, the teleport tables (spells, jewellery and other items,
+minigame teleports, house jewellery boxes, the quetzal whistle and home teleports) that drive the
+teleport cards, the table of which region of the world each map square belongs to that drives the
+region borders, and the walking data (collision-map.zip) that the walking line of a route is worked out from,
+with the rules for which steps between tiles are possible, ported from its Java source. The agility shortcut
+table (levels, items and where each shortcut comes out) and the few trip rows of the general transport table
+(travel carts, guides, rafts) are also from Shortest Path.
+
+Copyright (c) 2021, Skretzo and contributors
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted
+provided that the following conditions are met: 1. Redistributions of source code must retain the
+above copyright notice, this list of conditions and the following disclaimer. 2. Redistributions in
+binary form must reproduce the above copyright notice, this list of conditions and the following
+disclaimer in the documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+
+----------------------------------------------------------------------------------------------------
+RuneLite (https://github.com/runelite/runelite), BSD 2-Clause
+----------------------------------------------------------------------------------------------------
+- The names and text of the game's own map labels and icon categories, and the game's own links between
+  maps, read at build time from the game's data by the cache library (net.runelite:cache) into
+  map-elements.json. The game's map text is Jagex Ltd.'s.
+- The quest start locations, from the list the World Map plugin used before it moved to the game's
+  own map icons. Copyright (c) 2018, John James Hamilton.
+- The fairy ring codes and their positions, from the World Map plugin.
+- The points of interest (agility courses, minigames, altars, farming patches, fishing spots, hunter areas,
+  mining sites, rare trees, salvaging spots, ports and teleport destinations) and the icons drawn for them,
+  from the World Map plugin and the icon files in the RuneLite client.
+- The curated dungeon entrance names, from the World Map plugin's dungeon list. Copyright (c) 2018,
+  Adam <Adam@sigterm.info>.
+- The farming tables: which value of a patch's game variable means what, how long each crop takes to
+  grow, and which patches each place has, read out of the source of the Time Tracking plugin by
+  a build tool. Copyright (c) 2018, Abex, and (c) 2019, Abex and contributors. The few rules
+  about where the patches of a place apply are translated from that plugin's isInBounds overrides.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted
+provided that the following conditions are met: 1. Redistributions of source code must retain the
+above copyright notice, this list of conditions and the following disclaimer. 2. Redistributions in
+binary form must reproduce the above copyright notice, this list of conditions and the following
+disclaimer in the documentation and/or other materials provided with the distribution.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
+FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+
+----------------------------------------------------------------------------------------------------
+Group Ironmen Tracker In-Game Companion (KingKj52), BSD 2-Clause
+----------------------------------------------------------------------------------------------------
+The surface to dungeon jump pairs used at build time, which that plugin read out of the
+game cache with its tools/mapdump extractor.

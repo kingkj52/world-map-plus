@@ -1,0 +1,101 @@
+plugins {
+	id 'java'
+}
+
+repositories {
+	mavenLocal()
+	maven {
+		url = 'https://repo.runelite.net'
+		content {
+			includeGroupByRegex("net[.]runelite.*")
+		}
+	}
+	mavenCentral()
+}
+
+def runeLiteVersion = 'latest.release'
+def pluginMainClass = 'com.worldmapplus.WorldMapPlusPluginTest'
+
+dependencies {
+	compileOnly group: 'net.runelite', name: 'client', version: runeLiteVersion
+
+	compileOnly 'org.projectlombok:lombok:1.18.30'
+	annotationProcessor 'org.projectlombok:lombok:1.18.30'
+
+	testImplementation 'junit:junit:4.12'
+	testImplementation group: 'net.runelite', name: 'client', version: runeLiteVersion
+	testImplementation group: 'net.runelite', name: 'jshell', version: runeLiteVersion
+	testCompileOnly 'org.projectlombok:lombok:1.18.30'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.30'
+}
+
+group = 'com.worldmapplus'
+version = '1.0.0'
+
+tasks.withType(JavaCompile).configureEach {
+	options.encoding = 'UTF-8'
+	options.release.set(11)
+	options.compilerArgs << '-Xlint:deprecation'
+}
+
+// LICENSE and NOTICE travel inside the jar from src/main/resources/META-INF, which is where the Plugin Hub's
+// standard build looks (it ignores this file). The copies at the repository root must stay identical to them;
+// HubPackagingTest checks that.
+//
+// The Hub's packager rejects a jar over 10 MiB and warns from 8 MiB. Say so here, where the jar is built.
+jar {
+	doLast {
+		def mib = archiveFile.get().asFile.length() / (1024d * 1024d)
+		if (mib > 10)
+		{
+			logger.warn(String.format('The jar is %.1f MiB. The Plugin Hub rejects a jar over 10 MiB.', mib))
+		}
+		else if (mib > 8)
+		{
+			logger.warn(String.format('The jar is %.1f MiB. The Plugin Hub warns from 8 MiB and rejects over 10 MiB.', mib))
+		}
+	}
+}
+
+test {
+	maxHeapSize = '1g'
+	testLogging {
+		events 'passed', 'failed', 'skipped'
+	}
+}
+
+// Launches a dev client with this plugin loaded. Requires developer mode.
+tasks.register('run', JavaExec) {
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = pluginMainClass
+
+	jvmArgs "-ea"
+	args "--developer-mode", "--debug"
+}
+
+// Renders the game's icons over Varlamore, Misthalin and the Wilderness at six zooms, to look at their size and crowding. Options:
+// -PiconZooms=0.25,1  -PiconFloor=1  -PiconPlace=varlamore  -PiconSize=600x1000 (a small window goes to lower zooms)
+tasks.register('previewIcons', JavaExec) {
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.worldmapplus.ui.PreviewIcons'
+	jvmArgs '-Djava.awt.headless=true'
+	if (project.hasProperty('iconZooms')) {
+		systemProperty 'zooms', project.property('iconZooms')
+	}
+	if (project.hasProperty('iconFloor')) {
+		systemProperty 'floor', project.property('iconFloor')
+	}
+	if (project.hasProperty('iconPlace')) {
+		systemProperty 'place', project.property('iconPlace')
+	}
+	if (project.hasProperty('iconSize')) {
+		systemProperty 'size', project.property('iconSize')
+	}
+}
+
+// Renders the layers list, the right click menu and a card over floating maps of every size to PNG files in build/preview.
+tasks.register('previewPopups', JavaExec) {
+	classpath = sourceSets.test.runtimeClasspath
+	mainClass = 'com.worldmapplus.ui.PreviewPopups'
+	jvmArgs '-Djava.awt.headless=true'
+}

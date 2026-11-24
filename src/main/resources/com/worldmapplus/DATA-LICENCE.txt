@@ -1,0 +1,12 @@
+Data and imagery in this folder
+
+Created using intellectual property belonging to Jagex Limited under the terms of Jagex's Fan Content Policy.
+This content is not endorsed by or affiliated with Jagex.
+
+Map tiles: pictures of the game's own map, content of Jagex Limited, taken from the Old School RuneScape Wiki's map
+server. No licence is claimed for them here, because the wiki says non-text media should not be assumed to share the
+licence of its text. Shop, spawn, quest, music, drop table and requirement data come from the Old School RuneScape Wiki, whose text is under
+CC BY-NC-SA 3.0 (non-commercial, share alike, with attribution) and is credited on that basis. The map icon pictures in gameicons are the
+Jagex sprites of the game's map icons, bundled like the icons copied out of RuneLite. Transport, teleport and
+region tables come from Shortest Path and RuneLite (BSD 2-Clause). RuneScape and Old School RuneScape are trademarks of
+Jagex Limited. See NOTICE at the root of the project, and META-INF/NOTICE in the jar, for the full credits and sources.
