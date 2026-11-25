@@ -63,7 +63,9 @@ public final class SourceTiles implements TileSource
 		try
 		{
 			Path file = PngTiles.sourceRoot().resolve("overview-" + mapId + ".png");
-			return Files.isRegularFile(file) ? PngTiles.read(file, false) : null;
+			// The sources keep the overviews at full size (32 pixels a square); the jar carries them at half size, which is the
+			// exact 2 by 2 box average of the source, the same as the next mip level. This gives what the plugin shows.
+			return Files.isRegularFile(file) ? TileCache.shrink(PngTiles.read(file, false), 1) : null;
 		}
 		catch (IOException e)
 		{

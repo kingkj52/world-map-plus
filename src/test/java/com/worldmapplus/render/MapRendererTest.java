@@ -126,7 +126,7 @@ public class MapRendererTest
 	@Test
 	public void theOverviewIsUsedWhenZoomedFarOut()
 	{
-		BufferedImage overview = new BufferedImage(6 * 32, 6 * 32, BufferedImage.TYPE_INT_RGB);
+		BufferedImage overview = new BufferedImage(6 * OVERVIEW_SIDE, 6 * OVERVIEW_SIDE, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = overview.createGraphics();
 		g.setColor(new Color(0x12, 0x34, 0x56));
 		g.fillRect(0, 0, overview.getWidth(), overview.getHeight());
@@ -144,19 +144,66 @@ public class MapRendererTest
 		assertEquals(0, source.loads());
 	}
 
+	/**
+	 * The overview is placed by the map's bounds and not by an assumed number of pixels a square: a picture at half the size (4 tiles a
+	 * pixel instead of 2) lands on exactly the same screen pixels as the full size one, at the far zoom levels and where it stands in
+	 * for tiles still loading.
+	 */
+	@Test
+	public void anOverviewAtHalfSizeIsPlacedWhereTheFullSizeOneWas()
+	{
+		for (double scale : new double[] {0.2, 0.4, 0.7, 2.0, 4.0})
+		{
+			ViewTransform view = new ViewTransform(3232, 3232, scale, 0, 0, 200, 200);
+			BufferedImage[] canvases = new BufferedImage[2];
+			int i = 0;
+			for (int side : new int[] {32, 16})
+			{
+				FakeTiles source = new FakeTiles().add(0, 50, 50).overview(overview(side));
+				TileCache cache = new TileCache(source, Runnable::run, 64L << 20);
+				cache.getOverview(0);
+				canvases[i] = new BufferedImage(200, 200, BufferedImage.TYPE_INT_RGB);
+				Graphics2D g = canvases[i++].createGraphics();
+				new MapRenderer(cache).paint(g, view, MAP);
+				g.dispose();
+			}
+			// Inside every square (away from the edges, where the smoothing of a smaller picture blends a little differently).
+			for (int square = 0; square < 9; square++)
+			{
+				for (double inside : new double[] {0.3, 0.5, 0.7})
+				{
+					int x = (int) Math.round(view.screenX((MAP.firstSquareX() + square % 3 + inside) * TileSource.TILE_SIZE));
+					int y = (int) Math.round(view.screenY((MAP.firstSquareY() + square / 3 + inside) * TileSource.TILE_SIZE));
+					if (x >= 0 && x < 200 && y >= 0 && y < 200)
+					{
+						assertEquals("scale " + scale + " at " + x + "," + y, canvases[0].getRGB(x, y), canvases[1].getRGB(x, y));
+					}
+				}
+			}
+		}
+	}
+
 	// ---- stand-ins for tiles that are still loading ----
 
-	/** Three squares each way, 32 pixels a square, each square its own flat colour. */
+	/** Pixels a square takes in the bundled overviews (the 1536 by 1088 pictures were 32, the bundled 768 by 544 ones are 16). */
+	private static final int OVERVIEW_SIDE = 16;
+
+	/** Three squares each way, 16 pixels a square like the bundled overviews, each square its own flat colour. */
 	private static BufferedImage overview()
 	{
-		BufferedImage image = new BufferedImage(96, 96, BufferedImage.TYPE_INT_RGB);
+		return overview(OVERVIEW_SIDE);
+	}
+
+	private static BufferedImage overview(int side)
+	{
+		BufferedImage image = new BufferedImage(3 * side, 3 * side, BufferedImage.TYPE_INT_RGB);
 		Graphics2D g = image.createGraphics();
 		for (int column = 0; column < 3; column++)
 		{
 			for (int row = 0; row < 3; row++)
 			{
 				g.setColor(new Color(0x30 + column * 0x40, 0x50 + row * 0x30, 0xA0 - column * 0x10 - row * 0x10));
-				g.fillRect(column * 32, row * 32, 32, 32);
+				g.fillRect(column * side, row * side, side, side);
 			}
 		}
 		g.dispose();

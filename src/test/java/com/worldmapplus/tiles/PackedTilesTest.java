@@ -552,7 +552,8 @@ public class PackedTilesTest
 			BufferedImage overview = tiles.overview(id);
 			assertNotNull("the jar carries the overview of map " + id, overview);
 			assertEquals(BufferedImage.TYPE_INT_RGB, overview.getType());
-			assertTrue(overview.getWidth() > 500);
+			assertEquals("half the size of the 1536 by 1088 sources", 768, overview.getWidth());
+			assertEquals(544, overview.getHeight());
 		}
 		assertNull(tiles.overview(5));
 	}

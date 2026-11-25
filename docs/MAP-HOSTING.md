@@ -18,7 +18,7 @@ plugin reads). A release holds these assets, all made by `python tools/make_map_
 
 The plugin asks for `https://github.com/KingKj52/world-map-plus-maps/releases/latest/download/<file>`. GitHub redirects that to the
 asset of the newest release. The address is one constant, `MapDownloader.BASE`, and `ComplianceTest` insists it is the only address
-in the plugin. What stays in the plugin jar: the four overview pictures (`overview-0.png`, `-20000`, `-40000`, `-60000`, about 2.1 MB)
+in the plugin. What stays in the plugin jar: the four overview pictures (`overview-0.png`, `-20000`, `-40000`, `-60000`, about 1.6 MB, at half size, 768 x 544)
 and `index.json`, the list of which squares exist.
 
 GitHub states no bandwidth limit for release assets. The alternatives (raw.githubusercontent.com has rate limits that are not
