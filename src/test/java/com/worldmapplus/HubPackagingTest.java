@@ -224,9 +224,9 @@ public class HubPackagingTest
 	@org.junit.Test
 	public void thePluginHasTheInternalNameItsDataFolderNeeds()
 	{
-		// Plugin.getPluginDirectory refuses a plugin without one, and the map pictures are kept in that folder.
+		// Plugin.getPluginDirectory refuses a plugin without one, and the Plugin Hub requires it to be the hub name of the plugin.
 		net.runelite.client.plugins.PluginDescriptor descriptor =
 			WorldMapPlusPlugin.class.getAnnotation(net.runelite.client.plugins.PluginDescriptor.class);
-		org.junit.Assert.assertEquals("worldmapplus", descriptor.internalName());
+		org.junit.Assert.assertEquals("world-map-plus", descriptor.internalName());
 	}
 }

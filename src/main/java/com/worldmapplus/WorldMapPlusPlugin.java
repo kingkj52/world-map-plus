@@ -49,7 +49,7 @@ import net.runelite.client.util.*;
 @Slf4j
 @PluginDescriptor(
 	name = "World Map Plus",
-	internalName = "worldmapplus",
+	internalName = "world-map-plus",
 	description = "A replacement world map with a huge zoom range, search and hover cards",
 	tags = {"map", "world map", "zoom", "search", "route", "pins", "dungeon", "shop", "transparent"}
 )
