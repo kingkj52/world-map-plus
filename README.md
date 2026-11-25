@@ -5,7 +5,7 @@ in until a single tile is 32 pixels wide, search for almost anything, hover over
 save places and keep a see-through map on screen while you play.
 
 Everything the map shows comes with the plugin except the detailed map pictures, which are downloaded the first time you look at
-an area (see "Map pictures" below). Nothing else ever connects to anything while you play.
+an area (see "Map pictures" below). No other connections are made.
 
 > **Install World Map Plus Helper too.** The Plugin Hub limits how big one plugin can be, so World Map Plus comes in two
 > parts. Install both from the Plugin Hub for everything on this page: sharing, the results panel and drop tables, search for
@@ -29,12 +29,11 @@ of 0.1 to 0.9 MB; a pack is downloaded once and never again unless the maps are 
 
 - **What is sent.** The download is a plain request for a file from this plugin's own GitHub release
   (`github.com/KingKj52/world-map-plus-maps`). GitHub sees your IP address, as for any download. Nothing about you or your
-  account is sent, and nothing from the game.
+  account is sent.
 - **Turn it off.** The setting **Download map pictures** (General) is on by default. Off, the map shows the overview and
   whatever was downloaded before.
 - **While it downloads** a small line in the lower left corner of the map says so, and the overview shows in place of the
-  pictures that have not come yet. If GitHub cannot be reached the line says so and the plugin tries again later, waiting
-  longer each time. It asks for nothing else and never in a loop.
+  pictures that have not come yet.
 - **Updates.** When the maps change (a game update), a new release is made and the plugin fetches only the packs that
   changed, with no new version of the plugin needed in most cases. The files are checked against a SHA-256 before they are used.
 
