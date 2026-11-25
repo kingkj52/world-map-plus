@@ -11,10 +11,9 @@ import com.worldmapplus.MapAssets;
 import com.worldmapplus.WorldMapPlusConfig;
 import com.worldmapplus.bridge.ExternalOverlays;
 import com.worldmapplus.bridge.MapActions;
+import com.worldmapplus.bridge.PartnerDouble;
 import com.worldmapplus.game.PlayerPosition;
-import com.worldmapplus.game.TrailTracker;
 import com.worldmapplus.layers.GameIconSet;
-import com.worldmapplus.layers.NpcLayer;
 import com.worldmapplus.map.MapInfo;
 import com.worldmapplus.pins.PinStore;
 import com.worldmapplus.prefs.Settings;
@@ -26,6 +25,9 @@ import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -86,13 +88,6 @@ public class WikiButtonSurfaceTest
 				Class<?> type = method.getReturnType();
 				return type == boolean.class ? (Object) false : type.isPrimitive() ? (Object) 0 : null;
 			});
-		NpcLayer quiet = new NpcLayer()
-		{
-			@Override
-			public void paint(Graphics2D g, ViewTransform view, MapInfo viewed, PlayerPosition player)
-			{
-			}
-		};
 		ViewMemory memory = new ViewMemory(null)
 		{
 			@Override
@@ -109,8 +104,8 @@ public class WikiButtonSurfaceTest
 		PinStore pins = new PinStore(PinStore.Storage.inMemory(), new Gson());
 		ExternalOverlays external = new ExternalOverlays();
 		com.worldmapplus.pins.RouteStore routes = new com.worldmapplus.pins.RouteStore(PinStore.Storage.inMemory(), new Gson(), pins);
-		SurfaceServices services = new SurfaceServices(quiet, memory, pins, external, new MapActions(new EventBus(), external),
-			new Settings(null), new TrailTracker(), null, null, routes, new com.worldmapplus.pins.PanelLauncher());
+		SurfaceServices services = new SurfaceServices(memory, pins, external, new MapActions(new EventBus(), external),
+			new Settings(null), routes, new com.worldmapplus.pins.PanelLauncher());
 		surface = new MapSurface(client, assets, new WorldMapPlusConfig()
 		{
 			@Override
@@ -125,17 +120,32 @@ public class WikiButtonSurfaceTest
 				return wikiOn;
 			}
 		}, services);
-		surface.wikiOpener(title ->
-		{
-			opened.add(title);
-			return true;
-		});
 		searched.clear();
-		surface.wikiSearcher(name ->
-		{
-			searched.add(name);
-			return true;
-		});
+		// What the Helper's wiki button does, as a partner double that only sends messages.
+		PartnerDouble helper = new PartnerDouble(external, "helper");
+		helper.hello("part two");
+		// It names a page for a card that is for a shop, a quest or a kind of transport and has none for a layer of points.
+		helper.register("button", "wiki", 100, (Function<Map<String, Object>, List<String>>) subject ->
+			pageOf(subject) != null ? Arrays.asList("Wiki", "Open wiki page: " + pageOf(subject))
+				: subject.get("wikiSearch") != null ? Arrays.asList("Search wiki", "Search the wiki for " + subject.get("wikiSearch")) : null,
+			"click", (Function<Map<String, Object>, String>) subject ->
+			{
+				boolean page = pageOf(subject) != null;
+				(page ? opened : searched).add(page ? pageOf(subject) : (String) subject.get("wikiSearch"));
+				return "Opened.";
+			});
+	}
+
+	private static String pageOf(Map<String, Object> subject)
+	{
+		Object what = subject.get("what");
+		return what instanceof String && !((String) what).startsWith("layer") ? (String) subject.get("name") : null;
+	}
+
+	/** True for a card that is for something the double names a page for. */
+	private static boolean hasPage(String[] wiki)
+	{
+		return wiki != null && !wiki[0].startsWith("layer");
 	}
 
 	private final java.util.List<String> searched = new java.util.ArrayList<>();
@@ -195,7 +205,7 @@ public class WikiButtonSurfaceTest
 		{
 			if (spec.getMapId() != assets.getCatalog().surface().getId() || spec.getFloor() != 0 || spec.getCard() == null
 				|| spec.getX() < 3000 || spec.getX() > 3400 || spec.getY() < 3000 || spec.getY() > 3300
-				|| (spec.getCard().getCard().getWiki() != null) != withPage || spec.getCard().getTarget() != null)
+				|| (withPage ? !hasPage(spec.getCard().getCard().getWiki()) : spec.getCard().getCard().getWiki() != null) || spec.getCard().getTarget() != null)
 			{
 				continue;
 			}
@@ -223,7 +233,7 @@ public class WikiButtonSurfaceTest
 		GameIconSet.Spec quest = anIcon(true);
 		lookAt(quest.getX(), quest.getY(), 8.0);
 		hover(quest.getX(), quest.getY());
-		assertEquals(quest.getCard().getCard().getWiki(), surface.lastCard().getWiki());
+		org.junit.Assert.assertArrayEquals(quest.getCard().getCard().getWiki(), surface.lastCard().getWiki());
 		assertNotNull("a button", surface.wikiButton());
 		assertTrue("inside the card", surface.wikiButton().width > 0);
 		assertTrue(opened.isEmpty());
@@ -237,7 +247,7 @@ public class WikiButtonSurfaceTest
 		assertEquals(surface.lastCard().getTitle(), surface.lastCard().getWikiSearch());
 		Rectangle button = surface.wikiButton();
 		assertNotNull("a search button where there is no page", button);
-		assertEquals(HoverCardPainter.SEARCH_BUTTON_WIDTH, button.width);
+		assertEquals(72, button.width);
 		moveTo(button.x + button.width / 2, button.y + button.height / 2);
 		click(button.x + button.width / 2, button.y + button.height / 2, MouseEvent.BUTTON1);
 		assertTrue("no page was opened", opened.isEmpty());
@@ -248,7 +258,7 @@ public class WikiButtonSurfaceTest
 	public void thePointerCanCrossTheGapToTheCardAndPressTheButton()
 	{
 		GameIconSet.Spec quest = anIcon(true);
-		String title = quest.getCard().getCard().getWiki();
+		String title = quest.getCard().getCard().getWiki()[1];
 		lookAt(quest.getX(), quest.getY(), 8.0);
 		hover(quest.getX(), quest.getY());
 		Rectangle button = surface.wikiButton();
@@ -302,7 +312,7 @@ public class WikiButtonSurfaceTest
 	public void theMenuOfAnIconOffersToOpenItsWikiPage()
 	{
 		GameIconSet.Spec quest = anIcon(true);
-		String title = quest.getCard().getCard().getWiki();
+		String title = quest.getCard().getCard().getWiki()[1];
 		lookAt(quest.getX(), quest.getY(), 8.0);
 		ViewTransform view = surface.currentView();
 		int x = (int) Math.round(view.screenX(quest.getX()));
@@ -314,7 +324,7 @@ public class WikiButtonSurfaceTest
 		ContextMenu.Item item = null;
 		for (ContextMenu.Item candidate : surface.menu().getItems())
 		{
-			if (candidate.getAction() == ContextMenu.Action.OPEN_WIKI)
+			if (candidate.getAction() == ContextMenu.Action.CARD_BUTTON)
 			{
 				item = candidate;
 			}
@@ -352,8 +362,7 @@ public class WikiButtonSurfaceTest
 		click(x, y, MouseEvent.BUTTON3);
 		for (ContextMenu.Item candidate : surface.menu().getItems())
 		{
-			assertTrue(candidate.getAction() != ContextMenu.Action.OPEN_WIKI);
-			assertTrue(candidate.getAction() != ContextMenu.Action.SEARCH_WIKI);
+			assertTrue(candidate.getAction() != ContextMenu.Action.CARD_BUTTON);
 		}
 		// Nor a search button on a card with no page.
 		surface.menu().close();
@@ -379,8 +388,8 @@ public class WikiButtonSurfaceTest
 		ContextMenu.Item search = null;
 		for (ContextMenu.Item candidate : surface.menu().getItems())
 		{
-			assertTrue(candidate.getLabel(), candidate.getAction() != ContextMenu.Action.OPEN_WIKI);
-			if (candidate.getAction() == ContextMenu.Action.SEARCH_WIKI)
+			assertTrue(candidate.getLabel(), candidate.getAction() != ContextMenu.Action.CARD_BUTTON || candidate.getLabel().startsWith("Search the wiki"));
+			if (candidate.getAction() == ContextMenu.Action.CARD_BUTTON)
 			{
 				search = candidate;
 			}
@@ -390,11 +399,11 @@ public class WikiButtonSurfaceTest
 	}
 
 	@Test
-	public void aSearchResultsMenuOffersTheWikiPageOfAQuest()
+	public void aSearchResultsMenuOffersTheWikiPageOfATeleport()
 	{
 		frames(10);
 		surface.searchBox().focus();
-		for (char c : "cook's assistant".toCharArray())
+		for (char c : "varrock teleport".toCharArray())
 		{
 			surface.searchBox().type(c);
 		}
@@ -419,9 +428,9 @@ public class WikiButtonSurfaceTest
 		boolean offered = false;
 		for (ContextMenu.Item item : surface.menu().getItems())
 		{
-			offered |= item.getAction() == ContextMenu.Action.OPEN_WIKI;
+			offered |= item.getAction() == ContextMenu.Action.CARD_BUTTON;
 		}
-		assertEquals("the first result is the quest itself", "Cook's Assistant", surface.searchBox().getResults().get(0).getName());
+		assertEquals("the first result is the teleport itself", "Varrock Teleport", surface.searchBox().getResults().get(0).getName());
 		assertTrue(offered);
 	}
 }

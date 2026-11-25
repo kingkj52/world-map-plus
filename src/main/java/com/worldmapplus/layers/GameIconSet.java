@@ -1,13 +1,9 @@
 package com.worldmapplus.layers;
 
-import com.worldmapplus.unlock.Need;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nullable;
+import com.worldmapplus.unlock.*;
+import java.util.*;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * Every icon the game's own list puts on the maps, indexed by place so a view finds what is on screen without testing them all.
@@ -24,12 +20,19 @@ public final class GameIconSet
 	/** An icon before it is indexed. */
 	public static final class Spec
 	{
+		@Getter
 		private final int mapId;
+		@Getter
 		private final double x;
+		@Getter
 		private final double y;
+		@Getter
 		private final int picture;
+		@Getter
 		private final int floor;
+		@Getter
 		private final int category;
+		@Getter
 		private final int priority;
 		private final Hotspot card;
 		private final List<IconExtra> extras;
@@ -59,7 +62,7 @@ public final class GameIconSet
 			@Nullable List<IconExtra> extras, @Nullable Need need)
 		{
 			this.need = need;
-			this.extras = extras == null || extras.isEmpty() ? null : java.util.Collections.unmodifiableList(new ArrayList<>(extras));
+			this.extras = extras == null || extras.isEmpty() ? null : Collections.unmodifiableList(new ArrayList<>(extras));
 			this.mapId = mapId;
 			this.x = x;
 			this.y = y;
@@ -68,41 +71,6 @@ public final class GameIconSet
 			this.category = category;
 			this.priority = priority;
 			this.card = card;
-		}
-
-		public int getMapId()
-		{
-			return mapId;
-		}
-
-		public double getX()
-		{
-			return x;
-		}
-
-		public double getY()
-		{
-			return y;
-		}
-
-		public int getPicture()
-		{
-			return picture;
-		}
-
-		public int getFloor()
-		{
-			return floor;
-		}
-
-		public int getCategory()
-		{
-			return category;
-		}
-
-		public int getPriority()
-		{
-			return priority;
 		}
 
 		@Nullable
@@ -120,13 +88,14 @@ public final class GameIconSet
 		/** What was merged into the icon, or an empty list. */
 		public List<IconExtra> getExtras()
 		{
-			return extras == null ? java.util.Collections.emptyList() : extras;
+			return extras == null ? Collections.emptyList() : extras;
 		}
 	}
 
 	/** The icons of one map, in cell order. */
 	public static final class MapIcons
 	{
+		@Getter
 		private final int mapId;
 		private final int minCellX;
 		private final int minCellY;
@@ -206,11 +175,6 @@ public final class GameIconSet
 			}
 		}
 
-		public int getMapId()
-		{
-			return mapId;
-		}
-
 		/** How many icons the map has. */
 		public int size()
 		{
@@ -273,7 +237,7 @@ public final class GameIconSet
 		/** What the plugin's points of interest merged into an icon add to its card, or an empty list. */
 		public List<IconExtra> extras(int i)
 		{
-			return extras[i] == null ? java.util.Collections.emptyList() : extras[i];
+			return extras[i] == null ? Collections.emptyList() : extras[i];
 		}
 
 		/**
@@ -314,7 +278,7 @@ public final class GameIconSet
 
 	private final MapIcons[] byMap;
 	private final int count;
-	private final java.util.Set<Hotspot> cards = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<>());
+	private final Set<Hotspot> cards = Collections.newSetFromMap(new IdentityHashMap<>());
 
 	public GameIconSet(List<Spec> specs)
 	{

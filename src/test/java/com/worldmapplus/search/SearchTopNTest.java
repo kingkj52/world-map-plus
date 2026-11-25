@@ -155,6 +155,6 @@ public class SearchTopNTest
 
 	private static SearchEntry entry(String category)
 	{
-		return new SearchEntry(SearchKind.PLACE, "N", "d", 0, 1, 1, new ArrayList<>(), -1, category);
+		return new SearchEntry(SearchKind.PLACE, "N", "d", 0, 1, 1, new ArrayList<>(), category);
 	}
 }

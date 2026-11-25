@@ -1,16 +1,11 @@
 package com.worldmapplus.ui;
 
-import com.worldmapplus.theme.Palette;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.Collections;
+import com.worldmapplus.theme.*;
+import java.awt.*;
+import java.util.*;
 import java.util.List;
-import javax.annotation.Nullable;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * The small menu that opens on a right click inside the map.
@@ -37,58 +32,37 @@ public final class ContextMenu
 		REMOVE_PIN,
 		SAVE_PLACE,
 		SHOW_RESULT,
-		OPEN_WIKI,
-		SEARCH_WIKI,
+		/** The button a partner put on cards (the Wiki button), pressed from the menu. */
+		CARD_BUTTON,
 		MEASURE,
 		STOP_MEASURING,
-		/** An entry another plugin added to its own marker: the choice is told to that plugin and nothing else happens. */
-		MARKER_OPTION,
-		/** Takes this map to where a point of the game's map jumps to, as RuneLite's own "Focus on" entry does on that map. */
-		FOCUS_MARKER,
-		FOLLOW_MEMBER,
-		STOP_FOLLOWING
+		/** An entry another plugin added through the plugin API: the choice is told to that plugin. */
+		PARTNER_OPTION
 	}
 
 	/** One line of the menu. */
+	@Getter
+	@RequiredArgsConstructor
 	public static final class Item
 	{
 		private final Action action;
 		private final String label;
-
-		public Item(Action action, String label)
-		{
-			this.action = action;
-			this.label = label;
-		}
-
-		public Action getAction()
-		{
-			return action;
-		}
-
-		public String getLabel()
-		{
-			return label;
-		}
 	}
 
 	static final int ROW_HEIGHT = 22;
 	static final int PADDING = 6;
 	static final int MIN_WIDTH = 150;
 
-
+	/** The items on the menu, top to bottom. */
+	@Getter
 	private List<Item> items = Collections.emptyList();
 	private Rectangle bounds = new Rectangle();
 	private Rectangle limit = new Rectangle();
+	@Getter
 	private boolean open;
 	private Object subject;
 	private final Scroller scroller = new Scroller();
 	private int visibleRows;
-
-	public boolean isOpen()
-	{
-		return open;
-	}
 
 	public Rectangle getBounds()
 	{
@@ -99,12 +73,6 @@ public final class ContextMenu
 	public boolean contains(int x, int y)
 	{
 		return open && bounds.contains(x, y);
-	}
-
-	/** The items on the menu, top to bottom. */
-	public List<Item> getItems()
-	{
-		return items;
 	}
 
 	/** What the menu was opened about, such as the world position under the click. */
@@ -250,7 +218,7 @@ public final class ContextMenu
 		{
 			return;
 		}
-		java.awt.Composite faded = appear.begin(g, now);
+		Composite faded = appear.begin(g, now);
 		try
 		{
 			paintRows(g, mouse, now);
@@ -276,7 +244,7 @@ public final class ContextMenu
 		Item hovered = mouse == null ? null : hit(mouse.x, mouse.y);
 		Rectangle area = rowsArea();
 		int room = bounds.width - PADDING * 2 - (scroller.isScrollable() ? Scroller.WIDTH + 2 : 0);
-		java.awt.Shape before = g.getClip();
+		Shape before = g.getClip();
 		g.clipRect(area.x, area.y, area.width, area.height);
 		Item cut = null;
 		int cutRow = -1;

@@ -1,5 +1,7 @@
 package com.worldmapplus.view;
 
+import lombok.*;
+
 /**
  * The zoom level and how mouse wheel input changes it.
  * <p>
@@ -40,7 +42,9 @@ public final class ZoomModel
 	/** The shown and target zoom are treated as equal once this close, in doublings. */
 	private static final double SETTLED = 0.0005;
 
+	@Getter
 	private double minPixelsPerTile = MIN_PIXELS_PER_TILE;
+	@Getter
 	private double maxPixelsPerTile = MAX_PIXELS_PER_TILE;
 	private double speed = 1.0;
 	private double acceleration = 1.0;
@@ -78,16 +82,6 @@ public final class ZoomModel
 		maxPixelsPerTile = hi;
 		shownLog2 = Math.max(toLog2(minPixelsPerTile), Math.min(toLog2(maxPixelsPerTile), shownLog2));
 		targetLog2 = Math.max(toLog2(minPixelsPerTile), Math.min(toLog2(maxPixelsPerTile), targetLog2));
-	}
-
-	public double getMinPixelsPerTile()
-	{
-		return minPixelsPerTile;
-	}
-
-	public double getMaxPixelsPerTile()
-	{
-		return maxPixelsPerTile;
 	}
 
 	static double toLog2(double value)

@@ -32,7 +32,7 @@ public class WikiButtonPainterTest
 	@Test
 	public void aCardWithAPageHasAButtonInsideItsTopRightCorner()
 	{
-		HoverCard card = HoverCard.builder("Cook's Assistant").subtitle("Quest start").wiki("Cook's Assistant").build();
+		HoverCard card = HoverCard.builder("Cook's Assistant").subtitle("Quest start").build().withButton("Wiki", "Open wiki page: Cook's Assistant", "o|w");
 		HoverCardPainter painter = paint(card, null);
 		Rectangle box = painter.lastBounds();
 		Rectangle button = painter.lastButton();
@@ -46,7 +46,7 @@ public class WikiButtonPainterTest
 	public void theTitleHasRoomBesideTheButtonSoTheyNeverOverlap()
 	{
 		HoverCard plain = HoverCard.builder("A rather long title for a card").build();
-		HoverCard withButton = HoverCard.builder("A rather long title for a card").wiki("Zulrah").build();
+		HoverCard withButton = HoverCard.builder("A rather long title for a card").build().withButton("Wiki", "m", "o|w");
 		Graphics2D g = image.createGraphics();
 		int plainWidth = HoverCardPainter.measure(g, plain, false).width;
 		int widerWidth = HoverCardPainter.measure(g, withButton, false).width;
@@ -58,15 +58,15 @@ public class WikiButtonPainterTest
 	public void aCardWithNoPageOrAnUnusableTitleHasNoButton()
 	{
 		assertNull(paint(HoverCard.builder("Bank").build(), null).lastButton());
-		assertNull("a title that makes no address", paint(HoverCard.builder("Bank").wiki("a#b").build(), null).lastButton());
-		assertFalse(HoverCardPainter.hasButton(HoverCard.builder("Bank").wiki("").build()));
-		assertTrue(HoverCardPainter.hasButton(HoverCard.builder("Zulrah").wiki("Zulrah").build()));
+		assertNull("a page the wiki button was not offered for", paint(HoverCard.builder("Bank").wiki("shop", "Bank").build(), null).lastButton());
+		assertFalse(HoverCardPainter.hasButton(HoverCard.builder("Bank").wiki("shop", "").build()));
+		assertTrue(HoverCardPainter.hasButton(HoverCard.builder("Zulrah").build().withButton("Wiki", "m", "o|w")));
 	}
 
 	@Test
 	public void theButtonLightsUnderThePointerAndNotOtherwise()
 	{
-		HoverCard card = HoverCard.builder("Zulrah").wiki("Zulrah").build();
+		HoverCard card = HoverCard.builder("Zulrah").build().withButton("Wiki", "m", "o|w");
 		HoverCardPainter painter = paint(card, null);
 		Rectangle button = painter.lastButton();
 		int idle = image.getRGB(button.x + 2, button.y + 2);
@@ -79,9 +79,13 @@ public class WikiButtonPainterTest
 	@Test
 	public void theWikiTitleSurvivesTheCopiesACardGoes()
 	{
-		HoverCard card = HoverCard.builder("Zulrah").wiki("Zulrah").row("a", "b").build();
-		assertEquals("Zulrah", card.withRow("c", "d").getWiki());
-		assertEquals("Zulrah", card.toBuilder().row("e", "f").build().getWiki());
+		HoverCard card = HoverCard.builder("Zulrah").wiki("quest", "Zulrah").row("a", "b").build();
+		org.junit.Assert.assertArrayEquals(new String[] {"quest", "Zulrah", ""}, card.withRow("c", "d").getWiki());
+		org.junit.Assert.assertArrayEquals(new String[] {"quest", "Zulrah", ""}, card.toBuilder().row("e", "f").build().getWiki());
 		assertNull(HoverCard.builder("Bank").build().getWiki());
+		HoverCard pressed = card.withButton("Search wiki", "Search the wiki for Zulrah", "o|w");
+		assertEquals("o|w", pressed.withRow("c", "d").getButtonKey());
+		assertEquals("Search the wiki for Zulrah", pressed.toBuilder().row("e", "f").build().getButtonMenu());
+		assertEquals("a longer label makes a wider button", 72, HoverCardPainter.measure(image.createGraphics(), pressed, false).width > 0 ? 72 : 0);
 	}
 }

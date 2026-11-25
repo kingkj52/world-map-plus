@@ -233,7 +233,7 @@ public class MapElementsTest
 	@Test
 	public void aQuestIconIsNamedAfterTheQuestThatStartsBesideIt()
 	{
-		List<com.worldmapplus.search.SearchEntry> known = SpawnLoader.load(catalog);
+		List<com.worldmapplus.search.SearchEntry> known = PlaceLoader.quests(GSON, catalog);
 		MapElements named = MapElements.load(GSON, catalog, existing, known);
 		int quests = 0;
 		int generic = 0;

@@ -6,10 +6,8 @@ import com.worldmapplus.WorldMapPlusConfig;
 import com.worldmapplus.bridge.ExternalOverlays;
 import com.worldmapplus.bridge.MapActions;
 import com.worldmapplus.game.PlayerPosition;
-import com.worldmapplus.game.TrailTracker;
 import com.worldmapplus.layers.Hotspot;
 import com.worldmapplus.layers.HoverCard;
-import com.worldmapplus.layers.NpcLayer;
 import com.worldmapplus.map.MapInfo;
 import com.worldmapplus.pins.PinStore;
 import com.worldmapplus.prefs.Settings;
@@ -72,25 +70,17 @@ public class HoverCostTest
 	{
 		Assume.assumeTrue(System.getenv("WORLDMAPPLUS_PERF") != null);
 		ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
-		MapAssets assets = new MapAssets(new Gson(), executor);
+		MapAssets assets = new MapAssets(new Gson(), executor, new com.worldmapplus.tiles.SourceTiles(new Gson()));
 		PinStore pins = new PinStore(PinStore.Storage.inMemory(), new Gson());
 		ExternalOverlays external = new ExternalOverlays();
-		NpcLayer quiet = new NpcLayer()
-		{
-			@Override
-			public void paint(Graphics2D g, ViewTransform view, MapInfo viewed, PlayerPosition player)
-			{
-			}
-		};
-		SurfaceServices services = new SurfaceServices(quiet, new ViewMemory(null)
+		SurfaceServices services = new SurfaceServices(new ViewMemory(null)
 		{
 			@Override
 			public Saved load(String slot)
 			{
 				return null;
 			}
-		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), new TrailTracker(),
-			new com.google.gson.Gson());
+		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), new com.google.gson.Gson());
 		MapSurface surface = new MapSurface(client(), assets, new WorldMapPlusConfig()
 		{
 			@Override
@@ -177,7 +167,7 @@ public class HoverCostTest
 	{
 		Assume.assumeTrue(System.getenv("WORLDMAPPLUS_PERF") != null);
 		ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
-		MapAssets assets = new MapAssets(new Gson(), executor);
+		MapAssets assets = new MapAssets(new Gson(), executor, new com.worldmapplus.tiles.SourceTiles(new Gson()));
 		HoverCardPainter painter = new HoverCardPainter(assets.getCatalog(), assets.getRenderer());
 		MapInfo dungeon = null;
 		for (MapInfo m : assets.getCatalog().getMaps())

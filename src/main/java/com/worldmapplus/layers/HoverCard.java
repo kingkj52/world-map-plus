@@ -1,9 +1,8 @@
 package com.worldmapplus.layers;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import javax.annotation.Nullable;
+import java.util.*;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * What the box beside the mouse says about the thing under it.
@@ -14,6 +13,7 @@ import javax.annotation.Nullable;
 public final class HoverCard
 {
 	/** One row: a label on the left, a value on the right. */
+	@Getter
 	public static final class Row
 	{
 		private final String label;
@@ -24,34 +24,37 @@ public final class HoverCard
 			this.label = label == null ? "" : label;
 			this.value = value == null ? "" : value;
 		}
-
-		public String getLabel()
-		{
-			return label;
-		}
-
-		public String getValue()
-		{
-			return value;
-		}
 	}
 
+	@Getter
 	private final String title;
 	private final String subtitle;
+	@Getter
 	private final List<Row> rows;
+	/**
+	 * Rows that did not fit in the short card. They are shown too when the card is expanded, which
+	 * the viewer does while a key is held, so a long list can be read in full.
+	 */
+	@Getter
 	private final List<Row> overflow;
+	/** The id of a map to show a small picture of, or -1 for none. */
+	@Getter
 	private final int previewMapId;
+	@Getter
 	private final double previewX;
+	@Getter
 	private final double previewY;
 	private final boolean previewFocus;
 	private final String hint;
-	private final String wiki;
+	private final String[] wiki;
 	private final String wikiSearch;
+	private final String[] button;
 
 	private HoverCard(Builder builder)
 	{
 		this.wiki = builder.wiki;
 		this.wikiSearch = builder.wikiSearch;
+		this.button = builder.button;
 		this.title = builder.title;
 		this.subtitle = builder.subtitle;
 		this.rows = Collections.unmodifiableList(new ArrayList<>(builder.rows));
@@ -63,11 +66,6 @@ public final class HoverCard
 		this.hint = builder.hint;
 	}
 
-	public String getTitle()
-	{
-		return title;
-	}
-
 	/** True when the other card says and shows exactly what this one does. Makes no garbage. */
 	public boolean sameContent(@Nullable HoverCard other)
 	{
@@ -77,9 +75,9 @@ public final class HoverCard
 		}
 		return other != null && previewMapId == other.previewMapId && previewFocus == other.previewFocus
 			&& previewX == other.previewX && previewY == other.previewY
-			&& title.equals(other.title) && java.util.Objects.equals(subtitle, other.subtitle)
-			&& java.util.Objects.equals(hint, other.hint) && java.util.Objects.equals(wiki, other.wiki)
-			&& java.util.Objects.equals(wikiSearch, other.wikiSearch)
+			&& title.equals(other.title) && Objects.equals(subtitle, other.subtitle)
+			&& Objects.equals(hint, other.hint) && java.util.Arrays.equals(wiki, other.wiki)
+			&& Objects.equals(wikiSearch, other.wikiSearch) && java.util.Arrays.equals(button, other.button)
 			&& sameRows(rows, other.rows) && sameRows(overflow, other.overflow);
 	}
 
@@ -108,20 +106,6 @@ public final class HoverCard
 		return subtitle;
 	}
 
-	public List<Row> getRows()
-	{
-		return rows;
-	}
-
-	/**
-	 * Rows that did not fit in the short card. They are shown too when the card is expanded, which
-	 * the viewer does while a key is held, so a long list can be read in full.
-	 */
-	public List<Row> getOverflow()
-	{
-		return overflow;
-	}
-
 	/**
 	 * The rows to draw. Collapsed, the normal rows and a note counting what is hidden. Expanded,
 	 * the normal rows followed by all of the overflow.
@@ -144,26 +128,10 @@ public final class HoverCard
 		return result;
 	}
 
-	/** The id of a map to show a small picture of, or -1 for none. */
-	public int getPreviewMapId()
-	{
-		return previewMapId;
-	}
-
 	/** True when the preview should be centred on {@link #getPreviewX()}, {@link #getPreviewY()} rather than show the whole map. */
 	public boolean hasPreviewFocus()
 	{
 		return previewFocus;
-	}
-
-	public double getPreviewX()
-	{
-		return previewX;
-	}
-
-	public double getPreviewY()
-	{
-		return previewY;
 	}
 
 	public boolean hasPreview()
@@ -178,20 +146,19 @@ public final class HoverCard
 	}
 
 	/**
-	 * The title of the Old School RuneScape Wiki page about what the card is for, spelt as that page is, or null when the card is for
-	 * something that has no page of its own to send a player to. The title is not yet checked for use in an address, see
-	 * {@code WikiLinks}.
+	 * What the card is for, in three words for the Helper to name a wiki page from: the sort of thing ({@code shop}, {@code transport},
+	 * {@code quest}, {@code layer} and the layer's name), its name and what the data says of it. Null for a card that is for nothing the wiki has a page for.
 	 */
 	@Nullable
-	public String getWiki()
+	public String[] getWiki()
 	{
 		return wiki;
 	}
 
 	/**
 	 * A name to look up with the wiki's search page, for a card with no page of its own that is certain to exist, or null. The search
-	 * page always answers, so the player lands on a list of results and never on a missing page. Only used when {@link #getWiki()} is
-	 * null.
+	 * page always answers, so the player lands on a list of results and never on a missing page. Only used when the Helper finds no page
+	 * for {@link #getWiki()}.
 	 */
 	@Nullable
 	public String getWikiSearch()
@@ -199,10 +166,37 @@ public final class HoverCard
 		return wikiSearch;
 	}
 
-	/** This card with a name to look up on the wiki's search page, when it names no page of its own. The card itself otherwise. */
+	/** The text of the button a partner put on this card, or null for none. */
+	@Nullable
+	public String getButtonLabel()
+	{
+		return button == null ? null : button[0];
+	}
+
+	/** The text of the right click menu entry that does what the button does, or null. */
+	@Nullable
+	public String getButtonMenu()
+	{
+		return button == null ? null : button[1];
+	}
+
+	/** The key of the partner button on this card (see Partners.press), or null. */
+	@Nullable
+	public String getButtonKey()
+	{
+		return button == null ? null : button[2];
+	}
+
+	/** This card with a partner's button: its text, its menu text and its key. */
+	public HoverCard withButton(String label, String menu, String key)
+	{
+		return toBuilder().button(new String[] {label, menu, key}).build();
+	}
+
+	/** This card with a name to look up on the wiki's search page, when there is no page. The card itself without a name. */
 	public HoverCard withWikiSearch(@Nullable String name)
 	{
-		return wiki != null || name == null ? this : toBuilder().wikiSearch(name).build();
+		return name == null ? this : toBuilder().wikiSearch(name).build();
 	}
 
 	public static Builder builder(String title)
@@ -225,13 +219,14 @@ public final class HoverCard
 		copy.hint = hint;
 		copy.wiki = wiki;
 		copy.wikiSearch = wikiSearch;
+		copy.button = button;
 		return new HoverCard(copy);
 	}
 
 	/** This card with no wiki page or search named, so it gets no Wiki button. The card itself when it names neither. */
 	public HoverCard withoutWiki()
 	{
-		return wiki == null && wikiSearch == null ? this : toBuilder().wiki(null).wikiSearch(null).build();
+		return wiki == null && wikiSearch == null ? this : toBuilder().wiki(null, null).wikiSearch(null).build();
 	}
 
 	/** A builder holding what this card has, to change a part of it or add to it. */
@@ -248,6 +243,7 @@ public final class HoverCard
 		copy.hint = hint;
 		copy.wiki = wiki;
 		copy.wikiSearch = wikiSearch;
+		copy.button = button;
 		return copy;
 	}
 
@@ -262,8 +258,9 @@ public final class HoverCard
 		private double previewY;
 		private boolean previewFocus;
 		private String hint;
-		private String wiki;
+		private String[] wiki;
 		private String wikiSearch;
+		private String[] button;
 
 		private Builder(String title)
 		{
@@ -318,6 +315,12 @@ public final class HoverCard
 			return this;
 		}
 
+		Builder button(String[] button)
+		{
+			this.button = button;
+			return this;
+		}
+
 		/** Names the wiki page about what this card is for. Null, or never calling this, means the card has no wiki button. */
 		/** Names something to look up on the wiki's search page when the card has no page of its own. */
 		public Builder wikiSearch(String name)
@@ -326,9 +329,14 @@ public final class HoverCard
 			return this;
 		}
 
-		public Builder wiki(String title)
+		public Builder wiki(String what, String name)
 		{
-			this.wiki = title;
+			return wiki(what, name, "");
+		}
+
+		public Builder wiki(String what, String name, String detail)
+		{
+			this.wiki = name == null ? null : new String[] {what, name, detail == null ? "" : detail};
 			return this;
 		}
 

@@ -2,8 +2,11 @@
 
 A share code carries a pin, a route or a set of places as a short text that a player types into the game's chat after
 the command `!wmp`. Everything needed to rebuild it is in the code: no server, no network, no lookup table. The
-implementation is `com.worldmapplus.share.ShareCodec` (no RuneLite dependency) and the tests are `ShareCodecTest`
-(golden vectors, round trips, damaged input), `ShareInboxTest`, `ShareImportTest`, `PasteReaderTest` and `bridge/ShareChatTest`.
+implementation is `com.worldmapplus.helper.share.ShareCodec` (no RuneLite dependency) and the tests are `ShareCodecTest`
+(golden vectors, round trips, damaged input), `ShareInboxTest`, `PasteReaderTest` and `chat/ShareChatTest`. Since round 56B all of
+this lives in the World Map Plus Helper plugin (its own repository, `World Map Plus Helper`, next to this one); this plugin keeps
+only the buttons and the saving of the places (`Partners`, the `create` kinds `shared_pins` and `shared_route`, tested by
+`PartnersTest`). The wire format did not change in the move.
 
 **Stability.** A version 1 code must always decode to the same value. Nothing in this document may change meaning. A
 change of layout needs version 2 (the second character), which version 1 readers refuse with "made by a newer version".

@@ -1,15 +1,15 @@
 package com.worldmapplus.bridge;
 
-import java.util.function.BooleanSupplier;
-import java.util.function.IntConsumer;
-import java.util.function.LongSupplier;
-import net.runelite.api.SoundEffectID;
+import java.util.function.*;
+import lombok.*;
+import net.runelite.api.*;
 
 /**
  * Short cues from the game's own sound effects, for the setting "Sounds" (off by default). Only the game's sound ids
  * ({@link SoundEffectID}) are used, through {@code Client.playSoundEffect(int)}, which plays at the player's own sound effect
  * volume. Never more than one cue in 150 ms. Must be called on the client thread, where the map draws and chat is read.
  */
+@RequiredArgsConstructor
 public final class Sounds
 {
 	/** What a cue is for. */
@@ -18,8 +18,7 @@ public final class Sounds
 		OPEN(SoundEffectID.UI_BOOP),
 		CLOSE(SoundEffectID.UI_BOOP),
 		CHOOSE(SoundEffectID.UI_BOOP),
-		PIN(SoundEffectID.UI_BOOP),
-		SHARE_COMPLETE(SoundEffectID.GE_ADD_OFFER_DINGALING);
+		PIN(SoundEffectID.UI_BOOP);
 
 		private final int id;
 
@@ -40,13 +39,6 @@ public final class Sounds
 	private final IntConsumer player;
 	private final LongSupplier clock;
 	private long last = Long.MIN_VALUE;
-
-	public Sounds(BooleanSupplier enabled, IntConsumer player, LongSupplier clock)
-	{
-		this.enabled = enabled;
-		this.player = player;
-		this.clock = clock;
-	}
 
 	/** Plays the cue if the setting is on and the last cue was long enough ago. */
 	public void cue(Cue cue)

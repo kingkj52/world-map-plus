@@ -11,7 +11,7 @@ import static org.junit.Assert.assertTrue;
 import com.worldmapplus.map.MapInfo;
 import com.worldmapplus.unlock.Need;
 import com.worldmapplus.unlock.Needs;
-import com.worldmapplus.unlock.Unlocks;
+import com.worldmapplus.unlock.FakeProgress;
 import com.worldmapplus.view.ViewTransform;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -40,7 +40,7 @@ public class GameIconProgressTest
 
 	private final Map<Skill, Integer> levels = new EnumMap<>(Skill.class);
 	private final Map<Quest, QuestState> quests = new EnumMap<>(Quest.class);
-	private Unlocks unlocks;
+	private FakeProgress unlocks;
 	private GameIconLayer layer;
 
 	@BeforeClass
@@ -72,7 +72,7 @@ public class GameIconProgressTest
 		levels.put(Skill.AGILITY, 50);
 		levels.put(Skill.MAGIC, 50);
 		quests.put(Quest.PRIEST_IN_PERIL, QuestState.FINISHED);
-		unlocks = new Unlocks(new Unlocks.Source()
+		unlocks = new FakeProgress(new FakeProgress.Source()
 		{
 			@Override
 			public boolean loggedIn()

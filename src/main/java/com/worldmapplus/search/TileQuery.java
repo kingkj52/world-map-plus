@@ -1,8 +1,7 @@
 package com.worldmapplus.search;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.annotation.Nullable;
+import java.util.regex.*;
+import javax.annotation.*;
 
 /**
  * Reads a typed tile such as {@code 3222 3218}, {@code 3222, 3218, 1} or {@code (3222,3218)}, the way

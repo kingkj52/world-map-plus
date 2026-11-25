@@ -1,5 +1,7 @@
 package com.worldmapplus.view;
 
+import lombok.*;
+
 /**
  * Maps between world tile coordinates and canvas pixels for one frame of the viewer.
  * <p>
@@ -12,12 +14,19 @@ package com.worldmapplus.view;
  */
 public final class ViewTransform
 {
+	@Getter
 	private final double centerX;
+	@Getter
 	private final double centerY;
+	@Getter
 	private final double pixelsPerTile;
+	@Getter
 	private final int left;
+	@Getter
 	private final int top;
+	@Getter
 	private final int width;
+	@Getter
 	private final int height;
 
 	public ViewTransform(double centerX, double centerY, double pixelsPerTile,
@@ -34,41 +43,6 @@ public final class ViewTransform
 		this.top = top;
 		this.width = Math.max(1, width);
 		this.height = Math.max(1, height);
-	}
-
-	public double getCenterX()
-	{
-		return centerX;
-	}
-
-	public double getCenterY()
-	{
-		return centerY;
-	}
-
-	public double getPixelsPerTile()
-	{
-		return pixelsPerTile;
-	}
-
-	public int getLeft()
-	{
-		return left;
-	}
-
-	public int getTop()
-	{
-		return top;
-	}
-
-	public int getWidth()
-	{
-		return width;
-	}
-
-	public int getHeight()
-	{
-		return height;
 	}
 
 	/** Canvas x of the vertical centre line of the view. */

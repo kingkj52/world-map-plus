@@ -1,13 +1,9 @@
 package com.worldmapplus.layers;
 
-import com.worldmapplus.view.ViewTransform;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Predicate;
-import javax.annotation.Nullable;
+import com.worldmapplus.view.*;
+import java.util.*;
+import java.util.function.*;
+import javax.annotation.*;
 
 /**
  * Finds the hotspot under the mouse without testing all of them.

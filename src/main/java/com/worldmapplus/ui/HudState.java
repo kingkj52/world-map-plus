@@ -1,8 +1,8 @@
 package com.worldmapplus.ui;
 
-import com.worldmapplus.WorldMapPlusConfig;
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import com.worldmapplus.*;
+import javax.inject.*;
+import lombok.*;
 
 /**
  * Whether the floating map is showing and whether the mouse passes through it.
@@ -11,6 +11,7 @@ import javax.inject.Singleton;
  * thread, so both are volatile.
  */
 @Singleton
+@Getter
 public class HudState
 {
 	private volatile boolean visible;
@@ -20,16 +21,6 @@ public class HudState
 	public HudState(WorldMapPlusConfig config)
 	{
 		clickThrough = config.hudStartsClickThrough();
-	}
-
-	public boolean isVisible()
-	{
-		return visible;
-	}
-
-	public boolean isClickThrough()
-	{
-		return clickThrough;
 	}
 
 	public void toggleVisible()

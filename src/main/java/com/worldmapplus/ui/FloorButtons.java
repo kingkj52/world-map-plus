@@ -1,10 +1,9 @@
 package com.worldmapplus.ui;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import javax.annotation.Nullable;
+import com.worldmapplus.layers.*;
+import java.awt.*;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * Two buttons above the corner column that move the map up and down a floor.
@@ -20,19 +19,14 @@ public final class FloorButtons
 		DOWN
 	}
 
-
 	private final Rectangle[] rects = new Rectangle[Button.values().length];
+	@Getter
 	private boolean shown;
 
 	/** Whether the buttons are in use. Hidden buttons are neither drawn nor hit. */
 	public void setShown(boolean shown)
 	{
 		this.shown = shown;
-	}
-
-	public boolean isShown()
-	{
-		return shown;
 	}
 
 	/** Stacks the pair directly above another button, in the same column. */
@@ -121,6 +115,6 @@ public final class FloorButtons
 	/** What the floor is called on the map, in the game's UK words: Ground floor, 1st floor, 2nd floor, 3rd floor. */
 	public static String name(int floor)
 	{
-		return com.worldmapplus.layers.FloorNames.name(floor);
+		return FloorNames.name(floor);
 	}
 }

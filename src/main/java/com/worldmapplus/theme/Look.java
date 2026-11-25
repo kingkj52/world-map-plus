@@ -1,7 +1,7 @@
 package com.worldmapplus.theme;
 
-import com.worldmapplus.panel.PanelTheme;
-import com.worldmapplus.ui.Theme;
+import com.worldmapplus.panel.*;
+import com.worldmapplus.ui.*;
 
 /** Puts a theme into use: the palette, the in-map chrome and the side panel's colours. */
 public final class Look

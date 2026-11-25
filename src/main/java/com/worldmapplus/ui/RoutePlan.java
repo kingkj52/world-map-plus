@@ -1,10 +1,9 @@
 package com.worldmapplus.ui;
 
-import com.worldmapplus.bridge.RouteHop;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import javax.annotation.Nullable;
+import com.worldmapplus.bridge.*;
+import java.util.*;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * A route as a short list of steps: walk, take a jump, walk, and so on.
@@ -23,14 +22,27 @@ public final class RoutePlan
 	/** One step of the route. */
 	public static final class Step
 	{
+		@Getter
 		private final boolean walk;
+		/** What to do, such as {@code Walk about 40 tiles} or {@code Ardougne cloak: Kandarin Monastery}. */
+		@Getter
 		private final String text;
+		@Getter
 		private final double fromX;
+		@Getter
 		private final double fromY;
+		@Getter
 		private final double toX;
+		@Getter
 		private final double toY;
+		/** For a walk, how many tiles it is, going diagonally where that helps. */
+		@Getter
 		private final int tiles;
+		/** The floor the step starts on. */
+		@Getter
 		private final int fromPlane;
+		/** The floor the step ends on. */
+		@Getter
 		private final int toPlane;
 
 		Step(boolean walk, String text, double fromX, double fromY, int fromPlane, double toX, double toY, int toPlane,
@@ -46,57 +58,9 @@ public final class RoutePlan
 			this.toY = toY;
 			this.tiles = tiles;
 		}
-
-		public boolean isWalk()
-		{
-			return walk;
-		}
-
-		/** What to do, such as {@code Walk about 40 tiles} or {@code Ardougne cloak: Kandarin Monastery}. */
-		public String getText()
-		{
-			return text;
-		}
-
-		public double getFromX()
-		{
-			return fromX;
-		}
-
-		public double getFromY()
-		{
-			return fromY;
-		}
-
-		public double getToX()
-		{
-			return toX;
-		}
-
-		public double getToY()
-		{
-			return toY;
-		}
-
-		/** The floor the step starts on. */
-		public int getFromPlane()
-		{
-			return fromPlane;
-		}
-
-		/** The floor the step ends on. */
-		public int getToPlane()
-		{
-			return toPlane;
-		}
-
-		/** For a walk, how many tiles it is, going diagonally where that helps. */
-		public int getTiles()
-		{
-			return tiles;
-		}
 	}
 
+	@Getter
 	private final List<Step> steps;
 
 	private RoutePlan(List<Step> steps)
@@ -107,11 +71,6 @@ public final class RoutePlan
 	public static RoutePlan empty()
 	{
 		return new RoutePlan(new ArrayList<>());
-	}
-
-	public List<Step> getSteps()
-	{
-		return steps;
 	}
 
 	public boolean isEmpty()

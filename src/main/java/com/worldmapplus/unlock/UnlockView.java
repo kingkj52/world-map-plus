@@ -1,10 +1,10 @@
 package com.worldmapplus.unlock;
 
-import javax.annotation.Nullable;
+import javax.annotation.*;
 
 /**
- * What the map may ask about the player's progress. Every answer is safe to ask on any thread and says "no" when it cannot tell, so a
- * caller that hides or marks things on a "yes" can never hide or mark them wrongly.
+ * What the map may ask about the player's progress, as the Helper judged it for each {@link Need}. Every answer is safe to ask on any
+ * thread and says "no" when it cannot tell, so a caller that hides or marks things on a "yes" can never hide or mark them wrongly.
  */
 public interface UnlockView
 {
@@ -27,15 +27,18 @@ public interface UnlockView
 	}
 
 	/** True only when the quest this need starts is known to be finished. */
-	boolean finished(Need need);
-
-	/** True only when the quest of this name is known to be finished. A name the game's quest list does not have gives false. */
-	boolean finishedQuest(@Nullable String questName);
+	default boolean finished(Need need)
+	{
+		return questProgress(need) == QUEST_FINISHED;
+	}
 
 	/** True when something is certainly missing for a need. Allocates nothing, so it may be asked for every icon of a view. */
-	boolean lacks(Need need);
+	default boolean lacks(Need need)
+	{
+		return shortfall(need) != null;
+	}
 
-	/** What is certainly missing for a need, or null when it can be used or when that cannot be told. */
+	/** What is certainly missing for a need, as a card words it ({@code 67 Sailing, Monkey Madness I}), or null when it can be used or when that cannot be told. */
 	@Nullable
-	Shortfall shortfall(Need need);
+	String shortfall(Need need);
 }

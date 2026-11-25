@@ -20,8 +20,8 @@ import static org.junit.Assert.fail;
 /**
  * Enforces the promises the README makes about this plugin, so they cannot quietly regress.
  * <p>
- * The plugin's case for being publishable is that it is mechanically verifiable: it makes no
- * network requests, adds no menu entries, never changes a game widget, uses no reflection, never
+ * The plugin's case for being publishable is that it is mechanically verifiable: its one network use
+ * is a small downloader of map pictures, it adds no menu entries, never changes a game widget, uses no reflection, never
  * touches the camera, never reads other players and never acts for the player. Each of those is
  * a grep, so each is a test.
  */
@@ -85,53 +85,76 @@ public class ComplianceTest
 	}
 
 	@Test
-	public void makesNoNetworkRequests() throws IOException
+	public void theOnlyNetworkUseIsOneDownloaderClassOnTheInjectedClientToOneAddress() throws IOException
 	{
-		assertAbsent("The plugin must make no network requests; all data is bundled",
-			"java.net", "okhttp", "OkHttp", "HttpURLConnection", "HttpClient", "Socket", "openConnection",
-			"openStream", "WebSocket");
+		// Since round 59H the map pictures are downloaded (see docs/MAP-HOSTING.md). Network code is one small class, MapDownloader, which
+		// is handed RuneLite's own OkHttpClient and fetches files by name from the one release address. No other class builds a request
+		// or a client, and no other way of reaching the network is used anywhere.
+		assertAbsent("No other way of reaching the network than RuneLite's OkHttpClient",
+			"java.net", "HttpURLConnection", "java.net.http", "URLConnection", "Socket", "openConnection", "openStream", "WebSocket",
+			"new OkHttpClient", "OkHttpClient.Builder", "newBuilder(", "Interceptor", "Dns", "Proxy");
+		List<String> hits = new ArrayList<>();
+		int addresses = 0;
+		for (Path path : sources())
+		{
+			String name = path.getFileName().toString();
+			boolean downloader = name.equals("MapDownloader.java");
+			for (String line : Files.readAllLines(path, StandardCharsets.UTF_8))
+			{
+				String trimmed = line.trim();
+				if (trimmed.startsWith("//") || trimmed.startsWith("*") || trimmed.startsWith("/*"))
+				{
+					continue;
+				}
+				if (!downloader && (line.contains("newCall(") || line.contains("enqueue(") || line.contains("Request.Builder")
+					|| line.contains("okhttp3.Request") || line.contains("okhttp3.Call") || line.contains("okhttp3.Response")))
+				{
+					hits.add(path + " sends or reads a request outside MapDownloader: " + trimmed);
+				}
+				if (!downloader && line.contains("okhttp3.") && !line.contains("okhttp3.OkHttpClient"))
+				{
+					hits.add(path + " uses okhttp beyond naming the injected client: " + trimmed);
+				}
+				if (line.contains("http://") || line.contains("https://"))
+				{
+					addresses++;
+					if (!downloader || !line.contains("https://github.com/KingKj52/world-map-plus-maps/releases/"))
+					{
+						hits.add(path + " names an address other than the map release: " + trimmed);
+					}
+				}
+			}
+		}
+		assertEquals("exactly one address in the plugin", 1, addresses);
+		if (!hits.isEmpty())
+		{
+			fail(String.join("\n", hits));
+		}
+		// The downloader takes its client from its caller, only fetches files of the release by name, and caps what it reads.
+		String downloader = new String(Files.readAllBytes(SOURCE_ROOT.resolve("com/worldmapplus/tiles/MapDownloader.java")), StandardCharsets.UTF_8);
+		assertTrue(downloader.contains("MapDownloader(OkHttpClient client, String base"));
+		assertTrue(downloader.contains("source.request(maxBytes + 1L)"));
+		assertTrue(downloader.contains("trusted(r.request().url())"));
+		assertFalse("only GET", downloader.contains(".post(") || downloader.contains(".put(") || downloader.contains(".delete(")
+			|| downloader.contains("addHeader") || downloader.contains(".method("));
 	}
 
 	@Test
 	public void usesNoReflection() throws IOException
 	{
 		assertAbsent("Plugin Hub forbids reflection",
-			"java.lang.reflect", "setAccessible", "Class.forName", "TypeToken", "MethodHandle",
+			"java.lang.reflect", "java.lang.management", "setAccessible", "Class.forName", "TypeToken", "MethodHandle",
 			"getDeclaredField", "getDeclaredMethod");
 	}
 
 	@Test
 	public void addsNoMenuEntries() throws IOException
 	{
-		// One exception, round 49: ShareChat adds "Open in World Map Plus" to a chat line that holds a share code, the way
-		// Chat History adds "Copy to clipboard". theOnlyMenuEntryIsTheClientSideOpenEntryOnChatLines holds it to that.
-		assertAbsentExcept("Jagex prohibits new menu entries that send actions to the server",
-			(file, line) -> file.equals("ShareChat.java") && (line.equals("client.getMenu().createMenuEntry(1)")
-				|| line.contains("MenuEntryAdded"))
-				|| file.equals("WorldMapPlusPlugin.java") && line.contains("MenuEntryAdded"),
+		// Since round 56B the one client side entry ("Open in World Map Plus" on a chat line) belongs to the Helper plugin, which
+		// is held to it by its own ComplianceTest. This plugin adds none.
+		assertAbsent("Jagex prohibits new menu entries that send actions to the server",
 			"createMenuEntry", "addMenuEntry", "setMenuEntries", "MenuEntryAdded", "MenuOpened",
 			"MenuOptionClicked", "getMenuEntries", "swapEntries", "Overlay.addMenuEntry");
-	}
-
-	@Test
-	public void theOnlyMenuEntryIsTheClientSideOpenEntryOnChatLines() throws IOException
-	{
-		String chat = new String(Files.readAllBytes(SOURCE_ROOT.resolve("com/worldmapplus/bridge/ShareChat.java")),
-			StandardCharsets.UTF_8);
-		assertEquals("one entry is made", 1, occurrences(chat, "createMenuEntry("));
-		assertEquals("of one type", 1, occurrences(chat, ".setType("));
-		assertTrue("RuneLite's own type, which never reaches the game server", chat.contains(".setType(MenuAction.RUNELITE)"));
-		assertTrue("only on the Report entry of a chat line", chat.contains("\"Report\".equals(event.getOption())")
-			&& chat.contains("InterfaceID.CHATBOX") && chat.contains("InterfaceID.Chatbox.SCROLLAREA"));
-		assertTrue("its click only opens the share in this plugin", chat.contains(".onClick(e -> open.accept(share));"));
-		for (String banned : new String[] {"setIdentifier", "setParam0", "setParam1", "setItemId", "setWidget", "setForceLeftClick",
-			"invokeMenuAction", "setMenuEntries", "removeMenuEntry", ".setText(", ".setHidden(", "MenuAction.CC_", "MenuAction.WIDGET"})
-		{
-			assertFalse("ShareChat must not use " + banned, chat.contains(banned));
-		}
-		String plugin = new String(Files.readAllBytes(SOURCE_ROOT.resolve("com/worldmapplus/WorldMapPlusPlugin.java")),
-			StandardCharsets.UTF_8);
-		assertTrue("the plugin only passes the event on", plugin.contains("shareChat.onMenuEntryAdded(event);"));
 	}
 
 	@Test
@@ -173,29 +196,6 @@ public class ComplianceTest
 			}
 		}
 		return found;
-	}
-
-	@Test
-	public void theCensusOnlyLooksAtOtherPluginsAndNeverChangesOrRunsThem() throws IOException
-	{
-		List<String> hits = new ArrayList<>();
-		for (String[] line : linesUnder("/worldmapplus/compat/"))
-		{
-			for (String token : new String[] {".render(", "overlayManager.remove", "overlayManager.add", ".setLayer(",
-				".setPriority(", ".removeIf(", "saveOverlay", "resetOverlay", "setPreferredLocation", "setPreferredPosition",
-				"getClassLoader", "newInstance", ".startPlugin", ".stopPlugin", "setPluginEnabled", "EventBus", "post("})
-			{
-				if (line[1].contains(token))
-				{
-					hits.add(line[0] + " contains '" + token + "'");
-				}
-			}
-		}
-		if (!hits.isEmpty())
-		{
-			fail("The census reads RuneLite's lists of plugins and overlays and does nothing to what it finds\n"
-				+ String.join("\n", hits));
-		}
 	}
 
 	@Test
@@ -259,11 +259,39 @@ public class ComplianceTest
 	}
 
 	@Test
-	public void touchesNoFiles() throws IOException
+	public void theOnlyDiskUseIsTheMapCacheThroughFilepath() throws IOException
 	{
-		assertAbsent("Data comes from bundled resources; the plugin reads and writes no files",
-			"java.io.File", "java.nio.file", "FileInputStream", "FileOutputStream", "RUNELITE_DIR",
-			"FileReader", "FileWriter", "RandomAccessFile");
+		// Since round 59H downloaded map pictures are kept on disk, in a folder of the plugin's own, in one class (PackCache) that goes
+		// through RuneLite's Filepath, which cannot leave that folder. Nothing else touches a file, and Filepath.Unchecked is never used.
+		assertAbsentExcept("The plugin reads and writes no files but its map cache",
+			(file, line) -> file.equals("PackCache.java") && (line.equals("import java.nio.file.StandardCopyOption;")
+				|| line.contains("StandardCopyOption.REPLACE_EXISTING")),
+			"java.io.File", "java.nio.file", "FileInputStream", "FileOutputStream", "RUNELITE_DIR", "FileReader", "FileWriter",
+			"RandomAccessFile", "Unchecked", "Files.", "Paths.", "ImageIO.setUseCache", "createTempFile", "getResourceAsFile");
+		List<String> hits = new ArrayList<>();
+		for (Path path : sources())
+		{
+			String name = path.getFileName().toString();
+			String text = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+			// The plugin class asks RuneLite for its folder; MapAssets and PackedTiles only hand the folder on.
+			boolean mayName = name.equals("PackCache.java") || name.equals("MapAssets.java") || name.equals("PackedTiles.java");
+			if (text.contains("Filepath") && !mayName)
+			{
+				hits.add(name + " names Filepath");
+			}
+			if (name.equals("PackCache.java") && !text.contains("import net.runelite.client.util.Filepath;"))
+			{
+				hits.add("PackCache does not use Filepath");
+			}
+			if (text.contains("ImageIO.read(") && !text.contains("MemoryCacheImageInputStream"))
+			{
+				hits.add(name + " reads an image through ImageIO's default stream, which may use a temporary file");
+			}
+		}
+		if (!hits.isEmpty())
+		{
+			fail(String.join("\n", hits));
+		}
 	}
 
 	@Test
@@ -287,12 +315,11 @@ public class ComplianceTest
 	}
 
 	@Test
-	public void readsGameVariablesOnlyForFarmingCards() throws IOException
+	public void readsNoGameVariablesButTheChatOnes() throws IOException
 	{
 		// Reading the variables of the farming patches next to the player is the same read RuneLite's
 		// own Time Tracking plugin does. No other part of the plugin may read a game variable. The one other thing is the news that some
-		// variable changed (the event, with nothing read from it): the plugin class passes it on to the progress snapshot, which then
-		// asks the API's quest list, see theProgressSnapshotAsksTheApiAndNothingElse.
+		// variable changed (the event, with nothing read from it): the plugin class no longer listens for it since round 58E.
 		List<String> hits = new ArrayList<>();
 		for (Path path : sources())
 		{
@@ -302,7 +329,6 @@ public class ComplianceTest
 			}
 			boolean pluginClass = path.getFileName().toString().equals("WorldMapPlusPlugin.java");
 			boolean textEntry = path.getFileName().toString().equals("GameTextEntry.java");
-			boolean snapshot = path.getFileName().toString().equals("Unlocks.java");
 			boolean chatLine = path.getFileName().toString().equals("ChatLineReader.java");
 			List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
 			for (int i = 0; i < lines.size(); i++)
@@ -316,11 +342,6 @@ public class ComplianceTest
 				{
 					if (pluginClass && token.equals("VarbitChanged"))
 					{
-						continue;
-					}
-					if (snapshot && (token.equals("getVarbit") || token.equals("getVarp")))
-					{
-						// Round 47: the diary tiers and the quest points, see theProgressSnapshotAsksTheApiAndNothingElse.
 						continue;
 					}
 					if (chatLine && token.equals("getVarc"))
@@ -344,19 +365,6 @@ public class ComplianceTest
 		{
 			fail("Game variables may only be read by the farming tracker\n" + String.join("\n", hits));
 		}
-	}
-
-	@Test
-	public void theFarmingTrackerOnlyReadsPatchVariablesOncePerTick() throws IOException
-	{
-		Path tracker = new File("src/main/java/com/worldmapplus/farming/FarmingTracker.java").toPath();
-		String text = new String(Files.readAllBytes(tracker), StandardCharsets.UTF_8);
-		assertTrue("the tracker reads variables through one method reference", text.contains("client::getVarbitValue"));
-		assertTrue("and only from a game tick", text.contains("public void onGameTick()"));
-		assertTrue("and never inside an instance, where the variables mean something else",
-			text.contains("isInInstancedRegion()"));
-		int reads = text.split("getVarbitValue", -1).length - 1;
-		assertTrue("one read site, found " + reads, reads == 1);
 	}
 
 	@Test
@@ -387,184 +395,62 @@ public class ComplianceTest
 	}
 
 	@Test
-	public void theTypingGuideOnlyReadsTheChatLine() throws IOException
+	public void theTypedChatTextIsNeverRead() throws IOException
 	{
-		// Round 50. The typing guide compares the chat input line with the share code the player asked to type. One class reads the
-		// game for it, with plain getters on the client thread: the typed text (the client string Key Remapping reads), the prompt mode,
-		// and the input line component's visibility, box, text, font and alignment. Nothing is written, typed, sent or listened to.
-		Path file = SOURCE_ROOT.resolve("com/worldmapplus/typing/ChatLineReader.java");
-		String text = new String(Files.readAllBytes(file), StandardCharsets.UTF_8);
-		assertEquals("one read of the typed text", 1, occurrences(text, "getVarcStrValue("));
-		assertTrue(text.contains("client.getVarcStrValue(VarClientID.CHATINPUT)"));
-		assertEquals("one read of the prompt mode", 1, occurrences(text, "getVarcIntValue("));
-		assertTrue(text.contains("client.getVarcIntValue(VarClientID.MESLAYERMODE) != 0"));
-		assertEquals("three components, all of the chat box, read", 3, occurrences(text, "InterfaceID.Chatbox."));
-		for (String component : new String[] {"InterfaceID.Chatbox.INPUT", "InterfaceID.Chatbox.CHATDISPLAY", "InterfaceID.Chatbox.MES_LAYER_HIDE"})
-		{
-			assertTrue(component, text.contains(component));
-		}
-		for (String banned : new String[] {"setVarc", "setVarbit", "setVarp", ".setText(", ".setHidden(", ".setFontId(", ".setTextColor(",
-			".setXTextAlignment(", ".setYTextAlignment(", ".setOpacity(", "runScript", "invokeMenuAction", "KeyListener", "keyManager",
-			"KeyEvent", "Robot", "dispatchEvent", "MenuEntry", "ChatMessage", "WidgetInfo", "WidgetID", "getPlayers"})
-		{
-			assertFalse("the chat line reader must not use " + banned, text.contains(banned));
-		}
-		// Nothing else in the plugin reads the typed text.
+		// Since round 56B the typing guide belongs to the Helper plugin. This plugin reads no typed text and holds no guide.
 		for (Path path : sources())
 		{
 			String name = path.getFileName().toString();
 			String all = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-			if (!name.equals("ChatLineReader.java"))
-			{
-				assertFalse(name + " reads the typed chat text", all.contains("CHATINPUT") || all.contains("CHATBOX_TYPED_TEXT")
-					|| all.contains("getVarcStrValue"));
-			}
+			assertFalse(name + " reads the typed chat text", all.contains("CHATINPUT") || all.contains("CHATBOX_TYPED_TEXT")
+				|| all.contains("getVarcStrValue"));
+			assertFalse(name + " holds a typing guide", all.contains("TypingGuide") || all.contains("ChatLineReader"));
 		}
-		// The guide itself and the overlay hold no game types: they compare and draw. The overlay takes presses on its card only.
-		String guide = new String(Files.readAllBytes(SOURCE_ROOT.resolve("com/worldmapplus/typing/TypingGuide.java")), StandardCharsets.UTF_8);
-		assertFalse(guide.contains("net.runelite"));
-		String overlay = new String(Files.readAllBytes(SOURCE_ROOT.resolve("com/worldmapplus/typing/TypingGuideOverlay.java")),
-			StandardCharsets.UTF_8);
-		assertFalse("the overlay reads nothing of the game", overlay.contains("net.runelite.api") || overlay.contains("Client client"));
-		for (String banned : new String[] {"KeyListener", "KeyEvent", "keyManager", "MenuEntry", "OverlayMenuEntry", "Robot", "dispatchEvent"})
-		{
-			assertFalse("the overlay must not use " + banned, overlay.contains(banned));
-		}
-		assertTrue("presses are taken only on the card", overlay.contains("pressed = cardShown && inCard(e.getX(), e.getY());"));
-		// The plugin reads the line once a client tick, only with the setting on, and stops the guide when it stops.
-		String plugin = new String(Files.readAllBytes(SOURCE_ROOT.resolve("com/worldmapplus/WorldMapPlusPlugin.java")), StandardCharsets.UTF_8);
-		int tick = plugin.indexOf("public void onClientTick(ClientTick tick)");
-		assertTrue(tick > 0);
-		String handler = plugin.substring(tick, plugin.indexOf("postAnswers();", tick));
-		assertTrue(handler.contains("if (config.typingGuide())") && handler.contains("chatLine.onClientTick();"));
-		assertEquals("one read site", 1, occurrences(plugin, "chatLine.onClientTick()"));
-		assertTrue(plugin.contains("typingGuide.stop();") && plugin.contains("overlayManager.remove(typingOverlay);")
-			&& plugin.contains("mouseManager.unregisterMouseListener(typingOverlay.getInput());"));
 	}
 
 	@Test
-	public void theWikiButtonOnlyEverHandsAWikiAddressToRuneLitesLinkBrowser() throws IOException
+	public void noLinkBrowserAndNoWikiHostHere() throws IOException
 	{
-		// LinkBrowser.browse is allowed by the Hub's rejected features page (LinkBrowser.open and Desktop are not). One class calls it,
-		// with an address it has checked, and the plugin itself makes no request: the player's browser does.
-		int users = 0;
+		// The Wiki button moved to World Map Plus Helper in round 58F: it alone opens a wiki address in the player's browser. This plugin
+		// only names a page; it never opens an address and names no host.
 		for (Path path : sources())
 		{
 			String text = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
 			String name = path.getFileName().toString();
-			if (text.contains("LinkBrowser"))
-			{
-				users++;
-				assertEquals("only the wiki browser uses the link browser", "WikiBrowser.java", name);
-				assertEquals("one call", 1, text.split("LinkBrowser\\.browse\\(", -1).length - 1);
-				assertFalse(text.contains("LinkBrowser.open"));
-				assertTrue("the address is checked first", text.indexOf("isWikiAddress") > 0
-					&& text.indexOf("isWikiAddress") < text.indexOf("LinkBrowser.browse("));
-				assertTrue("the search address is checked first too", text.indexOf("isWikiSearchAddress") > 0
-					&& text.indexOf("isWikiSearchAddress") < text.indexOf("LinkBrowser.browse("));
-			}
-			assertFalse(name + " names a host", !name.equals("WikiLinks.java") && text.contains("oldschool.runescape.wiki"));
+			assertFalse(name + " uses the link browser", text.contains("LinkBrowser"));
+			assertFalse(name + " names a host", text.contains("oldschool.runescape.wiki"));
 		}
-		assertEquals(1, users);
 	}
 
 	@Test
-	public void itemPricesComeOnlyFromRuneLitesItemManagerOnTheClientThread() throws IOException
+	public void theItemManagerIsNotUsedHere() throws IOException
 	{
-		// Round 46: the drop tabs show values from RuneLite's own item manager (the prices RuneLite already holds; this plugin asks
-		// nothing of any server). The plugin class hands one method of it, getItemPrice, to ItemPrices with the client thread's queue,
-		// and ItemPrices calls it only inside the task it gives that queue. No other use of the item manager exists.
+		// Item prices (the drop tabs) moved to World Map Plus Helper in round 57D; this plugin reads nothing of the item manager.
 		for (Path path : sources())
 		{
-			String name = path.getFileName().toString();
 			String text = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-			if (name.equals("WorldMapPlusPlugin.java"))
-			{
-				assertEquals("one use of the item manager", 1, text.split("itemManager::", -1).length - 1);
-				assertEquals("only its prices", 1, text.split("itemManager::getItemPrice, clientThread::invokeLater", -1).length - 1);
-				assertFalse("nothing else of it", text.contains("itemManager."));
-			}
-			else
-			{
-				assertFalse(name + " uses the item manager", text.contains("ItemManager") || text.contains("getItemPrice")
-					|| text.contains("getItemComposition") || text.contains("getItemDefinition"));
-			}
+			assertFalse(path.getFileName() + " uses the item manager", text.contains("ItemManager") || text.contains("getItemPrice")
+				|| text.contains("getItemComposition") || text.contains("getItemDefinition"));
 		}
-		Path prices = new File("src/main/java/com/worldmapplus/drops/ItemPrices.java").toPath();
-		String text = new String(Files.readAllBytes(prices), StandardCharsets.UTF_8);
-		assertEquals("the price is read in one place", 1, text.split("reader\\.applyAsLong\\(", -1).length - 1);
-		int reading = text.indexOf("private void readOnClientThread(");
-		assertTrue(reading > 0 && text.indexOf("reader.applyAsLong(") > reading);
-		assertEquals("which only the client thread's task calls", 2, text.split("readOnClientThread\\(", -1).length - 1);
-		assertTrue(text.contains("clientThread.accept(() -> readOnClientThread(wanted));"));
-		assertTrue("a request is bounded", text.contains("wanted.size() >= MAX_PER_REQUEST"));
 	}
 
 	@Test
-	public void theProgressSnapshotAsksTheApiAndNothingElse() throws IOException
+	public void theProgressCacheReadsNoGameState() throws IOException
 	{
-		// The snapshot of levels and quests reads the real level of a skill and the state of a quest through the API, on the client
-		// thread, and nowhere else in the plugin does.
-		Path unlocks = new File("src/main/java/com/worldmapplus/unlock/Unlocks.java").toPath();
-		String text = new String(Files.readAllBytes(unlocks), StandardCharsets.UTF_8);
-		assertEquals("one read of a level", 1, text.split("getRealSkillLevel", -1).length - 1);
-		assertEquals("one read of a quest", 1, text.split("quest\\.getState\\(client\\)", -1).length - 1);
-		assertFalse("no boosted level", text.contains("getBoostedSkillLevel"));
-		// The local player's combat level and the total level, one read each, through the API.
-		assertEquals("one read of the total level", 1, text.split("getTotalLevel\\(\\)", -1).length - 1);
-		assertEquals("one read of a combat level", 1, text.split("getCombatLevel\\(\\)", -1).length - 1);
-		assertTrue("the combat level is the local player's", text.contains("client.getLocalPlayer();")
-			&& text.indexOf("client.getLocalPlayer();") < text.indexOf("getCombatLevel()"));
-		// Round 47: the achievement diary tiers and the quest points, one plain read each, of the varbits Diaries names (RuneLite's
-		// own VarbitID constants) and of the quest point counter, through one method each; nothing is ever set.
-		assertEquals("one varbit read", 1, text.split("getVarbitValue\\(", -1).length - 1);
-		assertTrue(text.contains("return client.getVarbitValue(varbit);"));
-		assertEquals("the varbit is always one Diaries names", 1, text.split("source\\.diaryValue\\(", -1).length - 1);
-		assertTrue(text.contains("source.diaryValue(Diaries.varbit(tier))"));
-		assertEquals("one varp read, the quest points", 1, text.split("getVarpValue\\(", -1).length - 1);
-		assertTrue(text.contains("client.getVarpValue(VarPlayerID.QP)"));
-		for (String banned : new String[] {"getVarcIntValue", "getVarcStrValue", "setVarbit", "setVarp", "setVarc", "getVarps()",
-			"runScript", "invokeMenuAction"})
-		{
-			assertFalse("the snapshot does not use " + banned, text.contains(banned));
-		}
-		String diaries = new String(Files.readAllBytes(new File("src/main/java/com/worldmapplus/unlock/Diaries.java").toPath()),
-			StandardCharsets.UTF_8);
-		assertFalse("Diaries only names varbits", diaries.contains("client") || diaries.contains("getVar"));
-		assertEquals("48 tiers, each one of RuneLite's own names", 48, diaries.split("VarbitID\\.", -1).length - 1);
+		// Since round 58E the Helper reads the player's levels, quests, diaries and quest points, and since round 61C it also judges the
+		// requirements; this plugin only keeps the last answer. Nothing here asks the game.
 		for (Path path : sources())
 		{
 			String name = path.getFileName().toString();
 			String all = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-			if (!name.equals("Unlocks.java"))
-			{
-				assertFalse(name + " reads a skill level", all.contains("getRealSkillLevel") || all.contains("getBoostedSkillLevel"));
-				assertFalse(name + " reads a quest", all.contains(".getState(client"));
-				assertFalse(name + " reads a combat or total level", all.contains("getCombatLevel(") || all.contains("getTotalLevel("));
-			}
+			assertFalse(name + " reads a skill level", all.contains("getRealSkillLevel") || all.contains("getBoostedSkillLevel"));
+			assertFalse(name + " reads a quest", all.contains(".getState(client"));
+			assertFalse(name + " reads a combat or total level", all.contains("getCombatLevel(") || all.contains("getTotalLevel("));
+			assertFalse(name + " listens for variable changes", all.contains("VarbitChanged") || all.contains("StatChanged"));
 		}
-		// The variable change event is only passed on, and never looked into.
-		Path plugin = new File("src/main/java/com/worldmapplus/WorldMapPlusPlugin.java").toPath();
-		String body = new String(Files.readAllBytes(plugin), StandardCharsets.UTF_8);
-		int at = body.indexOf("public void onVarbitChanged(VarbitChanged event)");
-		assertTrue(at > 0);
-		String handler = body.substring(at, body.indexOf("}", at));
-		assertTrue(handler.contains("unlocks.variablesChanged();"));
-		assertFalse("the event's contents are not read", handler.contains("event."));
-	}
-
-	@Test
-	public void theProgressSnapshotIsOnlyEverFedFromTheClientThreadsEvents() throws IOException
-	{
-		// Every call that changes the snapshot comes from an event handler of the plugin class or from a task given to the client thread.
-		Path plugin = new File("src/main/java/com/worldmapplus/WorldMapPlusPlugin.java").toPath();
-		String body = new String(Files.readAllBytes(plugin), StandardCharsets.UTF_8);
-		for (String call : new String[] {"unlocks.want(", "unlocks.onGameTick()", "unlocks.onStatChanged(", "unlocks.onGameStateChanged("})
-		{
-			assertTrue(call, body.contains(call));
-		}
-		assertTrue("a change of setting is applied on the client thread", body.contains("clientThread.invokeLater(this::wantProgress)"));
-		assertFalse("no loop that polls", body.contains("while (") && body.contains("unlocks"));
+		String unlocks = new String(Files.readAllBytes(new File("src/main/java/com/worldmapplus/unlock/Unlocks.java").toPath()),
+			StandardCharsets.UTF_8);
+		assertFalse("the cache holds no client", unlocks.contains("Client ") || unlocks.contains("getVar"));
 	}
 
 	@Test
@@ -633,8 +519,8 @@ public class ComplianceTest
 				}
 			}
 		}
-		assertTrue("expected the route messages and one answer site, found " + found, found == 4);
-		assertEquals("one answer site", 1, answers);
+		assertTrue("expected the route messages and two answer sites, found " + found, found == 5);
+		assertEquals("two answer sites: the tick answers and the goodbye when the plugin stops", 2, answers);
 		if (!hits.isEmpty())
 		{
 			fail(String.join("\n", hits));
@@ -682,44 +568,25 @@ public class ComplianceTest
 	}
 
 	@Test
-	public void onlyLooksAtTheWorldMapPointsOtherPluginsAdded() throws IOException
+	public void readsNothingOfOtherPluginsSinceSupportForThemMovedToTheHelper() throws IOException
 	{
-		// The point manager has no public way to list its points, but removeIf shows each point to a
-		// predicate. Answering "no" every time reads them and removes none. Nothing may ever add or remove one.
-		assertAbsent("Other plugins' world map points may be read and never changed",
-			"worldMapPointManager.add(", "worldMapPointManager.remove(", "manager.add(", "manager.remove(");
-		Path points = new File("src/main/java/com/worldmapplus/bridge/NativePoints.java").toPath();
-		String text = new String(Files.readAllBytes(points), StandardCharsets.UTF_8);
-		int at = text.indexOf("manager.removeIf(");
-		assertTrue("the points are read through removeIf", at > 0);
-		String body = text.substring(at, text.indexOf("}));", at));
-		assertTrue("and the predicate always answers no", body.contains("return false;") && !body.contains("return true;"));
-		assertTrue("one read site", occurrences(text, "removeIf(") == 1);
-	}
-
-	@Test
-	public void onlyLooksAtTheOverlaysOtherPluginsRegistered() throws IOException
-	{
-		// Like the points, the overlay list is read by showing each overlay to a predicate that always answers no, which
-		// removes nothing. This plugin only ever adds and removes its own overlays.
-		assertAbsent("Other plugins' overlays may be read and never changed",
-			"overlayManager.removeIf(", "overlayManager.clear(");
-		for (String[] line : linesUnder("/worldmapplus/"))
+		// The points other plugins put on the game's map, the lists of plugins and overlays, and the messages of Plugin API version 1
+		// belong to the Helper plugin (see docs/PLAN.md, round 57C). This plugin reads none of them.
+		for (Path path : sources())
 		{
-			if (line[1].contains("overlayManager.remove("))
-			{
-				assertTrue("only this plugin's own overlays are removed: " + line[0],
-					line[1].contains("hudOverlay") || line[1].contains("viewerOverlay") || line[1].contains("typingOverlay"));
-			}
+			String name = path.getFileName().toString();
+			String text = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+			assertFalse(name + " reads world map points", text.contains("WorldMapPointManager") || text.contains("WorldMapPoint"));
+			// The one reading of the list of plugins is the check whether Shortest Path is installed and on.
+			assertFalse(name + " looks plugins or overlays up", !name.equals("MapActions.java") && (text.contains("PluginManager")
+				|| text.contains("getPlugins()")) || text.contains("overlayManager.anyMatch(") || text.contains("getOverlays"));
 		}
-		Path census = new File("src/main/java/com/worldmapplus/compat/MapCensus.java").toPath();
-		String text = new String(Files.readAllBytes(census), StandardCharsets.UTF_8);
-		int at = text.indexOf("overlayManager.anyMatch(");
-		assertTrue("the overlays are read through anyMatch", at > 0);
-		String body = text.substring(at, text.indexOf("}), \"", at));
-		assertTrue("and the predicate always answers no", body.contains("return false;") && !body.contains("return true;"));
-		assertTrue("one read site", occurrences(text, "anyMatch(") == 1);
-		assertTrue("and each overlay is only described", body.contains("describe(overlay)"));
+		String external = new String(Files.readAllBytes(new File("src/main/java/com/worldmapplus/bridge/ExternalOverlays.java").toPath()),
+			StandardCharsets.UTF_8);
+		for (String v1 : new String[] {"\"marker\"", "\"marker_clear\"", "\"line\"", "\"line_clear\"", "\"hello\"", "\"covers\"", "\"focus\""})
+		{
+			assertFalse("version 1 message " + v1 + " is answered by the Helper only", external.contains("case " + v1 + ":"));
+		}
 	}
 
 	@Test
@@ -743,71 +610,17 @@ public class ComplianceTest
 	}
 
 	@Test
-	public void chatIsOnlyReadByTheShareHookAndOnlyForItsText() throws IOException
+	public void chatIsNeverRead() throws IOException
 	{
+		// Since round 56B the !wmp chat command and the line that shows what a code holds belong to the Helper plugin. This plugin
+		// reads no chat line, signs up no chat command and subscribes to no chat event.
 		for (Path path : sources())
 		{
 			String name = path.getFileName().toString();
 			String text = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
-			boolean mentions = text.contains("ChatMessage") || text.contains("ChatMessageType");
-			boolean allowed = name.equals("ShareChat.java");
-			if (mentions && !allowed)
-			{
-				fail(path + " reads chat, which only the share hook may do");
-			}
+			assertFalse(name + " reads chat", text.contains("ChatMessage") || text.contains("ChatCommandManager")
+				|| text.contains("ChatMessageType") || text.contains("setRuneLiteFormatMessage"));
 		}
-		Path hook = SOURCE_ROOT.resolve("com/worldmapplus/bridge/ShareChat.java");
-		List<String> lines = Files.readAllLines(hook, StandardCharsets.UTF_8);
-		for (String line : lines)
-		{
-			String trimmed = line.trim();
-			if (trimmed.startsWith("//") || trimmed.startsWith("*") || trimmed.startsWith("/*"))
-			{
-				continue;
-			}
-			for (String banned : new String[] {"getSender(", "getTimestamp(", "getMessageNode().getName", "sendMessage",
-				"addChatMessage", "ChatMessageManager", "sendChat", "setSender", "setName("})
-			{
-				assertFalse("the hook must not use " + banned, line.contains(banned));
-			}
-		}
-		// A sender's name is looked at for one reason only: to keep the parts of one player's code apart from another's and
-		// to tell the player's own lines (labelled, never listed) from others'. That is two calls, the line's sender and the
-		// local player, both in senderKey.
-		int names = 0;
-		for (String line : lines)
-		{
-			String trimmed = line.trim();
-			if (!trimmed.startsWith("//") && !trimmed.startsWith("*") && !trimmed.startsWith("/*") && line.contains("getName("))
-			{
-				names++;
-			}
-		}
-		assertEquals("the hook reads names only to compare the sender with the local player", 2, names);
-		String hookText = new String(Files.readAllBytes(hook), StandardCharsets.UTF_8);
-		// Round 51: the player's own lines get the label too (on the stored message, after the text, never what is sent),
-		// and their codes are never listed as shared with them.
-		assertTrue("the hook tells the player's own lines apart", hookText.contains("String sender = senderKey(event);")
-			&& hookText.contains("boolean mine = sender.startsWith(MINE);"));
-		assertTrue("and does not list them", hookText.contains("line, !mine);"));
-		assertFalse("no input hook on the command, so nothing typed is held or changed",
-			hookText.contains("ChatboxInput") || hookText.contains("ChatInput") || hookText.contains("registerCommand(ShareCodec.COMMAND, this::onCommand,"));
-		// Round 52: the line shows a description in place of the code through the node's RuneLite format message, as Chat
-		// Commands shows the answer to !lvl. The message itself is never changed.
-		assertEquals("the stored message itself is never changed", 0, occurrences(hookText, ".setValue("));
-		assertEquals("the shown text is set in one place, the description code", 1,
-			occurrences(hookText, "line.node.setRuneLiteFormatMessage(format);"));
-		assertEquals(1, occurrences(hookText, "setRuneLiteFormatMessage("));
-		assertTrue("the player can keep their own lines as typed",
-			hookText.contains("Shown line = mine && !config.shareReplaceOwnLines() ? null : new Shown(node);"));
-		String plugin = new String(Files.readAllBytes(SOURCE_ROOT.resolve("com/worldmapplus/WorldMapPlusPlugin.java")),
-			StandardCharsets.UTF_8);
-		assertFalse("the plugin has no chat handler of its own", plugin.contains("onChatMessage"));
-		assertTrue("codes arrive through RuneLite's chat command manager",
-			hookText.contains("commands.registerCommand(ShareCodec.COMMAND, this::onCommand);")
-			&& hookText.contains("commands.unregisterCommand(ShareCodec.COMMAND);"));
-		assertTrue("and the plugin signs the command up and takes it back", plugin.contains("shareChat.start(")
-			&& plugin.contains("shareChat.stop();"));
 	}
 
 	@Test
@@ -964,6 +777,43 @@ public class ComplianceTest
 			String name = path.getFileName().toString();
 			boolean allowed = name.equals("ShareDialog.java") || name.equals("MapActions.java");
 			assertFalse(path + " uses the clipboard", clipboard && !allowed);
+		}
+	}
+
+	@Test
+	public void partnerCodeIsOnlyEverReceivedInMessagesNeverLookedUp() throws IOException
+	{
+		String text = new String(Files.readAllBytes(SOURCE_ROOT.resolve("com/worldmapplus/bridge/Partners.java")), StandardCharsets.UTF_8);
+		for (String banned : new String[] {"PluginManager", "getPlugins", "ServiceLoader", "ClassLoader", "Class.forName", "getClass()",
+			"Executors", "new Thread", "invokeAndWait", "Robot", "net.runelite.client.ui", "net.runelite.api.Client", "MouseListener", "KeyListener"})
+		{
+			assertFalse("the partner registry must not use " + banned, text.contains(banned));
+		}
+		// Every partner callback is made from one guarded place, Partners.call, which has one line for each shape of callback.
+		int calls = 0;
+		for (String line : text.split("\n"))
+		{
+			String code = line.trim();
+			if (!code.startsWith("*") && !code.startsWith("//") && (code.contains(".apply(") || code.contains(".accept(")) && !code.contains("say.accept(")
+				&& !code.contains("thread.accept(") && !code.contains("background.accept(") && !code.contains(") callback).")
+				// The plugin's own hooks, handed over by the plugin class: not partner code.
+				&& !code.contains("toEdt.accept(") && !code.contains("toClient.accept(") && !code.contains("statusLine.accept(")
+				&& !code.contains("goer.apply(") && !code.contains("mapNames.apply("))
+			{
+				fail("an unguarded call into partner code: " + code);
+			}
+			calls += code.contains(") callback).") ? 1 : 0;
+		}
+		assertEquals("a partner callback is called only in Partners.call: a Function, a BiConsumer and a Consumer", 3, calls);
+		// Only the bridge hands messages to the registry, and only the plugin class posts what it queues.
+		for (Path path : sources())
+		{
+			String other = new String(Files.readAllBytes(path), StandardCharsets.UTF_8);
+			String name = path.getFileName().toString();
+			if (!name.equals("Partners.java") && !name.equals("ExternalOverlays.java"))
+			{
+				assertFalse(name + " feeds the registry", other.contains(".onMessage("));
+			}
 		}
 	}
 }

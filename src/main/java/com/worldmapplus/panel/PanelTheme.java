@@ -1,31 +1,15 @@
 package com.worldmapplus.panel;
 
-import com.worldmapplus.theme.Palette;
-import com.worldmapplus.theme.Palettes;
-import com.worldmapplus.theme.Role;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.GradientPaint;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.Insets;
-import java.awt.LayoutManager;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
-import javax.swing.BorderFactory;
-import javax.swing.ButtonModel;
-import javax.swing.Icon;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.border.Border;
+import com.worldmapplus.theme.*;
+import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.function.IntConsumer;
+import java.util.function.UnaryOperator;
+import javax.swing.*;
+import javax.swing.border.*;
 
 /**
  * The look of the side panel, in the colours of the map's own cards, menus and results (warm dark fills, a thin bronze edge,
@@ -358,7 +342,7 @@ public final class PanelTheme
 			setForeground(primary ? PRIMARY_TEXT : TEXT);
 			// Reachable with the keyboard (Tab, then Space), with a ring while it has the focus, and a hand over it.
 			setFocusable(true);
-			setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			setContentAreaFilled(false);
 			setBorderPainted(false);
 			setFocusPainted(false);
@@ -436,10 +420,10 @@ public final class PanelTheme
 	 */
 	public static final class Segments extends JComponent
 	{
-		private final String[] names;
-		private final String[] counts;
+		private String[] names;
+		private String[] counts;
 		private int chosen;
-		private java.util.function.IntConsumer listener = i -> { };
+		private IntConsumer listener = i -> { };
 
 		public Segments(String... names)
 		{
@@ -447,18 +431,27 @@ public final class PanelTheme
 			this.counts = new String[names.length];
 			setPreferredSize(new Dimension(10, 28));
 			setAlignmentX(LEFT_ALIGNMENT);
-			addMouseListener(new java.awt.event.MouseAdapter()
+			addMouseListener(new MouseAdapter()
 			{
 				@Override
-				public void mousePressed(java.awt.event.MouseEvent e)
+				public void mousePressed(MouseEvent e)
 				{
 					int width = Math.max(1, getWidth());
-					choose(Math.max(0, Math.min(names.length - 1, e.getX() * names.length / width)));
+					choose(Math.max(0, Math.min(Segments.this.names.length - 1, e.getX() * Segments.this.names.length / width)));
 				}
 			});
 		}
 
-		public void onChoose(java.util.function.IntConsumer listener)
+		/** Replaces the names, for tabs that other plugins add. A choice past the new end goes back to the last. */
+		public void setNames(String... names)
+		{
+			this.names = names.clone();
+			this.counts = Arrays.copyOf(counts, names.length);
+			chosen = Math.min(chosen, names.length - 1);
+			repaint();
+		}
+
+		public void onChoose(IntConsumer listener)
 		{
 			this.listener = listener == null ? i -> { } : listener;
 		}
@@ -479,7 +472,7 @@ public final class PanelTheme
 		public void setCount(int index, int count)
 		{
 			String text = count < 0 ? null : String.valueOf(count);
-			if (!java.util.Objects.equals(text, counts[index]))
+			if (!Objects.equals(text, counts[index]))
 			{
 				counts[index] = text;
 				repaint();
@@ -556,7 +549,7 @@ public final class PanelTheme
 		}
 
 		/** Takes the colours a theme change maps the fill and the bar to. */
-		void recolour(java.util.function.UnaryOperator<Color> map)
+		void recolour(UnaryOperator<Color> map)
 		{
 			fill = map.apply(fill);
 			bar = map.apply(bar);
@@ -568,9 +561,9 @@ public final class PanelTheme
 		 * last card instead of stretching the cards.
 		 */
 		@Override
-		public java.awt.Dimension getMaximumSize()
+		public Dimension getMaximumSize()
 		{
-			return new java.awt.Dimension(Integer.MAX_VALUE, getPreferredSize().height);
+			return new Dimension(Integer.MAX_VALUE, getPreferredSize().height);
 		}
 
 		@Override

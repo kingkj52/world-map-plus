@@ -11,11 +11,9 @@ import com.worldmapplus.WorldMapPlusConfig;
 import com.worldmapplus.bridge.ExternalOverlays;
 import com.worldmapplus.bridge.MapActions;
 import com.worldmapplus.game.PlayerPosition;
-import com.worldmapplus.game.TrailTracker;
 import com.worldmapplus.layers.GameIconLayer;
 import com.worldmapplus.layers.GameIconScale;
 import com.worldmapplus.layers.HoverCard;
-import com.worldmapplus.layers.NpcLayer;
 import com.worldmapplus.map.MapInfo;
 import com.worldmapplus.pins.PinStore;
 import com.worldmapplus.prefs.Settings;
@@ -89,13 +87,6 @@ public class GameIconSurfaceTest
 				Class<?> type = method.getReturnType();
 				return type == boolean.class ? (Object) false : type.isPrimitive() ? (Object) 0 : null;
 			});
-		NpcLayer quiet = new NpcLayer()
-		{
-			@Override
-			public void paint(Graphics2D g, ViewTransform view, MapInfo viewed, PlayerPosition player)
-			{
-			}
-		};
 		ViewMemory memory = new ViewMemory(null)
 		{
 			@Override
@@ -114,8 +105,8 @@ public class GameIconSurfaceTest
 		Settings settings = new Settings(null);
 		com.worldmapplus.pins.PanelLauncher launcher = new com.worldmapplus.pins.PanelLauncher();
 		com.worldmapplus.pins.RouteStore routes = new com.worldmapplus.pins.RouteStore(PinStore.Storage.inMemory(), new Gson(), pins);
-		SurfaceServices services = new SurfaceServices(quiet, memory, pins, external, new MapActions(new EventBus(), external),
-			settings, new TrailTracker(), null, null, routes, launcher);
+		SurfaceServices services = new SurfaceServices(memory, pins, external, new MapActions(new EventBus(), external),
+			settings, routes, launcher);
 		surface = new MapSurface(client, assets, new WorldMapPlusConfig()
 		{
 			@Override
@@ -188,12 +179,7 @@ public class GameIconSurfaceTest
 	/** A marker of another plugin, such as a group member's icon, one tile east of the cave entrance. */
 	private void memberBesideTheCave()
 	{
-		Map<String, Object> data = new HashMap<>();
-		data.put("id", "member");
-		data.put("point", new WorldPoint(3320, 3122, 0));
-		data.put("name", "Member");
-		data.put("color", new java.awt.Color(0, 255, 0));
-		external.onPluginMessage(new PluginMessage(ExternalOverlays.NAMESPACE, "marker", data));
+		TestMarker.show(external, new WorldPoint(3320, 3122, 0), "Member", new java.awt.Color(0, 255, 0));
 		frames(2);
 	}
 

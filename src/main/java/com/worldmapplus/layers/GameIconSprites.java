@@ -1,13 +1,11 @@
 package com.worldmapplus.layers;
 
-import java.awt.image.BufferedImage;
-import java.io.IOException;
-import java.io.InputStream;
-import javax.annotation.Nullable;
-import javax.imageio.ImageIO;
-import javax.imageio.stream.ImageInputStream;
-import javax.imageio.stream.MemoryCacheImageInputStream;
-import lombok.extern.slf4j.Slf4j;
+import java.awt.image.*;
+import java.io.*;
+import javax.annotation.*;
+import javax.imageio.*;
+import javax.imageio.stream.*;
+import lombok.extern.slf4j.*;
 
 /**
  * The pictures of the game's map icons, read once from the one atlas in the plugin jar, and their copies at the smaller sizes the

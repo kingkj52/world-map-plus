@@ -1,13 +1,13 @@
 package com.worldmapplus.ui;
 
-import java.awt.Rectangle;
-import com.worldmapplus.data.MapElements;
-import java.util.function.IntPredicate;
-import javax.annotation.Nullable;
-import net.runelite.api.Client;
+import com.worldmapplus.data.*;
+import java.awt.*;
+import java.util.function.*;
+import javax.annotation.*;
+import lombok.extern.slf4j.*;
+import net.runelite.api.*;
 import net.runelite.api.gameval.InterfaceID;
-import net.runelite.api.widgets.Widget;
-import lombok.extern.slf4j.Slf4j;
+import net.runelite.api.widgets.*;
 
 /**
  * Reads which entry of the game's own map key was clicked.

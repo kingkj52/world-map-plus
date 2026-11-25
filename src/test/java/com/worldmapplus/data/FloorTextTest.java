@@ -15,9 +15,11 @@ public class FloorTextTest
 {
 	private static String read(String name) throws IOException
 	{
-		if (name.equals("spawns.json"))
+		if (name.equals("shops.json"))
 		{
-			return SpawnTestData.json().toString();
+			// A build input since round 62E (the Helper holds the copy the plugin reads).
+			org.junit.Assume.assumeTrue("the build inputs are not in this copy", java.nio.file.Files.exists(java.nio.file.Paths.get("tools", "input", "shops.json")));
+			return new String(java.nio.file.Files.readAllBytes(java.nio.file.Paths.get("tools", "input", name)), StandardCharsets.UTF_8);
 		}
 		try (InputStream in = FloorTextTest.class.getResourceAsStream("/com/worldmapplus/" + name))
 		{
@@ -40,7 +42,7 @@ public class FloorTextTest
 	@Test
 	public void noTextCarriesTheWikisTwoCountryFloorMarkup() throws IOException
 	{
-		for (String name : new String[] {"shops.json", "spawns.json", "icon-details.json", "pois.json", "teleports.json", "transports.json"})
+		for (String name : new String[] {"shops.json", "place-names.json", "icon-details.json", "pois.json", "teleports.json", "transports.json"})
 		{
 			String text = read(name);
 			assertFalse(name + " has [UK] markup", text.contains("[UK]") || text.contains("&#91;") || text.contains("[US]"));
@@ -52,7 +54,7 @@ public class FloorTextTest
 	public void floorsAreNamedFirstSecondAndThirdTheUkWay() throws IOException
 	{
 		Pattern old = Pattern.compile("\\((?:Floor [123]|First [Ff]loor|Second [Ff]loor|Third [Ff]loor)\\)|\\b[123](?:st|nd|rd) Floor\\b");
-		for (String name : new String[] {"shops.json", "spawns.json", "icon-details.json"})
+		for (String name : new String[] {"shops.json", "place-names.json", "icon-details.json"})
 		{
 			assertFalse(name, old.matcher(read(name)).find());
 		}

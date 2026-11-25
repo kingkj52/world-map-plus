@@ -1,12 +1,12 @@
 package com.worldmapplus.input;
 
-import java.awt.Rectangle;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.LongSupplier;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.function.*;
+import lombok.*;
 import net.runelite.client.input.KeyListener;
 import net.runelite.client.input.MouseAdapter;
 import net.runelite.client.input.MouseWheelListener;
@@ -37,6 +37,7 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 	public static final int KEY_FOCUS_SEARCH = -1;
 	public static final int KEY_SELECT_ALL = -2;
 
+	@Getter
 	private final InputQueue queue = new InputQueue();
 
 	/**
@@ -51,7 +52,7 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 	 * Parts of the map area that belong to the game, such as its close button. Events there are never taken,
 	 * so the game's own controls keep working while this map covers the rest.
 	 */
-	private volatile java.util.List<Rectangle> keepClear = java.util.Collections.emptyList();
+	private volatile List<Rectangle> keepClear = Collections.emptyList();
 
 	private volatile Rectangle active;
 	private volatile long activeStamp;
@@ -71,7 +72,7 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 	 * own controls is left for the game. This says which points are this map's. Null when not lined up, and everything inside
 	 * the map is then this map's.
 	 */
-	private volatile java.util.function.BiPredicate<Integer, Integer> takes;
+	private volatile BiPredicate<Integer, Integer> takes;
 
 	/** True when Ctrl+F is taken only while the pointer is over the map, as on the floating map. */
 	private volatile boolean controlFNeedsPointer;
@@ -83,9 +84,10 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 	 * Says whether the game is taking typed text, so Ctrl+F is left to it. Asked on the key thread, so it must only read what the client
 	 * thread has already worked out. Nothing is taken from the game before this is asked.
 	 */
-	private volatile java.util.function.Predicate<KeyEvent> textGuard = event -> false;
+	private volatile Predicate<KeyEvent> textGuard = event -> false;
 
 	/** True while Shift is down, which expands hover cards to show everything. */
+	@Getter
 	private volatile boolean expandHeld;
 
 	/** True while the search field has the keyboard. */
@@ -111,7 +113,7 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 	}
 
 	/** Sets what tells that the game is taking text, so the chord that starts a search is not taken then. Null removes it. */
-	public void setTextGuard(java.util.function.Predicate<KeyEvent> guard)
+	public void setTextGuard(Predicate<KeyEvent> guard)
 	{
 		this.textGuard = guard == null ? event -> false : guard;
 	}
@@ -126,12 +128,6 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 	public void setPointerOver(boolean over)
 	{
 		this.pointerOver = over;
-	}
-
-	/** Whether the expand key is down. Only reads the key. It never consumes it. */
-	public boolean isExpandHeld()
-	{
-		return expandHeld;
 	}
 
 	/**
@@ -280,11 +276,6 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 		return active != null && fresh(activeStamp);
 	}
 
-	public InputQueue getQueue()
-	{
-		return queue;
-	}
-
 	/** Called every frame by the overlay. Null stops all consuming. */
 	public void setActive(Rectangle bounds)
 	{
@@ -300,9 +291,9 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 	}
 
 	/** Sets the places inside the map that are left to the game. Called every frame. */
-	public void setKeepClear(java.util.List<Rectangle> areas)
+	public void setKeepClear(List<Rectangle> areas)
 	{
-		this.keepClear = areas == null ? java.util.Collections.emptyList() : new java.util.ArrayList<>(areas);
+		this.keepClear = areas == null ? Collections.emptyList() : new ArrayList<>(areas);
 	}
 
 	public void setPassThrough(boolean passThrough)
@@ -311,7 +302,7 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 	}
 
 	/** Sets which points inside the map are this map's own while it is lined up with the game's, or null when it is not. */
-	public void setTakes(java.util.function.BiPredicate<Integer, Integer> takes)
+	public void setTakes(BiPredicate<Integer, Integer> takes)
 	{
 		this.takes = takes;
 	}
@@ -322,7 +313,7 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 	 */
 	private boolean mine(MouseEvent event)
 	{
-		java.util.function.BiPredicate<Integer, Integer> test = takes;
+		BiPredicate<Integer, Integer> test = takes;
 		if (test == null)
 		{
 			return true;
@@ -330,7 +321,6 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 		return test.test(event.getX(), event.getY())
 			|| event.getButton() == MouseEvent.BUTTON3 && event.isControlDown();
 	}
-
 
 	private boolean inside(MouseEvent event)
 	{

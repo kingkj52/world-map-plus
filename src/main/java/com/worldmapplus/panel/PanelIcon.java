@@ -1,12 +1,8 @@
 package com.worldmapplus.panel;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Path2D;
-import java.awt.image.BufferedImage;
+import java.awt.*;
+import java.awt.geom.*;
+import java.awt.image.*;
 
 /** The side panel's toolbar icon, a map pin, drawn here so the plugin needs no extra image file. */
 final class PanelIcon

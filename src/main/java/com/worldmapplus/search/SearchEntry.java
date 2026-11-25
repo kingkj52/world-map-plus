@@ -1,9 +1,9 @@
 package com.worldmapplus.search;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
-import javax.annotation.Nullable;
+import com.worldmapplus.unlock.*;
+import java.util.*;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * One thing that can be found: a place, a shop, an item sold somewhere, a quest start.
@@ -13,31 +13,37 @@ import javax.annotation.Nullable;
  */
 public final class SearchEntry
 {
+	@Getter
 	private final SearchKind kind;
+	@Getter
 	private final String name;
+	@Getter
 	private final String detail;
+	@Getter
 	private final int mapId;
+	@Getter
 	private final double x;
+	@Getter
 	private final double y;
+	/** Further places the thing can be found, as {x, y} pairs on the same map. */
+	@Getter
 	private final List<double[]> alsoAt;
 	private final String normalizedName;
 	private final String normalizedDetail;
-	private final long price;
+	/** The kinds of thing this is, comma separated, such as {@code location}, or empty. */
+	@Getter
 	private final String category;
 	/** True when the category lists "location", worked out once since a search asks it of every entry at every key press. */
+	@Getter
 	private final boolean location;
-	/** Other names it is found by, normalised, such as the singular of a kind ("bank" for Banks). */
-	private String[] aliases = NO_ALIASES;
-	/** The kind of place this entry lists, for an entry made from the kind index, or null. */
-	private String kindId;
-	/** Which town of its kind this entry is, or -1 for every place of the kind. */
-	private int group = -1;
-	/** The town of a kind at a place, normalised, or empty. An entry with a town is only found by words for both. */
-	private String place = "";
+	/** Other names a partner's result is found by, normalised, such as the singular of a kind ("bank" for Banks). */
+	private String[] aliases = new String[0];
+	/** The name of the game's icon category to draw at every zoom when this result is chosen (a partner's every-place-of-a-kind result), or null. */
+	@Getter
+	@Setter
+	private String reveal;
 	/** What using the thing found asks of the player, or null; set once while the entries are made (round 47). */
-	private com.worldmapplus.unlock.Need need;
-
-	private static final String[] NO_ALIASES = new String[0];
+	private Need need;
 
 	public SearchEntry(SearchKind kind, String name, @Nullable String detail, int mapId, double x, double y)
 	{
@@ -47,19 +53,13 @@ public final class SearchEntry
 	public SearchEntry(SearchKind kind, String name, @Nullable String detail, int mapId, double x, double y,
 		List<double[]> alsoAt)
 	{
-		this(kind, name, detail, mapId, x, y, alsoAt, -1, "");
+		this(kind, name, detail, mapId, x, y, alsoAt, "");
 	}
 
-	/**
-	 * An entry with a price and kinds of item, for the items a shop sells.
-	 *
-	 * @param price what it costs, or -1 when it has no price
-	 * @param category the kinds of item it is, comma separated, such as {@code melee_weapon,tool}
-	 */
+	/** An entry with a category, such as {@code location}, which is only searched when places are asked for. */
 	public SearchEntry(SearchKind kind, String name, @Nullable String detail, int mapId, double x, double y,
-		List<double[]> alsoAt, long price, String category)
+		List<double[]> alsoAt, String category)
 	{
-		this.price = price;
 		this.category = category == null ? "" : category;
 		this.location = hasCategory(this.category, "location");
 		this.kind = kind;
@@ -73,27 +73,8 @@ public final class SearchEntry
 		this.normalizedDetail = normalize(this.detail);
 	}
 
-	/**
-	 * An entry for the places of one kind, made from the kind index: every place of it ({@code group} -1), or the places of it in one
-	 * town ({@code group} and {@code town} given), which is only found when the words typed fit both the kind and the town.
-	 */
-	public static SearchEntry ofKind(String name, String detail, int mapId, double x, double y, List<double[]> tiles,
-		List<String> aliases, String kindId, int group, @Nullable String town)
-	{
-		SearchEntry entry = new SearchEntry(SearchKind.KIND, name, detail, mapId, x, y, tiles);
-		String[] own = new String[aliases.size()];
-		for (int i = 0; i < own.length; i++)
-		{
-			own[i] = normalize(aliases.get(i));
-		}
-		entry.aliases = own;
-		entry.kindId = kindId;
-		entry.group = group;
-		entry.place = town == null ? "" : normalize(town);
-		return entry;
-	}
-
 	/** The id of the player's own pin or route this entry stands for, or 0 (round 48). */
+	@Getter
 	private long ownId;
 
 	/**
@@ -105,12 +86,6 @@ public final class SearchEntry
 		SearchEntry entry = new SearchEntry(kind, name, detail, mapId, x, y);
 		entry.ownId = id;
 		return entry;
-	}
-
-	/** The id of the player's own pin or route, or 0 for anything else. */
-	public long getOwnId()
-	{
-		return ownId;
 	}
 
 	/** Lower case, with everything that is not a letter or digit turned into a single space. */
@@ -158,12 +133,6 @@ public final class SearchEntry
 		return kind == SearchKind.PLACE && "Area name".equals(detail);
 	}
 
-	/** True for a named place that is only searched when places are asked for, as with type:place. */
-	public boolean isLocation()
-	{
-		return location;
-	}
-
 	/** True when a comma separated list has the word as one of its items. Makes no garbage. */
 	private static boolean hasCategory(String list, String word)
 	{
@@ -185,94 +154,32 @@ public final class SearchEntry
 		return false;
 	}
 
-	public SearchKind getKind()
-	{
-		return kind;
-	}
-
-	public String getName()
-	{
-		return name;
-	}
-
-	public String getDetail()
-	{
-		return detail;
-	}
-
-	public int getMapId()
-	{
-		return mapId;
-	}
-
-	public double getX()
-	{
-		return x;
-	}
-
-	public double getY()
-	{
-		return y;
-	}
-
-	/** What the item costs where it is sold, or -1 when this is not an item with a price. */
-	public long getPrice()
-	{
-		return price;
-	}
-
-	/** The kinds of item this is, comma separated, or empty. */
-	public String getCategory()
-	{
-		return category;
-	}
-
-	/** Further places the thing can be found, as {x, y} pairs on the same map. */
-	public List<double[]> getAlsoAt()
-	{
-		return alsoAt;
-	}
-
-	/** The kind of place this entry lists, or null when it is not made from the kind index. */
-	@Nullable
-	public String getKindId()
-	{
-		return kindId;
-	}
-
-	/** Which town of its kind this entry is, or -1 for every place of the kind. */
-	public int getGroup()
-	{
-		return group;
-	}
-
 	/** What using the thing found asks of the player (levels, quests, diary tiers, quest points), or null when nothing is judged. */
 	@Nullable
-	public com.worldmapplus.unlock.Need getNeed()
+	public Need getNeed()
 	{
 		return need;
 	}
 
 	/** Sets the need, while the entries are made and before anything else reads them. */
-	public void setNeed(@Nullable com.worldmapplus.unlock.Need need)
+	public void setNeed(@Nullable Need need)
 	{
 		this.need = need;
 	}
 
-	/** True for the places of one kind in one town, which need words for both the kind and the town. */
-	public boolean isKindAtPlace()
+	/** Sets the other names the result is found by (a partner's result). */
+	public void setAliases(List<String> names)
 	{
-		return !place.isEmpty();
+		aliases = new String[names.size()];
+		for (int i = 0; i < aliases.length; i++)
+		{
+			aliases[i] = normalize(names.get(i));
+		}
 	}
 
 	String[] normalizedAliases()
 	{
 		return aliases;
-	}
-
-	String normalizedPlace()
-	{
-		return place;
 	}
 
 	String normalizedName()

@@ -1,20 +1,12 @@
 package com.worldmapplus.layers;
 
-import com.worldmapplus.map.MapInfo;
-import com.worldmapplus.view.ViewTransform;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.geom.Ellipse2D;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Arrays;
+import com.worldmapplus.map.*;
+import com.worldmapplus.view.*;
+import java.awt.*;
+import java.awt.geom.*;
+import java.awt.image.*;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Draws the points of interest of the layers that are switched on.

@@ -1,13 +1,11 @@
 package com.worldmapplus.input;
 
-import java.awt.Rectangle;
-import java.util.function.Consumer;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import net.runelite.api.widgets.Widget;
-import net.runelite.client.callback.ClientThread;
-import net.runelite.client.game.chatbox.ChatboxInput;
-import net.runelite.client.game.chatbox.ChatboxPanelManager;
+import java.awt.*;
+import java.util.function.*;
+import javax.inject.*;
+import net.runelite.api.widgets.*;
+import net.runelite.client.callback.*;
+import net.runelite.client.game.chatbox.*;
 
 /**
  * The chat area, through RuneLite's own {@link ChatboxPanelManager}. That class builds the prompt and runs the game's script for

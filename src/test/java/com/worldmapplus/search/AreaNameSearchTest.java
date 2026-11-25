@@ -12,7 +12,7 @@ public class AreaNameSearchTest
 {
 	private static SearchEntry place(String name, String detail)
 	{
-		return new SearchEntry(SearchKind.PLACE, name, detail, 0, 1405.5, 3363.5, Collections.emptyList(), -1, "location");
+		return new SearchEntry(SearchKind.PLACE, name, detail, 0, 1405.5, 3363.5, Collections.emptyList(), "location");
 	}
 
 	@Test

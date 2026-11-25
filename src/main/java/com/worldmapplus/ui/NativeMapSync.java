@@ -1,6 +1,7 @@
 package com.worldmapplus.ui;
 
-import javax.annotation.Nullable;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * Keeps this plugin's map in step with the game's own map, which is still there underneath it.
@@ -26,26 +27,12 @@ public final class NativeMapSync
 	static final int STILL_FRAMES = 8;
 
 	/** A place on the game's map, in world tiles. */
+	@Getter
+	@RequiredArgsConstructor
 	public static final class Spot
 	{
 		private final int x;
 		private final int y;
-
-		public Spot(int x, int y)
-		{
-			this.x = x;
-			this.y = y;
-		}
-
-		public int getX()
-		{
-			return x;
-		}
-
-		public int getY()
-		{
-			return y;
-		}
 
 		@Override
 		public boolean equals(Object other)
@@ -95,6 +82,8 @@ public final class NativeMapSync
 	 */
 	static final int MIN_SEND_FRAMES = 45;
 
+	/** True while this plugin's map should stay out of the way. */
+	@Getter
 	private boolean open;
 	private Spot known;
 	private Spot candidate;
@@ -112,12 +101,6 @@ public final class NativeMapSync
 	private double lastX = Double.NaN;
 	private double lastY = Double.NaN;
 	private int steadyFor;
-
-	/** True while this plugin's map should stay out of the way. */
-	public boolean isOpen()
-	{
-		return open;
-	}
 
 	/**
 	 * Called once per frame.

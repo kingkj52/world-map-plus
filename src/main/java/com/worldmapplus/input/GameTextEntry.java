@@ -1,16 +1,14 @@
 package com.worldmapplus.input;
 
-import java.awt.event.KeyEvent;
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import net.runelite.api.Client;
-import net.runelite.api.GameState;
-import net.runelite.api.WidgetNode;
+import java.awt.event.*;
+import java.util.function.BooleanSupplier;
+import javax.annotation.*;
+import javax.inject.*;
+import lombok.*;
+import net.runelite.api.*;
+import net.runelite.api.gameval.*;
 import net.runelite.api.gameval.InterfaceID;
-import net.runelite.api.gameval.VarClientID;
-import net.runelite.api.widgets.Widget;
-import net.runelite.api.widgets.WidgetModalMode;
+import net.runelite.api.widgets.*;
 
 /**
  * Knows whether the game is taking typed text, so a key of this plugin never acts while the player is typing in the game.
@@ -63,14 +61,10 @@ public class GameTextEntry
 		boolean windowTakesKeys();
 	}
 
+	@RequiredArgsConstructor
 	private static final class ClientSource implements Source
 	{
 		private final Client client;
-
-		ClientSource(Client client)
-		{
-			this.client = client;
-		}
 
 		@Override
 		public boolean loggedIn()
@@ -216,7 +210,7 @@ public class GameTextEntry
 		takesKeys = keys;
 	}
 
-	private static boolean safe(java.util.function.BooleanSupplier question)
+	private static boolean safe(BooleanSupplier question)
 	{
 		try
 		{

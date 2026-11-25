@@ -1,5 +1,7 @@
 package com.worldmapplus.pins;
 
+import lombok.*;
+
 /**
  * A place the player saved on the map: a pin dropped by hand, or a shop, person or other place saved
  * from a card or a search. Held and saved on the player's own machine only.
@@ -8,16 +10,24 @@ package com.worldmapplus.pins;
  */
 public final class Pin
 {
+	@Getter
 	private long id;
 	private String name;
+	@Getter
 	private int map;
+	@Getter
 	private double x;
+	@Getter
 	private double y;
 	private String kind;
+	/** When it was saved, as milliseconds since 1970, or 0 for pins saved before this was kept. */
+	@Getter
 	private long created;
 	private int plane;
 	private int color;
 	private int size;
+	/** True when the pin is not drawn on the map. A route can still go through it. */
+	@Getter
 	private boolean hidden;
 
 	public Pin()
@@ -61,12 +71,6 @@ public final class Pin
 		return kind == null || kind.isEmpty() ? "pin" : kind;
 	}
 
-	/** When it was saved, as milliseconds since 1970, or 0 for pins saved before this was kept. */
-	public long getCreated()
-	{
-		return created;
-	}
-
 	/** The floor the place is on, 0 to 3. Pins saved before floors were kept are on floor 0. */
 	public int getPlane()
 	{
@@ -90,12 +94,6 @@ public final class Pin
 		return size == 0 ? DEFAULT_SIZE : Math.max(MIN_SIZE, Math.min(MAX_SIZE, size));
 	}
 
-	/** True when the pin is not drawn on the map. A route can still go through it. */
-	public boolean isHidden()
-	{
-		return hidden;
-	}
-
 	/** A copy with another colour, size and visibility. */
 	public Pin styled(int newColor, int newSize, boolean newHidden)
 	{
@@ -108,28 +106,8 @@ public final class Pin
 		return new Pin(id, newName, map, x, y, getKind(), created, plane, color, size, hidden);
 	}
 
-	public long getId()
-	{
-		return id;
-	}
-
 	public String getName()
 	{
 		return name == null ? "" : name;
-	}
-
-	public int getMap()
-	{
-		return map;
-	}
-
-	public double getX()
-	{
-		return x;
-	}
-
-	public double getY()
-	{
-		return y;
 	}
 }

@@ -1,13 +1,8 @@
 package com.worldmapplus.ui;
 
-import com.worldmapplus.theme.Palette;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import javax.annotation.Nullable;
+import com.worldmapplus.theme.*;
+import java.awt.*;
+import javax.annotation.*;
 
 /**
  * The small column of buttons in the corner of the map: zoom in, zoom out and locate me.
@@ -20,7 +15,7 @@ public final class MapButtons
 	public enum Button
 	{
 		LAYERS("", "Layers"),
-		LINE_UP("", "Line up with the game map, so other plugins' lines such as Quest Helper's show here"),
+		LINE_UP("", "Line up with the game map, so other plugins' lines show here"),
 		ZOOM_IN("+", "Zoom in"),
 		ZOOM_OUT("−", "Zoom out"),
 		LOCATE("Me", "Centre on me");
@@ -44,7 +39,6 @@ public final class MapButtons
 	static final int SIZE = 28;
 	static final int GAP = 4;
 	static final int MARGIN = 10;
-
 
 	private final Rectangle[] rects = new Rectangle[Button.values().length];
 	private boolean lineUpShown;

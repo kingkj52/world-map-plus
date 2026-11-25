@@ -1,5 +1,8 @@
 package com.worldmapplus.view;
 
+import com.worldmapplus.theme.*;
+import lombok.*;
+
 /**
  * Where the viewer is looking, how dragging moves it, and how it follows the player.
  * <p>
@@ -36,18 +39,24 @@ public final class Camera
 	/** Time constant when easing to a follow target, in seconds. */
 	static final double FOLLOW_SECONDS = 0.06;
 
+	@Getter
 	private double x;
+	@Getter
 	private double y;
+	@Getter
 	private boolean following;
 
+	@Getter
 	private boolean dragging;
 	private long lastDragMillis;
 	/** Drag speed in pixels per second, screen axes. */
 	private double speedX;
 	private double speedY;
+	@Getter
 	private boolean coasting;
 
 	/** A glide to a place, started by a jump to a search result or a card: from where the camera was, over a set time. */
+	@Getter
 	private boolean gliding;
 	private double glideFromX;
 	private double glideFromY;
@@ -60,26 +69,6 @@ public final class Camera
 	{
 		this.x = x;
 		this.y = y;
-	}
-
-	public double getX()
-	{
-		return x;
-	}
-
-	public double getY()
-	{
-		return y;
-	}
-
-	public boolean isFollowing()
-	{
-		return following;
-	}
-
-	public boolean isDragging()
-	{
-		return dragging;
 	}
 
 	public void setFollowing(boolean following)
@@ -123,7 +112,7 @@ public final class Camera
 		{
 			return;
 		}
-		double t = com.worldmapplus.theme.Motion.progress(glideStart, nowMillis, glideMillis);
+		double t = Motion.progress(glideStart, nowMillis, glideMillis);
 		if (t >= 1)
 		{
 			x = glideToX;
@@ -131,14 +120,9 @@ public final class Camera
 			gliding = false;
 			return;
 		}
-		double e = com.worldmapplus.theme.Motion.ease(t);
+		double e = Motion.ease(t);
 		x = glideFromX + (glideToX - glideFromX) * e;
 		y = glideFromY + (glideToY - glideFromY) * e;
-	}
-
-	public boolean isGliding()
-	{
-		return gliding;
 	}
 
 	/** Stops where it is, for a drag or the wheel taking over. */
@@ -251,10 +235,5 @@ public final class Camera
 				stopCoasting();
 			}
 		}
-	}
-
-	public boolean isCoasting()
-	{
-		return coasting;
 	}
 }

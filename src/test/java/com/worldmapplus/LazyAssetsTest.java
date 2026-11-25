@@ -220,7 +220,7 @@ public class LazyAssetsTest
 		assertTrue("start asks for the load to be run on the executor", start.contains("assets.preload();"));
 		assertNull("start must not touch a getter that loads the data", firstGetter(start));
 		String tick = source.substring(source.indexOf("public void onGameTick"), source.indexOf("public void onGameStateChanged"));
-		assertTrue("a game tick does not wait for the data", tick.contains("assets.isLoaded()"));
+		assertFalse("a game tick does not read the maps", tick.contains("getCatalog") || tick.contains("getSearch"));
 	}
 
 	/** The first call on the assets that would read the data, or null. A method reference is not a call. */
@@ -232,7 +232,7 @@ public class LazyAssetsTest
 			String name = m.group(2);
 			boolean reference = m.group(1).equals("::");
 			if (!reference && !name.equals("preload") && !name.equals("isLoaded") && !name.equals("release")
-				&& !name.equals("setUnlocks") && !name.equals("setPrices"))
+				&& !name.equals("setUnlocks") && !name.equals("setPrices") && !name.equals("setCacheFolder"))
 			{
 				return name;
 			}

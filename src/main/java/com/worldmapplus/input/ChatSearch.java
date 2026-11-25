@@ -1,12 +1,10 @@
 package com.worldmapplus.input;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Consumer;
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import net.runelite.client.callback.ClientThread;
+import java.util.concurrent.atomic.*;
+import java.util.function.*;
+import javax.annotation.*;
+import javax.inject.*;
+import net.runelite.client.callback.*;
 
 /**
  * Lets the search be typed into RuneLite's own chat area prompt instead of straight onto the map.

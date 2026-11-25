@@ -1,12 +1,8 @@
 package com.worldmapplus.pins;
 
-import com.worldmapplus.search.SearchEntry;
-import com.worldmapplus.search.SearchKind;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
+import com.worldmapplus.search.*;
+import java.util.*;
+import java.util.function.*;
 
 /**
  * The search entries for the player's own saved places and routes (round 48). A saved place is a {@link SearchKind#PIN} at the

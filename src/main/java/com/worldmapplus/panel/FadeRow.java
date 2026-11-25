@@ -1,8 +1,7 @@
 package com.worldmapplus.panel;
 
-import java.awt.Color;
-import java.awt.LayoutManager;
-import javax.swing.Timer;
+import java.awt.*;
+import javax.swing.*;
 
 /**
  * A row of the side panel that warms up while the pointer is over it and cools down after, and can glow for a moment

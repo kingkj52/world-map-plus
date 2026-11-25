@@ -1,8 +1,6 @@
 package com.worldmapplus.compat;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The plugins whose points on the game's map are not shown here, kept in the settings as one list of plugin names

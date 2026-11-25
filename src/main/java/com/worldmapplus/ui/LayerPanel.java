@@ -1,26 +1,16 @@
 package com.worldmapplus.ui;
 
-import com.worldmapplus.theme.Palette;
-import com.worldmapplus.WorldMapPlusConfig;
-import com.worldmapplus.compat.HiddenSources;
-import com.worldmapplus.compat.MapCensus;
-import com.worldmapplus.layers.PoiCategory;
-import com.worldmapplus.layers.PoiSelection;
-import com.worldmapplus.prefs.Settings;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.util.ArrayList;
-import java.util.Collections;
+import com.worldmapplus.*;
+import com.worldmapplus.compat.*;
+import com.worldmapplus.layers.*;
+import com.worldmapplus.prefs.*;
+import com.worldmapplus.theme.*;
+import java.awt.*;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Predicate;
-import javax.annotation.Nullable;
+import java.util.function.*;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * A panel of tick boxes for what the map draws, opened from the layers button.
@@ -39,8 +29,12 @@ public final class LayerPanel
 	/** One row: a tick box with a label, or a heading. */
 	public static final class Row
 	{
+		/** The setting this row changes, {@code poi:<id>} for a point of interest layer, or {@code gameicon:<kind>} for a kind of the game's icons. */
+		@Getter
 		private final String key;
+		@Getter
 		private final String label;
+		@Getter
 		private final boolean heading;
 		private final Predicate<WorldMapPlusConfig> state;
 		private final BiConsumer<Settings, WorldMapPlusConfig> flip;
@@ -96,22 +90,6 @@ public final class LayerPanel
 			});
 		}
 
-		/** The setting this row changes, {@code poi:<id>} for a point of interest layer, or {@code gameicon:<kind>} for a kind of the game's icons. */
-		public String getKey()
-		{
-			return key;
-		}
-
-		public String getLabel()
-		{
-			return label;
-		}
-
-		public boolean isHeading()
-		{
-			return heading;
-		}
-
 		public boolean isOn(WorldMapPlusConfig config)
 		{
 			return state.test(config);
@@ -138,13 +116,14 @@ public final class LayerPanel
 	/** Size of the cross that closes the panel. */
 	static final int CLOSE_SIZE = 14;
 
-
 	private final List<Row> fixed;
+	@Getter
 	private volatile List<Row> rows;
-	private List<String> pluginKey = Collections.emptyList();
+	private Map<String, Integer> pluginKey = Collections.emptyMap();
 	private List<Row> pluginRows = Collections.emptyList();
 	private Map<String, Integer> layerKey = Collections.emptyMap();
 	private List<Row> layerRows = Collections.emptyList();
+	@Getter
 	private boolean open;
 	private Rectangle bounds = new Rectangle();
 	private Rectangle limit = new Rectangle();
@@ -203,31 +182,21 @@ public final class LayerPanel
 	 * Sets the plugins listed under the layers: those with points on the game's map, each with a tick box that shows or
 	 * hides them here. The panel is only rebuilt when the list changes.
 	 */
-	public void setPlugins(List<MapCensus.Entry> entries)
+	public void setPlugins(Map<String, Integer> plugins)
 	{
-		List<String> key = new ArrayList<>();
-		for (MapCensus.Entry entry : entries)
+		if (plugins == pluginKey || plugins.equals(pluginKey))
 		{
-			if (entry.getPoints() > 0)
-			{
-				key.add(entry.getName() + ":" + entry.getPoints());
-			}
-		}
-		if (key.equals(pluginKey))
-		{
+			pluginKey = plugins;
 			return;
 		}
-		pluginKey = key;
+		pluginKey = plugins;
 		List<Row> list = new ArrayList<>();
-		if (!key.isEmpty())
+		if (!plugins.isEmpty())
 		{
 			list.add(Row.heading("On the game map from other plugins"));
-			for (MapCensus.Entry entry : entries)
+			for (Map.Entry<String, Integer> entry : plugins.entrySet())
 			{
-				if (entry.getPoints() > 0)
-				{
-					list.add(Row.plugin(entry.getName(), entry.getPoints()));
-				}
+				list.add(Row.plugin(entry.getKey(), entry.getValue()));
 			}
 		}
 		pluginRows = list;
@@ -270,16 +239,6 @@ public final class LayerPanel
 		list.addAll(pluginRows);
 		list.addAll(layerRows);
 		rows = Collections.unmodifiableList(list);
-	}
-
-	public List<Row> getRows()
-	{
-		return rows;
-	}
-
-	public boolean isOpen()
-	{
-		return open;
 	}
 
 	public void toggle()
@@ -503,7 +462,7 @@ public final class LayerPanel
 		{
 			return;
 		}
-		java.awt.Composite faded = appear.begin(g, now);
+		Composite faded = appear.begin(g, now);
 		try
 		{
 			paintPanel(g, config, mouse, now);
@@ -533,7 +492,7 @@ public final class LayerPanel
 		int hoveredIndex = mouse == null ? -1 : indexAt(mouse.x, mouse.y);
 		Row hovered = hoveredIndex < 0 ? null : rows.get(hoveredIndex);
 		Rectangle body = body();
-		java.awt.Shape before = g.getClip();
+		Shape before = g.getClip();
 		g.clipRect(body.x, body.y, body.width, body.height);
 		int room = labelRoom();
 		g.setFont(Palette.BODY);

@@ -1,28 +1,21 @@
 package com.worldmapplus.tiles;
 
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.Executor;
-import java.util.concurrent.RejectedExecutionException;
-import javax.annotation.Nullable;
-import lombok.extern.slf4j.Slf4j;
+import java.awt.image.*;
+import java.util.*;
+import java.util.concurrent.*;
+import javax.annotation.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
 
 /**
  * Decoded tiles, kept in memory, loaded off the render thread.
  * <p>
  * The renderer asks for the tiles it needs every frame. A tile that is not ready yet is noted and the answer is null, so
  * drawing never waits on a decode and never averages a tile down either. The work is done by a chain of short tasks on the
- * executor: each task does one small thing (decode one tile, decode a few rows of the whole-map picture, or average a few
- * cached tiles down) and then hands the executor the next one, so there is never more than {@link #MAX_TASKS} of this cache's
- * tasks waiting and another plugin's task on the same thread waits for one decode at most. The chain stops when the renderer
- * stops asking, which is judged by the clock because the frame counter stands still when the map is closed.
+ * executor: each task loads one tile (or averages a few cached tiles down, or reads one whole-map picture) and then hands the
+ * executor the next one, so there is never more than {@link #MAX_TASKS} of this cache's tasks waiting and another plugin's task on
+ * the same thread waits for one decode at most. The chain stops when the renderer stops asking, which is judged by the clock
+ * because the frame counter stands still when the map is closed.
  * <p>
  * What each task does is chosen when it runs, in this order: a whole-map picture that the view needs, or that the view is waiting
  * for many tiles beside; averaging down tiles that are cached already; the missing tile nearest the middle of the view; the
@@ -35,6 +28,7 @@ import lombok.extern.slf4j.Slf4j;
  * push out.
  */
 @Slf4j
+@RequiredArgsConstructor
 public final class TileCache
 {
 	/** Deepest mip level. Level k is the full tile shrunk by a factor of 2^k. */
@@ -59,11 +53,8 @@ public final class TileCache
 	 */
 	private static final long ASK_WINDOW_NANOS = 400_000_000L;
 
-	/** How long one task works on the whole-map picture. A piece is a few rows, so it can end a little after this. */
-	private static final long SLICE_NANOS = 6_000_000L;
-
 	/** The most tiles one task averages down. */
-	private static final int SHRINK_BATCH = 8;
+	private static final int BATCH = 8;
 
 	/** With this many tiles waiting for the view the whole-map picture is made first, to have something to show in their place. */
 	static final int OVERVIEW_FIRST_WANTS = 128;
@@ -91,6 +82,7 @@ public final class TileCache
 	/** The largest map id, square coordinate and so on that a key can tell apart: 20 bits each, like the chunk files. */
 	static final int MAX_ID = 0xFFFFF;
 
+	@Getter
 	private final TileSource source;
 	private final Executor executor;
 	private final long maxBytes;
@@ -133,8 +125,7 @@ public final class TileCache
 	private long viewSince;
 	private boolean prefetchDone;
 	private int ringRadius;
-	private int[] ringTiles = new int[0];
-	private int ringCount;
+	private List<int[]> ring = Collections.emptyList();
 	private int ringCursor;
 
 	/** Tells a task that an executor which runs work in the caller's own thread has started the next one inside it. */
@@ -147,6 +138,7 @@ public final class TileCache
 	private final ThreadLocal<Reentry> reentry = ThreadLocal.withInitial(Reentry::new);
 
 	/** One tile asked for and not yet loaded. */
+	@RequiredArgsConstructor
 	private static final class Want
 	{
 		final int mapId;
@@ -156,16 +148,12 @@ public final class TileCache
 		/** The mip level the renderer asked for last. */
 		int mip;
 		boolean running;
-
-		Want(int mapId, int x, int y)
-		{
-			this.mapId = mapId;
-			this.x = x;
-			this.y = y;
-		}
+		/** True for a tile fetched ahead of the view: kept apart, and not in {@link #wanted}. */
+		boolean ahead;
 	}
 
 	/** One whole-map picture asked for and not finished yet. */
+	@RequiredArgsConstructor
 	private static final class Job
 	{
 		final long key;
@@ -173,15 +161,7 @@ public final class TileCache
 		long frame;
 		/** True when the view cannot be drawn right without it, false when it is only wanted to stand in for tiles. */
 		boolean needed;
-		boolean opened;
 		boolean running;
-		TileSource.Picture picture;
-
-		Job(long key, int mapId)
-		{
-			this.key = key;
-			this.mapId = mapId;
-		}
 	}
 
 	/** One small piece of work for the executor. */
@@ -192,18 +172,6 @@ public final class TileCache
 
 		/** Called when run threw, so what it had marked as in progress is free again. */
 		void abandon();
-	}
-
-	public TileCache(TileSource source, Executor executor, long maxBytes)
-	{
-		this.source = source;
-		this.executor = executor;
-		this.maxBytes = maxBytes;
-	}
-
-	public TileSource getSource()
-	{
-		return source;
 	}
 
 	/** For tests: how long the work goes on after the last request. */
@@ -266,7 +234,7 @@ public final class TileCache
 		{
 			asking = false;
 			viewSet = false;
-			ringCount = 0;
+			ring = Collections.emptyList();
 			ringCursor = 0;
 		}
 	}
@@ -469,7 +437,7 @@ public final class TileCache
 				viewSince = System.nanoTime();
 				prefetchDone = false;
 				ringRadius = 0;
-				ringCount = 0;
+				ring = Collections.emptyList();
 				ringCursor = 0;
 			}
 			else if (!prefetchDone && tasks == 0 && wanted.isEmpty() && System.nanoTime() - viewSince >= prefetchDelayNanos)
@@ -637,28 +605,20 @@ public final class TileCache
 		double fx = focusX;
 		double fy = focusY;
 		Want nearest = null;
-		long nearestKey = 0;
 		double best = Double.MAX_VALUE;
 		int fresh = 0;
 		List<Want> cheap = null;
-		Iterator<Map.Entry<Long, Want>> it = wanted.entrySet().iterator();
+		Iterator<Want> it = wanted.values().iterator();
 		while (it.hasNext())
 		{
-			Map.Entry<Long, Want> entry = it.next();
-			Want want = entry.getValue();
+			Want want = it.next();
 			if (want.running)
 			{
 				continue;
 			}
-			if (now - want.frame > STALE_FRAMES)
+			if (now - want.frame > STALE_FRAMES || held(key(want.mapId, want.x, want.y, want.mip)))
 			{
-				it.remove();
-				continue;
-			}
-			long wantedKey = key(want.mapId, want.x, want.y, want.mip);
-			if (cache.containsKey(wantedKey) || warm.containsKey(wantedKey))
-			{
-				// Already here, from another request or a fetch ahead.
+				// Not asked for any more, or already here from another request or a fetch ahead.
 				it.remove();
 				continue;
 			}
@@ -666,7 +626,7 @@ public final class TileCache
 			{
 				fresh++;
 			}
-			if (want.mip > 0 && (cache.containsKey(entry.getKey()) || warm.containsKey(entry.getKey())))
+			if (want.mip > 0 && held(key(want.mapId, want.x, want.y, 0)))
 			{
 				// The full tile is in memory already, so only the small copy has to be made.
 				if (cheap == null)
@@ -676,12 +636,17 @@ public final class TileCache
 				cheap.add(want);
 				continue;
 			}
-			double d = Double.isNaN(fx) ? 0 : square(want.x + 0.5 - fx) + square(want.y + 0.5 - fy);
+			double d = distance(want, fx, fy);
+			if (!source.ready(want.mapId, want.x, want.y))
+			{
+				// Still on its way: the source is asked for it, and the task goes on to what can be decoded now.
+				source.request(want.mapId, want.x, want.y, d);
+				continue;
+			}
 			if (d < best)
 			{
 				best = d;
 				nearest = want;
-				nearestKey = entry.getKey();
 			}
 		}
 
@@ -699,36 +664,24 @@ public final class TileCache
 		}
 		if (job != null && headStart >= HEAD_START_TILES && (job.needed || fresh >= OVERVIEW_FIRST_WANTS))
 		{
-			return slice(job);
+			return overview(job);
 		}
 		if (cheap != null)
 		{
-			final double cx = fx;
-			final double cy = fy;
-			Collections.sort(cheap, (a, b) -> Double.compare(distance(a, cx, cy), distance(b, cx, cy)));
-			List<Want> batch = new ArrayList<>(cheap.subList(0, Math.min(SHRINK_BATCH, cheap.size())));
-			for (Want want : batch)
-			{
-				want.running = true;
-			}
-			return new ShrinkWork(batch, generation);
+			Collections.sort(cheap, Comparator.comparingDouble(w -> distance(w, fx, fy)));
+			return load(cheap.subList(0, Math.min(BATCH, cheap.size())));
 		}
 		if (nearest != null)
 		{
-			nearest.running = true;
 			headStart++;
-			return new DecodeWork(nearestKey, nearest, nearest.mip, generation);
+			return load(Collections.singletonList(nearest));
 		}
-		if (job != null)
-		{
-			return slice(job);
-		}
-		return pickAhead(fx, fy);
+		return job != null ? overview(job) : pickAhead(fx, fy);
 	}
 
-	private static double square(double v)
+	private boolean held(long key)
 	{
-		return v * v;
+		return cache.containsKey(key) || warm.containsKey(key);
 	}
 
 	private static double distance(Want want, double fx, double fy)
@@ -736,10 +689,24 @@ public final class TileCache
 		return Double.isNaN(fx) ? 0 : square(want.x + 0.5 - fx) + square(want.y + 0.5 - fy);
 	}
 
-	private Work slice(Job job)
+	private static double square(double v)
+	{
+		return v * v;
+	}
+
+	private Work load(List<Want> list)
+	{
+		for (Want want : list)
+		{
+			want.running = true;
+		}
+		return new LoadWork(list, generation);
+	}
+
+	private Work overview(Job job)
 	{
 		job.running = true;
-		return new SliceWork(job, generation);
+		return new OverviewWork(job, generation);
 	}
 
 	/** Chooses a tile beside the view to fetch ahead, or null. Caller holds the lock. */
@@ -754,7 +721,7 @@ public final class TileCache
 		long size = pixelBytes(level);
 		while (true)
 		{
-			if (ringCursor >= ringCount)
+			if (ringCursor >= ring.size())
 			{
 				if (++ringRadius > PREFETCH_RINGS)
 				{
@@ -764,12 +731,13 @@ public final class TileCache
 				buildRing(fx, fy);
 				continue;
 			}
-			int id = ringTiles[3 * ringCursor];
-			int x = ringTiles[3 * ringCursor + 1];
-			int y = ringTiles[3 * ringCursor + 2];
-			ringCursor++;
+			int[] square = ring.get(ringCursor++);
+			int id = square[0];
+			int x = square[1];
+			int y = square[2];
 			long base = key(id, x, y, 0);
-			if (failed.contains(base) || wanted.containsKey(base) || cache.containsKey(key(id, x, y, level)) || warm.containsKey(key(id, x, y, level)))
+			if (failed.contains(base) || wanted.containsKey(base) || cache.containsKey(key(id, x, y, level)) || warm.containsKey(key(id, x, y, level))
+				|| !source.ready(id, x, y))
 			{
 				continue;
 			}
@@ -783,7 +751,10 @@ public final class TileCache
 					return null;
 				}
 			}
-			return new AheadWork(id, x, y, level, generation);
+			Want ahead = new Want(id, x, y);
+			ahead.mip = level;
+			ahead.ahead = true;
+			return load(Collections.singletonList(ahead));
 		}
 	}
 
@@ -835,135 +806,48 @@ public final class TileCache
 		}
 		Collections.sort(found, (a, b) -> Double.compare(square(a[1] + 0.5 - cx) + square(a[2] + 0.5 - cy),
 			square(b[1] + 0.5 - cx) + square(b[2] + 0.5 - cy)));
-		if (ringTiles.length < found.size() * 3)
-		{
-			ringTiles = new int[found.size() * 3];
-		}
-		for (int i = 0; i < found.size(); i++)
-		{
-			int[] t = found.get(i);
-			ringTiles[3 * i] = t[0];
-			ringTiles[3 * i + 1] = t[1];
-			ringTiles[3 * i + 2] = t[2];
-		}
-		ringCount = found.size();
+		ring = found;
 		ringCursor = 0;
 	}
 
-	/** Loads one tile, and averages it down when a mip level is wanted. Returns {full, small}, or {null, null}. */
-	private BufferedImage[] decode(int mapId, int x, int y, int mip)
-	{
-		BufferedImage full = null;
-		BufferedImage small = null;
-		try
-		{
-			full = source.load(mapId, x, y);
-			if (full != null && mip > 0)
-			{
-				small = shrink(full, mip);
-			}
-		}
-		catch (RuntimeException e)
-		{
-			log.debug("World Map Plus: could not load tile {}:{}_{}", mapId, x, y, e);
-			full = null;
-			small = null;
-		}
-		return new BufferedImage[] {full, small};
-	}
-
-	/** Decodes the wanted tile nearest the middle of the view. */
-	private final class DecodeWork implements Work
-	{
-		private final long baseKey;
-		private final Want want;
-		private final int mip;
-		private final int gen;
-
-		DecodeWork(long baseKey, Want want, int mip, int gen)
-		{
-			this.baseKey = baseKey;
-			this.want = want;
-			this.mip = mip;
-			this.gen = gen;
-		}
-
-		@Override
-		public void run()
-		{
-			BufferedImage[] image = decode(want.mapId, want.x, want.y, mip);
-			synchronized (TileCache.this)
-			{
-				want.running = false;
-				if (gen != generation)
-				{
-					return;
-				}
-				if (image[0] == null)
-				{
-					wanted.remove(baseKey);
-					failed.add(baseKey);
-					return;
-				}
-				if (mip > 0)
-				{
-					store(key(want.mapId, want.x, want.y, mip), image[1]);
-				}
-				// The full tile is kept when it is what was asked for, or when the asking changed while it was being decoded.
-				if (mip == 0 || want.mip != mip)
-				{
-					store(baseKey, image[0]);
-				}
-				if (want.mip == mip && wanted.get(baseKey) == want)
-				{
-					wanted.remove(baseKey);
-				}
-			}
-		}
-
-		@Override
-		public void abandon()
-		{
-			want.running = false;
-		}
-	}
-
-	/** Averages down a few tiles whose full size is in memory already. Cheap, so many at once. */
-	private final class ShrinkWork implements Work
+	/**
+	 * Loads the tiles of its list: one whose full size is in memory is only averaged down, any other is read and decoded first.
+	 * A tile fetched ahead goes to the set kept apart, the others to the tiles of the view.
+	 */
+	@RequiredArgsConstructor
+	private final class LoadWork implements Work
 	{
 		private final List<Want> list;
 		private final int gen;
-
-		ShrinkWork(List<Want> list, int gen)
-		{
-			this.list = list;
-			this.gen = gen;
-		}
 
 		@Override
 		public void run()
 		{
 			for (Want want : list)
 			{
-				long baseKey = key(want.mapId, want.x, want.y, 0);
+				long base = key(want.mapId, want.x, want.y, 0);
 				int mip;
-				BufferedImage base;
+				BufferedImage full;
 				synchronized (TileCache.this)
 				{
 					mip = want.mip;
-					base = cache.get(baseKey);
-					if (base == null)
-					{
-						base = warm.get(baseKey);
-					}
-					if (base == null || mip == 0)
-					{
-						// Gone from memory meanwhile, or the full size is wanted after all: the next piece decodes it.
-						want.running = false;
-						continue;
-					}
+					full = look(base);
 				}
-				BufferedImage small = shrink(base, mip);
+				boolean inMemory = full != null;
+				BufferedImage small = null;
+				try
+				{
+					if (!inMemory)
+					{
+						full = source.load(want.mapId, want.x, want.y);
+					}
+					small = full != null && mip > 0 ? shrink(full, mip) : null;
+				}
+				catch (RuntimeException e)
+				{
+					log.debug("World Map Plus: could not load tile {}:{}_{}", want.mapId, want.x, want.y, e);
+					full = null;
+				}
 				synchronized (TileCache.this)
 				{
 					want.running = false;
@@ -971,10 +855,30 @@ public final class TileCache
 					{
 						continue;
 					}
-					store(key(want.mapId, want.x, want.y, mip), small);
-					if (want.mip == mip && wanted.get(baseKey) == want)
+					if (full == null)
 					{
-						wanted.remove(baseKey);
+						wanted.remove(base);
+						failed.add(base);
+					}
+					else if (want.ahead)
+					{
+						storeAhead(key(want.mapId, want.x, want.y, mip), mip > 0 ? small : full);
+					}
+					else
+					{
+						if (mip > 0)
+						{
+							store(key(want.mapId, want.x, want.y, mip), small);
+						}
+						// The full tile is kept when it is what was asked for, or when the asking changed while it was being decoded.
+						if (!inMemory && (mip == 0 || want.mip != mip))
+						{
+							store(base, full);
+						}
+						if (want.mip == mip && wanted.get(base) == want)
+						{
+							wanted.remove(base);
+						}
 					}
 				}
 			}
@@ -990,54 +894,33 @@ public final class TileCache
 		}
 	}
 
-	/** Decodes the next few rows of a whole-map picture. */
-	private final class SliceWork implements Work
+	/** Reads a whole-map picture. */
+	@RequiredArgsConstructor
+	private final class OverviewWork implements Work
 	{
 		private final Job job;
 		private final int gen;
 
-		SliceWork(Job job, int gen)
-		{
-			this.job = job;
-			this.gen = gen;
-		}
-
 		@Override
 		public void run()
 		{
-			TileSource.Picture picture = job.picture;
-			if (!job.opened)
-			{
-				picture = source.startOverview(job.mapId);
-				job.picture = picture;
-				job.opened = true;
-			}
-			if (picture == null || picture.step(SLICE_NANOS))
-			{
-				BufferedImage image = picture == null ? null : picture.image();
-				synchronized (TileCache.this)
-				{
-					job.running = false;
-					job.picture = null;
-					if (gen != generation)
-					{
-						return;
-					}
-					jobs.remove(job.key);
-					if (image == null)
-					{
-						failed.add(job.key);
-					}
-					else
-					{
-						storePinned(job.key, image);
-					}
-				}
-				return;
-			}
+			BufferedImage image = source.overview(job.mapId);
 			synchronized (TileCache.this)
 			{
 				job.running = false;
+				if (gen != generation)
+				{
+					return;
+				}
+				jobs.remove(job.key);
+				if (image == null)
+				{
+					failed.add(job.key);
+				}
+				else
+				{
+					storePinned(job.key, image);
+				}
 			}
 		}
 
@@ -1047,49 +930,6 @@ public final class TileCache
 			job.running = false;
 			jobs.remove(job.key);
 			failed.add(job.key);
-		}
-	}
-
-	/** Decodes a tile beside the view and keeps it apart from the tiles the view uses. */
-	private final class AheadWork implements Work
-	{
-		private final int mapId;
-		private final int x;
-		private final int y;
-		private final int mip;
-		private final int gen;
-
-		AheadWork(int mapId, int x, int y, int mip, int gen)
-		{
-			this.mapId = mapId;
-			this.x = x;
-			this.y = y;
-			this.mip = mip;
-			this.gen = gen;
-		}
-
-		@Override
-		public void run()
-		{
-			BufferedImage[] image = decode(mapId, x, y, mip);
-			synchronized (TileCache.this)
-			{
-				if (gen != generation)
-				{
-					return;
-				}
-				if (image[0] == null)
-				{
-					failed.add(key(mapId, x, y, 0));
-					return;
-				}
-				storeAhead(key(mapId, x, y, mip), mip > 0 ? image[1] : image[0]);
-			}
-		}
-
-		@Override
-		public void abandon()
-		{
 		}
 	}
 
@@ -1125,9 +965,7 @@ public final class TileCache
 	{
 		while (total() > maxBytes && !warm.isEmpty())
 		{
-			Iterator<Map.Entry<Long, BufferedImage>> oldest = warm.entrySet().iterator();
-			warmBytes -= sizeOf(oldest.next().getValue());
-			oldest.remove();
+			dropOldestAhead();
 		}
 		Iterator<Map.Entry<Long, BufferedImage>> it = cache.entrySet().iterator();
 		while (total() > maxBytes && cache.size() > 1 && it.hasNext())
@@ -1162,9 +1000,7 @@ public final class TileCache
 		}
 		while (!warm.isEmpty() && (warmBytes + size > cap || total() + size > maxBytes))
 		{
-			Iterator<Map.Entry<Long, BufferedImage>> oldest = warm.entrySet().iterator();
-			warmBytes -= sizeOf(oldest.next().getValue());
-			oldest.remove();
+			dropOldestAhead();
 		}
 		if (warmBytes + size > cap || total() + size > maxBytes)
 		{
@@ -1172,6 +1008,13 @@ public final class TileCache
 		}
 		warm.put(key, image);
 		warmBytes += size;
+	}
+
+	private void dropOldestAhead()
+	{
+		Iterator<BufferedImage> oldest = warm.values().iterator();
+		warmBytes -= sizeOf(oldest.next());
+		oldest.remove();
 	}
 
 	/** Keeps a whole-map picture where tiles cannot push it out. Caller holds the lock. */
@@ -1209,50 +1052,14 @@ public final class TileCache
 		return side * side * 4L;
 	}
 
-	/** Averages the tile down by 2^level in each direction. */
+	/** Averages the tile down by 2^level in each direction, weighted by opacity so a clear pixel does not darken its neighbours. */
 	static BufferedImage shrink(BufferedImage full, int level)
 	{
 		int factor = 1 << level;
 		int width = Math.max(1, full.getWidth() / factor);
 		int height = Math.max(1, full.getHeight() / factor);
+		boolean alpha = full.getColorModel().hasAlpha();
 		int[] in = full.getRGB(0, 0, full.getWidth(), full.getHeight(), null, 0, full.getWidth());
-		int[] out = new int[width * height];
-		int area = factor * factor;
-		if (full.getColorModel().hasAlpha())
-		{
-			return shrinkWithAlpha(full, in, width, height, factor);
-		}
-
-		for (int oy = 0; oy < height; oy++)
-		{
-			for (int ox = 0; ox < width; ox++)
-			{
-				int r = 0;
-				int g = 0;
-				int b = 0;
-				for (int dy = 0; dy < factor; dy++)
-				{
-					int row = (oy * factor + dy) * full.getWidth() + ox * factor;
-					for (int dx = 0; dx < factor; dx++)
-					{
-						int p = in[row + dx];
-						r += (p >> 16) & 0xFF;
-						g += (p >> 8) & 0xFF;
-						b += p & 0xFF;
-					}
-				}
-				out[oy * width + ox] = ((r / area) << 16) | ((g / area) << 8) | (b / area);
-			}
-		}
-
-		BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-		result.setRGB(0, 0, width, height, out, 0, width);
-		return result;
-	}
-
-	/** Averages weighted by opacity, so a clear pixel does not darken its neighbours. */
-	private static BufferedImage shrinkWithAlpha(BufferedImage full, int[] in, int width, int height, int factor)
-	{
 		int[] out = new int[width * height];
 		int area = factor * factor;
 		for (int oy = 0; oy < height; oy++)
@@ -1269,23 +1076,17 @@ public final class TileCache
 					for (int dx = 0; dx < factor; dx++)
 					{
 						int p = in[row + dx];
-						int alpha = (p >>> 24) & 0xFF;
-						a += alpha;
-						r += (long) ((p >> 16) & 0xFF) * alpha;
-						g += (long) ((p >> 8) & 0xFF) * alpha;
-						b += (long) (p & 0xFF) * alpha;
+						int weight = alpha ? p >>> 24 : 255;
+						a += weight;
+						r += (long) ((p >> 16) & 0xFF) * weight;
+						g += (long) ((p >> 8) & 0xFF) * weight;
+						b += (long) (p & 0xFF) * weight;
 					}
 				}
-				if (a == 0)
-				{
-					out[oy * width + ox] = 0;
-					continue;
-				}
-				int alpha = (int) (a / area);
-				out[oy * width + ox] = (alpha << 24) | ((int) (r / a) << 16) | ((int) (g / a) << 8) | (int) (b / a);
+				out[oy * width + ox] = a == 0 ? 0 : (int) (a / area) << 24 | (int) (r / a) << 16 | (int) (g / a) << 8 | (int) (b / a);
 			}
 		}
-		BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		BufferedImage result = new BufferedImage(width, height, alpha ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB);
 		result.setRGB(0, 0, width, height, out, 0, width);
 		return result;
 	}
@@ -1349,6 +1150,13 @@ public final class TileCache
 		return true;
 	}
 
+	/** As {@link #clear()}, and stops the downloads under way. For when the plugin shuts down. */
+	public void close()
+	{
+		clear();
+		source.cancel();
+	}
+
 	/**
 	 * Drops everything, including what the tile source holds in memory. Used when the plugin shuts down and when the map has been
 	 * closed for a while. A load that is running while this is called still finishes, and its tile is dropped.
@@ -1368,7 +1176,7 @@ public final class TileCache
 			warmBytes = 0;
 			pinnedBytes = 0;
 			viewSet = false;
-			ringCount = 0;
+			ring = Collections.emptyList();
 			ringCursor = 0;
 			asking = false;
 		}

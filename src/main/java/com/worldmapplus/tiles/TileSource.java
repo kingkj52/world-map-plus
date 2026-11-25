@@ -1,10 +1,10 @@
 package com.worldmapplus.tiles;
 
-import java.awt.image.BufferedImage;
-import javax.annotation.Nullable;
+import java.awt.image.*;
+import javax.annotation.*;
 
 /**
- * Where map tile images come from. The plugin reads them from its own jar; tests supply
+ * Where map tile images come from. The plugin gets them from packs it downloads and keeps (see {@link PackedTiles}); tests supply
  * synthetic ones.
  * <p>
  * A tile is one 64 by 64 tile map square drawn at 4 pixels per game tile, so 256 by 256 pixels.
@@ -38,6 +38,30 @@ public interface TileSource
 	boolean exists(int mapId, int x, int y);
 
 	/**
+	 * True when {@link #load} can read the tile now, without waiting for a download. Cheap, and called for every tile the view waits
+	 * for. A source that has everything always says yes.
+	 */
+	default boolean ready(int mapId, int x, int y)
+	{
+		return true;
+	}
+
+	/**
+	 * Says that the view is waiting for a tile that is not {@link #ready}, and how far it is from the middle of the view (squared,
+	 * in squares), so the source can fetch what is nearest the middle first. Called again for as long as the view waits. Cheap.
+	 */
+	default void request(int mapId, int x, int y, double distance)
+	{
+	}
+
+	/** A short line for the player about what the source is doing (such as downloading), or null when there is nothing to say. */
+	@Nullable
+	default String status()
+	{
+		return null;
+	}
+
+	/**
 	 * Reads and decodes a tile. Blocking, so never called from the render thread. Returns null when
 	 * the square has no tile or cannot be decoded.
 	 */
@@ -46,7 +70,7 @@ public interface TileSource
 
 	/**
 	 * A picture of a whole map at a few pixels per square, for when the view is zoomed so far out
-	 * that individual tiles would be wasted work. Null when the map has none.
+	 * that individual tiles would be wasted work. Null when the map has none. Blocking, so never called from the render thread.
 	 */
 	@Nullable
 	default BufferedImage overview(int mapId)
@@ -55,53 +79,15 @@ public interface TileSource
 	}
 
 	/**
-	 * A picture that is made a piece at a time, so that a long decode can be shared out over many short tasks and other work
-	 * gets the thread in between.
-	 */
-	interface Picture
-	{
-		/**
-		 * Works for about the given time, at least a little, and returns true when the picture is finished or can not be made.
-		 * Never throws.
-		 */
-		boolean step(long nanos);
-
-		/** The picture once {@link #step} has returned true, or null when it could not be made. */
-		@Nullable
-		BufferedImage image();
-	}
-
-	/**
-	 * Starts the overview of a map as a {@link Picture}, or returns null when the map has none. The default makes the whole
-	 * overview in the first piece. Blocking, so never called from the render thread.
-	 */
-	@Nullable
-	default Picture startOverview(int mapId)
-	{
-		return new Picture()
-		{
-			private BufferedImage image;
-
-			@Override
-			public boolean step(long nanos)
-			{
-				image = overview(mapId);
-				return true;
-			}
-
-			@Override
-			public BufferedImage image()
-			{
-				return image;
-			}
-		};
-	}
-
-	/**
 	 * Lets go of whatever the source keeps in memory to make reads faster. It stays usable and reads again when asked.
 	 * Called when the plugin shuts down.
 	 */
 	default void release()
+	{
+	}
+
+	/** Stops any download under way. Called when the plugin shuts down. The source stays usable and asks again when needed. */
+	default void cancel()
 	{
 	}
 }

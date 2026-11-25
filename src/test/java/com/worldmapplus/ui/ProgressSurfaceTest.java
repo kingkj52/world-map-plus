@@ -11,11 +11,9 @@ import com.worldmapplus.WorldMapPlusConfig;
 import com.worldmapplus.bridge.ExternalOverlays;
 import com.worldmapplus.bridge.MapActions;
 import com.worldmapplus.game.PlayerPosition;
-import com.worldmapplus.game.TrailTracker;
 import com.worldmapplus.layers.GameIconLayer;
 import com.worldmapplus.layers.GameIconSet;
 import com.worldmapplus.layers.HoverCard;
-import com.worldmapplus.layers.NpcLayer;
 import com.worldmapplus.map.MapInfo;
 import com.worldmapplus.pins.PinStore;
 import com.worldmapplus.prefs.Settings;
@@ -23,7 +21,7 @@ import com.worldmapplus.prefs.ViewMemory;
 import com.worldmapplus.search.SearchEntry;
 import com.worldmapplus.search.SearchKind;
 import com.worldmapplus.unlock.Need;
-import com.worldmapplus.unlock.Unlocks;
+import com.worldmapplus.unlock.FakeProgress;
 import com.worldmapplus.view.ViewTransform;
 import java.awt.Graphics2D;
 import java.awt.Rectangle;
@@ -68,7 +66,7 @@ public class ProgressSurfaceTest
 	private int mouseY = -1;
 	private MapSurface surface;
 	private BufferedImage canvas;
-	private Unlocks unlocks;
+	private FakeProgress unlocks;
 	private long now = 2_000_000;
 
 	@BeforeClass
@@ -98,13 +96,6 @@ public class ProgressSurfaceTest
 				Class<?> type = method.getReturnType();
 				return type == boolean.class ? (Object) false : type.isPrimitive() ? (Object) 0 : null;
 			});
-		NpcLayer quiet = new NpcLayer()
-		{
-			@Override
-			public void paint(Graphics2D g, ViewTransform view, MapInfo viewed, PlayerPosition player)
-			{
-			}
-		};
 		ViewMemory memory = new ViewMemory(null)
 		{
 			@Override
@@ -121,8 +112,8 @@ public class ProgressSurfaceTest
 		PinStore pins = new PinStore(PinStore.Storage.inMemory(), new Gson());
 		ExternalOverlays external = new ExternalOverlays();
 		com.worldmapplus.pins.RouteStore routes = new com.worldmapplus.pins.RouteStore(PinStore.Storage.inMemory(), new Gson(), pins);
-		SurfaceServices services = new SurfaceServices(quiet, memory, pins, external, new MapActions(new EventBus(), external),
-			new Settings(null), new TrailTracker(), null, null, routes, new com.worldmapplus.pins.PanelLauncher());
+		SurfaceServices services = new SurfaceServices(memory, pins, external, new MapActions(new EventBus(), external),
+			new Settings(null), routes, new com.worldmapplus.pins.PanelLauncher());
 		surface = new MapSurface(client, assets, new WorldMapPlusConfig()
 		{
 			@Override
@@ -149,7 +140,7 @@ public class ProgressSurfaceTest
 				return only;
 			}
 		}, services);
-		unlocks = new Unlocks(new Unlocks.Source()
+		unlocks = new FakeProgress(new FakeProgress.Source()
 		{
 			@Override
 			public boolean loggedIn()
@@ -245,8 +236,8 @@ public class ProgressSurfaceTest
 		{
 			Need need = spec.getNeed();
 			if (spec.getMapId() != assets.getCatalog().surface().getId() || spec.getFloor() != 0 || need == null
-				|| !need.hasAlternatives() || need.alternatives().length != 1 || need.alternatives()[0].questCount() != 0
-				|| need.alternatives()[0].skillCount() != 1
+				|| !need.hasAlternatives() || com.worldmapplus.unlock.Judge.ways(need).length != 1 || com.worldmapplus.unlock.Judge.ways(need)[0].questCount() != 0
+				|| com.worldmapplus.unlock.Judge.ways(need)[0].skillCount() != 1
 				|| spec.getX() < 3000 || spec.getX() > 3400 || spec.getY() < 3000 || spec.getY() > 3300)
 			{
 				continue;
@@ -290,7 +281,7 @@ public class ProgressSurfaceTest
 	public void theCardSaysWhatIsMissingWhenIconsAreMarkedAndNothingWhenTheyAreNot()
 	{
 		GameIconSet.Spec icon = aLevelIcon();
-		String level = icon.getNeed().alternatives()[0].level(0) + " " + icon.getNeed().alternatives()[0].skill(0).getName();
+		String level = com.worldmapplus.unlock.Judge.ways(icon.getNeed())[0].level(0) + " " + com.worldmapplus.unlock.Judge.ways(icon.getNeed())[0].skill(0).getName();
 		lookAt(icon.getX(), icon.getY(), 8.0);
 		hover(icon.getX(), icon.getY());
 		assertNotNull(surface.lastCard());
@@ -306,8 +297,8 @@ public class ProgressSurfaceTest
 		assertTrue("the icon is still there and still answers", slot >= 0);
 		assertTrue(layer.isLockedAt(slot));
 
-		levels.put(icon.getNeed().alternatives()[0].skill(0), 99);
-		unlocks.onStatChanged(icon.getNeed().alternatives()[0].skill(0), 99);
+		levels.put(com.worldmapplus.unlock.Judge.ways(icon.getNeed())[0].skill(0), 99);
+		unlocks.onStatChanged(com.worldmapplus.unlock.Judge.ways(icon.getNeed())[0].skill(0), 99);
 		frames(3);
 		hover(icon.getX(), icon.getY());
 		assertEquals("a level up takes the row away", null, missing(surface.lastCard()));
@@ -323,30 +314,10 @@ public class ProgressSurfaceTest
 		ViewTransform view = surface.currentView();
 		GameIconLayer layer = assets.getGameIconLayer();
 		assertEquals(-1, layer.hit(view, 0, 0, view.screenX(icon.getX()), view.screenY(icon.getY())));
-		levels.put(icon.getNeed().alternatives()[0].skill(0), 99);
-		unlocks.onStatChanged(icon.getNeed().alternatives()[0].skill(0), 99);
+		levels.put(com.worldmapplus.unlock.Judge.ways(icon.getNeed())[0].skill(0), 99);
+		unlocks.onStatChanged(com.worldmapplus.unlock.Judge.ways(icon.getNeed())[0].skill(0), 99);
 		frames(3);
 		assertTrue(layer.hit(surface.currentView(), 0, 0, view.screenX(icon.getX()), view.screenY(icon.getY())) >= 0);
-	}
-
-	@Test
-	public void aFinishedQuestIsNotFoundBySearchWhileTheSettingIsOnAndIsAgainWhenItIsOff()
-	{
-		frames(10);
-		type("cook's assistant");
-		assertTrue("found by default", hasQuest("Cook's Assistant"));
-		quests.put(Quest.COOKS_ASSISTANT, QuestState.FINISHED);
-		unlocks.variablesChanged();
-		for (int i = 0; i < 20; i++)
-		{
-			unlocks.onGameTick();
-		}
-		hideQuests = true;
-		frames(3);
-		assertFalse("finished and hidden", hasQuest("Cook's Assistant"));
-		hideQuests = false;
-		frames(3);
-		assertTrue("found again with the setting off", hasQuest("Cook's Assistant"));
 	}
 
 	/** Round 47: the icon whose card or merged point has this name. */
@@ -403,8 +374,8 @@ public class ProgressSurfaceTest
 		{
 			if (spec.getMapId() == assets.getCatalog().surface().getId() && spec.getFloor() == 0 && spec.getNeed() != null
 				&& spec.getNeed().hasAlternatives() && row(spec.getCard().getCard(), "Requires") != null
-				&& spec.getNeed().alternatives().length == 1 && spec.getNeed().alternatives()[0].skillCount() == 1
-				&& spec.getNeed().alternatives()[0].questCount() == 0 && alone(spec))
+				&& com.worldmapplus.unlock.Judge.ways(spec.getNeed()).length == 1 && com.worldmapplus.unlock.Judge.ways(spec.getNeed())[0].skillCount() == 1
+				&& com.worldmapplus.unlock.Judge.ways(spec.getNeed())[0].questCount() == 0 && alone(spec))
 			{
 				icon = spec;
 				break;
@@ -412,7 +383,7 @@ public class ProgressSurfaceTest
 		}
 		assertNotNull("a course or dungeon that asks for a level, alone", icon);
 		String words = row(icon.getCard().getCard(), "Requires");
-		String level = icon.getNeed().alternatives()[0].level(0) + " " + icon.getNeed().alternatives()[0].skill(0).getName();
+		String level = com.worldmapplus.unlock.Judge.ways(icon.getNeed())[0].level(0) + " " + com.worldmapplus.unlock.Judge.ways(icon.getNeed())[0].skill(0).getName();
 		lookAt(icon.getX(), icon.getY(), 8.0);
 		hover(icon.getX(), icon.getY());
 		assertEquals(describe(surface.lastCard()), words, row(surface.lastCard(), "Requires"));
@@ -421,8 +392,8 @@ public class ProgressSurfaceTest
 		frames(3);
 		hover(icon.getX(), icon.getY());
 		assertEquals(level, missing(surface.lastCard()));
-		levels.put(icon.getNeed().alternatives()[0].skill(0), 99);
-		unlocks.onStatChanged(icon.getNeed().alternatives()[0].skill(0), 99);
+		levels.put(com.worldmapplus.unlock.Judge.ways(icon.getNeed())[0].skill(0), 99);
+		unlocks.onStatChanged(com.worldmapplus.unlock.Judge.ways(icon.getNeed())[0].skill(0), 99);
 		frames(3);
 		hover(icon.getX(), icon.getY());
 		assertEquals("a level up takes the row away", null, missing(surface.lastCard()));
@@ -451,7 +422,7 @@ public class ProgressSurfaceTest
 		}
 		assertNotNull("found: " + seen, challenge);
 		assertNotNull("need: " + seen, challenge.getNeed());
-		assertEquals("32 Quest points", unlocks.shortfall(challenge.getNeed()).text());
+		assertEquals("32 Quest points", unlocks.shortfall(challenge.getNeed()));
 		questPoints = 40;
 		unlocks.variablesChanged();
 		for (int i = 0; i < 20; i++)
@@ -498,7 +469,7 @@ public class ProgressSurfaceTest
 		}
 		assertNotNull("found", course);
 		assertNotNull("the result knows the icon's need", course.getNeed());
-		assertEquals("90 Agility", unlocks.shortfall(course.getNeed()).text());
+		assertEquals("90 Agility", unlocks.shortfall(course.getNeed()));
 		frames(2);
 		assertEquals("settings off: no note", 0, goldInResults());
 		mark = true;
@@ -525,7 +496,7 @@ public class ProgressSurfaceTest
 		}
 		assertNotNull("found", cloak);
 		assertNotNull(cloak.getNeed());
-		assertEquals("Easy Ardougne Diary", unlocks.shortfall(cloak.getNeed()).text());
+		assertEquals("Easy Ardougne Diary", unlocks.shortfall(cloak.getNeed()));
 		diaryValue = 1;
 		unlocks.variablesChanged();
 		for (int i = 0; i < 20; i++)

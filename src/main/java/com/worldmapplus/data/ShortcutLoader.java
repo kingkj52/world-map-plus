@@ -1,20 +1,13 @@
 package com.worldmapplus.data;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
-import com.worldmapplus.layers.Hotspot;
-import com.worldmapplus.layers.HoverCard;
-import com.worldmapplus.map.MapCatalog;
-import com.worldmapplus.map.MapInfo;
-import com.worldmapplus.unlock.Needs;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import com.google.gson.*;
+import com.worldmapplus.layers.*;
+import com.worldmapplus.map.*;
+import com.worldmapplus.unlock.*;
+import java.io.*;
+import java.nio.charset.*;
+import java.util.*;
+import lombok.extern.slf4j.*;
 
 /**
  * The cards of the agility shortcut icons: what each shortcut is called, which levels and items it needs, how long it
@@ -183,8 +176,6 @@ public final class ShortcutLoader
 		}
 	}
 
-
-
 	/** The rows under the title of a shortcut that is alone on its icon. */
 	private static List<HoverCard.Row> details(Option option)
 	{
@@ -214,7 +205,7 @@ public final class ShortcutLoader
 	private static String about(int ticks)
 	{
 		double seconds = ticks * SECONDS_PER_TICK;
-		return seconds < 10 ? String.format(java.util.Locale.ROOT, "about %.1f seconds", seconds)
+		return seconds < 10 ? String.format(Locale.ROOT, "about %.1f seconds", seconds)
 			: "about " + Math.round(seconds) + " seconds";
 	}
 

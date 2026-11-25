@@ -1,32 +1,16 @@
 package com.worldmapplus.data;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
-import com.worldmapplus.layers.GameIconScale;
-import com.worldmapplus.layers.GameIconSet;
-import com.worldmapplus.layers.Hotspot;
-import com.worldmapplus.layers.HoverCard;
-import com.worldmapplus.layers.IconExtra;
-import com.worldmapplus.map.MapCatalog;
-import com.worldmapplus.map.MapInfo;
-import com.worldmapplus.unlock.Need;
-import com.worldmapplus.unlock.Needs;
-import com.worldmapplus.unlock.Requirement;
-import com.worldmapplus.wiki.WikiTitles;
-import com.worldmapplus.search.SearchEntry;
-import com.worldmapplus.search.SearchKind;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nullable;
-import lombok.extern.slf4j.Slf4j;
+import com.google.gson.*;
+import com.worldmapplus.layers.*;
+import com.worldmapplus.map.*;
+import com.worldmapplus.search.*;
+import com.worldmapplus.unlock.*;
+import java.io.*;
+import java.nio.charset.*;
+import java.util.*;
+import javax.annotation.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
 
 /**
  * What the game's own world map draws that the wiki's tiles do not: the text labels (area names) and the
@@ -47,15 +31,20 @@ public final class MapElements
 	private static final double COVERED_TILES = 1.4;
 
 	/** A text label of the game's map. */
+	@Getter
 	public static final class Label
 	{
 		private final String text;
+		/** The text one line at a time, as the game breaks it. */
 		private final String[] lines;
 		private final int mapId;
 		private final double x;
 		private final double y;
+		/** The floor the label is on. Only 0 is drawn on maps without floors. */
 		private final int plane;
+		/** The game's text size: 0 small, 1 medium, 2 large. */
 		private final int scale;
+		/** The game's text colour as 0xRRGGBB. */
 		private final int color;
 
 		Label(String text, int mapId, double x, double y, int plane, int scale, int color)
@@ -69,57 +58,15 @@ public final class MapElements
 			this.scale = scale;
 			this.color = color;
 		}
-
-		public String getText()
-		{
-			return text;
-		}
-
-		/** The text one line at a time, as the game breaks it. */
-		public String[] getLines()
-		{
-			return lines;
-		}
-
-		public int getMapId()
-		{
-			return mapId;
-		}
-
-		public double getX()
-		{
-			return x;
-		}
-
-		public double getY()
-		{
-			return y;
-		}
-
-		/** The floor the label is on. Only 0 is drawn on maps without floors. */
-		public int getPlane()
-		{
-			return plane;
-		}
-
-		/** The game's text size: 0 small, 1 medium, 2 large. */
-		public int getScale()
-		{
-			return scale;
-		}
-
-		/** The game's text colour as 0xRRGGBB. */
-		public int getColor()
-		{
-			return color;
-		}
 	}
 
 	/** One icon of the game's map: where it is and which category of the map key it belongs to. */
+	@Getter
 	public static final class Spot
 	{
 		private final double x;
 		private final double y;
+		/** The game's own number for the category. */
 		private final int category;
 
 		Spot(double x, double y, int category)
@@ -128,29 +75,22 @@ public final class MapElements
 			this.y = y;
 			this.category = category;
 		}
-
-		public double getX()
-		{
-			return x;
-		}
-
-		public double getY()
-		{
-			return y;
-		}
-
-		/** The game's own number for the category. */
-		public int getCategory()
-		{
-			return category;
-		}
 	}
 
 	private final Map<Integer, List<Label>> labels;
+	/** Cards for the icons, each with the name the game gives it. */
+	@Getter
 	private final List<Hotspot> icons;
 	private final Map<Integer, List<Spot>> spots;
 	private final Map<Integer, String> categoryNames;
+	/**
+	 * The icons of the game's own list, with the picture each is drawn with (a number into the atlas) and the floor it is on. They are
+	 * the icons of the maps the game has data for. An icon of one of the wiki's own extra maps has no picture here: the tile shows it.
+	 */
+	@Getter
 	private final List<GameIconSet.Spec> gameIcons;
+	/** How many pictures the icons use, which is how many the atlas holds. */
+	@Getter
 	private final int pictureCount;
 	private final List<String> categoryList;
 
@@ -163,7 +103,7 @@ public final class MapElements
 	 * The cards of other data that cover an icon and were given the wiki's requirement for it (round 47), by the card they replace.
 	 * The caller puts them in place of the old ones, so the card the mouse finds says the same as the icon.
 	 */
-	private final Map<Hotspot, Hotspot> covers = new java.util.IdentityHashMap<>();
+	private final Map<Hotspot, Hotspot> covers = new IdentityHashMap<>();
 
 	private MapElements(Map<Integer, List<Label>> labels, List<Hotspot> icons, Map<Integer, List<Spot>> spots,
 		Map<Integer, String> categoryNames, List<GameIconSet.Spec> gameIcons, int pictureCount, List<String> categoryList)
@@ -183,7 +123,7 @@ public final class MapElements
 	 */
 	public List<String> drawnCategoryNames()
 	{
-		java.util.Set<String> names = new java.util.TreeSet<>(String.CASE_INSENSITIVE_ORDER);
+		Set<String> names = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
 		for (GameIconSet.Spec spec : gameIcons)
 		{
 			if (spec.getCategory() >= 0 && spec.getCategory() < categoryList.size())
@@ -218,21 +158,6 @@ public final class MapElements
 	public int categoryCount()
 	{
 		return categoryList.size();
-	}
-
-	/**
-	 * The icons of the game's own list, with the picture each is drawn with (a number into the atlas) and the floor it is on. They are
-	 * the icons of the maps the game has data for. An icon of one of the wiki's own extra maps has no picture here: the tile shows it.
-	 */
-	public List<GameIconSet.Spec> getGameIcons()
-	{
-		return gameIcons;
-	}
-
-	/** How many pictures the icons use, which is how many the atlas holds. */
-	public int getPictureCount()
-	{
-		return pictureCount;
 	}
 
 	/** Every icon of the game's map on a map, for marking one kind of them. */
@@ -280,7 +205,7 @@ public final class MapElements
 
 	private static String squashed(String text)
 	{
-		String letters = text.toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z0-9]", "");
+		String letters = text.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9]", "");
 		return letters.endsWith("s") ? letters.substring(0, letters.length() - 1) : letters;
 	}
 
@@ -308,12 +233,6 @@ public final class MapElements
 	public List<Label> labelsOn(int mapId)
 	{
 		return labels.getOrDefault(mapId, Collections.emptyList());
-	}
-
-	/** Cards for the icons, each with the name the game gives it. */
-	public List<Hotspot> getIcons()
-	{
-		return icons;
 	}
 
 	/** How many labels there are in all. */
@@ -436,7 +355,7 @@ public final class MapElements
 	static MapElements parse(File file, MapCatalog catalog, List<Hotspot> existing, List<SearchEntry> known,
 	Map<String, Detail> details, IconRequirements requirements)
 	{
-		Map<Hotspot, Hotspot> replacedCovers = new java.util.IdentityHashMap<>();
+		Map<Hotspot, Hotspot> replacedCovers = new IdentityHashMap<>();
 		if (file == null)
 		{
 			return none();
@@ -743,7 +662,7 @@ public final class MapElements
 			SearchEntry quest = nearestQuest(quests, icon[0], icon[1]);
 			if (quest != null)
 			{
-				plain = HoverCard.builder(quest.getName()).subtitle("Quest start").wiki(WikiTitles.clean(quest.getName()));
+				plain = HoverCard.builder(quest.getName()).subtitle("Quest start").wiki("quest", quest.getName());
 				starts = Need.startOf(quest.getName());
 			}
 		}
@@ -767,9 +686,9 @@ public final class MapElements
 	private static final double RICH_TILES = 3.5;
 
 	/** The kind of card that describes an icon of a category, or null when no kind of card is known to. */
-	static Hotspot.Kind kindFor(String category)
+	public static Hotspot.Kind kindFor(String category)
 	{
-		String lower = category.toLowerCase(java.util.Locale.ROOT);
+		String lower = category.toLowerCase(Locale.ROOT);
 		if (lower.equals("dungeon") || lower.equals("map link"))
 		{
 			return Hotspot.Kind.DOORWAY;
@@ -895,7 +814,7 @@ public final class MapElements
 		{
 			return null;
 		}
-		List<Requirement> each = new ArrayList<>(extras.size());
+		List<List<List<String>>> each = new ArrayList<>(extras.size());
 		for (IconExtra extra : extras)
 		{
 			each.add(Needs.fromPoint(extra.getLayer(), extra.getDetail()));
@@ -983,7 +902,7 @@ public final class MapElements
 	 * The categories whose icons are always drawn, at every zoom, in the order they win a crowded spot: the things a player looks for
 	 * first. Every other category is minor and fades out as the map zooms out.
 	 */
-	private static final java.util.List<String> MAJOR = java.util.Arrays.asList("Bank", "Transportation", "Quest", "Dungeon",
+	private static final List<String> MAJOR = Arrays.asList("Bank", "Transportation", "Quest", "Dungeon",
 		"Map link", "Altar", "Minigame", "Agility shortcut", "Agility shortcut (One way)", "Docking point", "Slayer Master",
 		"Furnace", "Anvil", "Farming patch", "Fishing spot", "Rare trees", "Hunter training", "Mining site", "Grand Exchange", "Raid",
 		"Port task board", "Salvaging station", "Salvaging spot", "Ledger table", "Shipwright", "Crew registrar", "Trawling shoal",

@@ -220,4 +220,13 @@ public class HubPackagingTest
 		}
 		assertEquals("class files do not belong in the source tree: " + bad, 0, bad.size());
 	}
+
+	@org.junit.Test
+	public void thePluginHasTheInternalNameItsDataFolderNeeds()
+	{
+		// Plugin.getPluginDirectory refuses a plugin without one, and the map pictures are kept in that folder.
+		net.runelite.client.plugins.PluginDescriptor descriptor =
+			WorldMapPlusPlugin.class.getAnnotation(net.runelite.client.plugins.PluginDescriptor.class);
+		org.junit.Assert.assertEquals("worldmapplus", descriptor.internalName());
+	}
 }

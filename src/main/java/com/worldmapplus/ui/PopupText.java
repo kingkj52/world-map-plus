@@ -1,11 +1,8 @@
 package com.worldmapplus.ui;
 
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.awt.image.BufferedImage;
-import java.util.ArrayList;
+import java.awt.*;
+import java.awt.image.*;
+import java.util.*;
 import java.util.List;
 
 /**

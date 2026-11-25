@@ -1,10 +1,9 @@
 package com.worldmapplus.layers;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import com.worldmapplus.unlock.Need;
-import java.util.List;
-import javax.annotation.Nullable;
+import com.worldmapplus.unlock.*;
+import java.util.*;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * Something on the map the mouse can point at: a dungeon entrance, a transport, a shop.
@@ -38,36 +37,17 @@ public final class Hotspot
 	}
 
 	/** Where a click on the hotspot takes the viewer. */
+	@Getter
+	@RequiredArgsConstructor
 	public static final class Target
 	{
 		private final int mapId;
 		private final double x;
 		private final double y;
-
-		public Target(int mapId, double x, double y)
-		{
-			this.mapId = mapId;
-			this.x = x;
-			this.y = y;
-		}
-
-		public int getMapId()
-		{
-			return mapId;
-		}
-
-		public double getX()
-		{
-			return x;
-		}
-
-		public double getY()
-		{
-			return y;
-		}
 	}
 
 	/** A line drawn from the hotspot to another place while it is hovered, such as a ship route. */
+	@Getter
 	public static final class Link
 	{
 		private final int mapId;
@@ -82,44 +62,38 @@ public final class Hotspot
 			this.y = y;
 			this.label = label == null ? "" : label;
 		}
-
-		public int getMapId()
-		{
-			return mapId;
-		}
-
-		public double getX()
-		{
-			return x;
-		}
-
-		public double getY()
-		{
-			return y;
-		}
-
-		public String getLabel()
-		{
-			return label;
-		}
 	}
 
+	/** The map the hotspot is drawn on. */
+	@Getter
 	private final int mapId;
+	@Getter
 	private final double x;
+	@Getter
 	private final double y;
+	/** How near the mouse must be, in pixels, whatever the zoom. */
+	@Getter
 	private final int radiusPixels;
+	@Getter
 	private final HoverCard card;
 	private final Target target;
+	/** Places lines are drawn to while this hotspot is hovered. Empty for most hotspots. */
+	@Getter
 	private final List<Link> links;
+	@Getter
 	private final Kind kind;
 	private final String category;
 	private final String icon;
+	/** The floor an icon of the game's map belongs to, or {@link #NOT_A_MAP_ICON}. */
+	@Getter
 	private final int floor;
+	/** True when the plugin draws this icon itself, so the card answers where the drawn picture is and not where the tile's disc is. */
+	@Getter
 	private final boolean drawn;
 	private final Merge merge;
 	private final Need need;
 	/** The need of each way by its row's label; set only while the hotspot is made, before anything else sees it. */
-	private java.util.Map<String, Need> wayNeeds = Collections.emptyMap();
+	private Map<String, Need> wayNeeds = Collections.emptyMap();
 
 	public Hotspot(int mapId, double x, double y, int radiusPixels, HoverCard card, @Nullable Target target)
 	{
@@ -220,14 +194,14 @@ public final class Hotspot
 	 * A copy of this hotspot that knows the need of each of its ways by the label of the way's row on its card (the teleports that land
 	 * at one place), so a search result for one way can say what is missing for that way alone.
 	 */
-	public Hotspot withWayNeeds(java.util.Map<String, Need> byLabel)
+	public Hotspot withWayNeeds(Map<String, Need> byLabel)
 	{
 		if (byLabel.isEmpty() && wayNeeds.isEmpty())
 		{
 			return this;
 		}
 		Hotspot copy = new Hotspot(mapId, x, y, radiusPixels, card, target, links, kind, category, icon, floor, drawn, merge, need);
-		copy.wayNeeds = Collections.unmodifiableMap(new java.util.HashMap<>(byLabel));
+		copy.wayNeeds = Collections.unmodifiableMap(new HashMap<>(byLabel));
 		return copy;
 	}
 
@@ -246,58 +220,18 @@ public final class Hotspot
 	}
 
 	/** Where a merged point went: the icon it was merged into, and where the point itself was. */
+	@Getter
+	@RequiredArgsConstructor
 	public static final class Merge
 	{
 		private final double iconX;
 		private final double iconY;
 		private final int iconFloor;
+		/** The tile the point itself was on before it was merged. */
 		private final int tileX;
 		private final int tileY;
+		/** True for a kind of point that has no layer to switch it on, whose information on the icon is always shown. */
 		private final boolean always;
-
-		/**
-		 * @param always true for a kind of point that has no layer to switch it on, whose information on the icon is always shown
-		 */
-		public Merge(double iconX, double iconY, int iconFloor, int tileX, int tileY, boolean always)
-		{
-			this.iconX = iconX;
-			this.iconY = iconY;
-			this.iconFloor = iconFloor;
-			this.tileX = tileX;
-			this.tileY = tileY;
-			this.always = always;
-		}
-
-		public double getIconX()
-		{
-			return iconX;
-		}
-
-		public double getIconY()
-		{
-			return iconY;
-		}
-
-		public int getIconFloor()
-		{
-			return iconFloor;
-		}
-
-		/** The tile the point itself was on before it was merged. */
-		public int getTileX()
-		{
-			return tileX;
-		}
-
-		public int getTileY()
-		{
-			return tileY;
-		}
-
-		public boolean isAlways()
-		{
-			return always;
-		}
 	}
 
 	/** True for a point merged into an icon of the game's map: it is not drawn and answers no hover, the icon's card says it. */
@@ -316,27 +250,10 @@ public final class Hotspot
 	/** The value of {@link #getFloor()} for everything that is not an icon of the game's map. */
 	public static final int NOT_A_MAP_ICON = -1;
 
-	public Kind getKind()
-	{
-		return kind;
-	}
-
 	/** True for an icon of the game's map: a disc in the tile picture, or one the plugin draws from the game's list. */
 	public boolean isMapIcon()
 	{
 		return floor >= 0;
-	}
-
-	/** The floor an icon of the game's map belongs to, or {@link #NOT_A_MAP_ICON}. */
-	public int getFloor()
-	{
-		return floor;
-	}
-
-	/** True when the plugin draws this icon itself, so the card answers where the drawn picture is and not where the tile's disc is. */
-	public boolean isDrawn()
-	{
-		return drawn;
 	}
 
 	/** The layer a point of interest belongs to, or null for other hotspots. */
@@ -351,39 +268,6 @@ public final class Hotspot
 	public String getIcon()
 	{
 		return icon;
-	}
-
-	/** Places lines are drawn to while this hotspot is hovered. Empty for most hotspots. */
-	public List<Link> getLinks()
-	{
-		return links;
-	}
-
-	/** The map the hotspot is drawn on. */
-	public int getMapId()
-	{
-		return mapId;
-	}
-
-	public double getX()
-	{
-		return x;
-	}
-
-	public double getY()
-	{
-		return y;
-	}
-
-	/** How near the mouse must be, in pixels, whatever the zoom. */
-	public int getRadiusPixels()
-	{
-		return radiusPixels;
-	}
-
-	public HoverCard getCard()
-	{
-		return card;
 	}
 
 	/** Where a click goes, or null if clicking does nothing. */

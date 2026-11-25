@@ -1,26 +1,23 @@
 package com.worldmapplus.ui;
 
-import com.worldmapplus.MapAssets;
-import com.worldmapplus.WorldMapPlusConfig;
-import com.worldmapplus.game.PlayerLocator;
-import com.worldmapplus.game.PlayerPosition;
-import com.worldmapplus.input.ViewerInput;
-import com.worldmapplus.prefs.ViewMemory;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.util.ArrayList;
+import com.worldmapplus.*;
+import com.worldmapplus.bridge.*;
+import com.worldmapplus.game.*;
+import com.worldmapplus.input.*;
+import com.worldmapplus.prefs.*;
+import java.awt.*;
+import java.util.*;
 import java.util.List;
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import net.runelite.api.Client;
+import javax.annotation.*;
+import javax.inject.*;
+import net.runelite.api.*;
+import net.runelite.api.Point;
+import net.runelite.api.coords.*;
 import net.runelite.api.gameval.InterfaceID;
-import net.runelite.api.widgets.Widget;
-import net.runelite.client.input.MouseManager;
-import net.runelite.client.ui.overlay.Overlay;
-import net.runelite.client.ui.overlay.OverlayLayer;
-import net.runelite.client.ui.overlay.OverlayPosition;
+import net.runelite.api.widgets.*;
+import net.runelite.api.worldmap.*;
+import net.runelite.client.input.*;
+import net.runelite.client.ui.overlay.*;
 
 /**
  * Draws the viewer over the world map window.
@@ -70,18 +67,18 @@ public class ViewerOverlay extends Overlay
 			@Nullable
 			public View view()
 			{
-				net.runelite.api.worldmap.WorldMap map = client.getWorldMap();
-				net.runelite.api.Point at = map == null ? null : map.getWorldMapPosition();
+				WorldMap map = client.getWorldMap();
+				Point at = map == null ? null : map.getWorldMapPosition();
 				return at == null ? null : new View(at.getX(), at.getY(), map.getWorldMapZoom());
 			}
 
 			@Override
 			public void moveTo(int x, int y)
 			{
-				net.runelite.api.worldmap.WorldMap map = client.getWorldMap();
+				WorldMap map = client.getWorldMap();
 				if (map != null)
 				{
-					map.setWorldMapPositionTarget(new net.runelite.api.coords.WorldPoint(x, y, 0));
+					map.setWorldMapPositionTarget(new WorldPoint(x, y, 0));
 				}
 			}
 		};
@@ -101,7 +98,7 @@ public class ViewerOverlay extends Overlay
 	}
 
 	/** The cues of the Sounds setting, or null for none. */
-	public void setSounds(com.worldmapplus.bridge.Sounds sounds)
+	public void setSounds(Sounds sounds)
 	{
 		surface.setSounds(sounds);
 	}
@@ -211,8 +208,8 @@ public class ViewerOverlay extends Overlay
 	@Nullable
 	private NativeMapSync.Spot nativePosition()
 	{
-		net.runelite.api.worldmap.WorldMap map = client.getWorldMap();
-		net.runelite.api.Point at = map == null ? null : map.getWorldMapPosition();
+		WorldMap map = client.getWorldMap();
+		Point at = map == null ? null : map.getWorldMapPosition();
 		return at == null ? null : new NativeMapSync.Spot(at.getX(), at.getY());
 	}
 

@@ -1,8 +1,13 @@
 package com.worldmapplus.search;
 
-import java.util.Collections;
-import java.util.List;
-import javax.annotation.Nullable;
+import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.IntBinaryOperator;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import java.util.regex.*;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * The state of the search field and its result list: what is typed, which result is selected, and
@@ -17,18 +22,31 @@ public final class SearchBox
 	public static final int MAX_RESULTS = 200;
 
 	private final StringBuilder text = new StringBuilder();
+	/** True while all the text is selected. */
+	@Getter
 	private boolean allSelected;
+	@Getter
 	private boolean focused;
+	@Getter
 	private List<SearchEntry> results = Collections.emptyList();
+	@Getter
 	private int selected;
 	private SearchIndex index = new SearchIndex(Collections.emptyList());
-	private java.util.function.IntBinaryOperator tileMap = (x, y) -> -1;
-	private java.util.function.Supplier<SearchContext> context = () -> SearchContext.NONE;
+	private IntBinaryOperator tileMap = (x, y) -> -1;
+	private Supplier<SearchContext> context = () -> SearchContext.NONE;
+	/** The first result shown, when there are more than fit. */
+	@Getter
 	private int scrollTop;
 	private int visibleRows = 10;
+	/**
+	 * A line of help for what is typed: a way to finish a filter, a word that is not understood, or why there are
+	 * no results. Empty when there is nothing to say.
+	 */
+	@Getter
 	private String hint = "";
 	private String completion = "";
-	private java.util.function.Predicate<SearchEntry> filter;
+	/** Gives the results other plugins have for a text, which follow this plugin's own. Null for none. */
+	private BiFunction<String, SearchContext, List<SearchEntry>> extra;
 
 	/** The text the results were last worked out for, so the list only goes back to the top for a new search. */
 	private String lastQuery = "";
@@ -43,33 +61,30 @@ public final class SearchBox
 	 * Lets typed coordinates be found. The operator says which map a tile is on, or -1 for none, and a
 	 * typed tile such as 3222 3218 then comes first in the results.
 	 */
-	public void setTileMap(java.util.function.IntBinaryOperator tileMap)
+	public void setTileMap(IntBinaryOperator tileMap)
 	{
 		this.tileMap = tileMap;
 		refresh();
 	}
 
 	/** Says where the player is and what place names mean, asked for at each search. */
-	public void setContext(java.util.function.Supplier<SearchContext> context)
+	public void setContext(Supplier<SearchContext> context)
 	{
 		this.context = context;
 		refresh();
 	}
 
-	/**
-	 * Leaves out of every result list the entries a filter does not keep, such as the quests the player has finished. A null filter keeps
-	 * everything. The list is worked out again at once.
-	 */
-	public void setFilter(@Nullable java.util.function.Predicate<SearchEntry> filter)
+	/** Adds what other plugins found for the text after this plugin's own results. Null for none. */
+	public void setExtra(@Nullable BiFunction<String, SearchContext, List<SearchEntry>> extra)
 	{
-		this.filter = filter;
+		this.extra = extra;
 		refresh();
 	}
 
-	/** The first result shown, when there are more than fit. */
-	public int getScrollTop()
+	/** Works the list out again, for when an answer from another plugin has come in. */
+	public void refreshExtras()
 	{
-		return scrollTop;
+		refresh();
 	}
 
 	/** How many results the bar has room for, so scrolling and the selection can keep to them. */
@@ -99,11 +114,6 @@ public final class SearchBox
 		scrollTop = Math.max(0, Math.min(scrollTop, Math.max(0, results.size() - visibleRows)));
 	}
 
-	public boolean isFocused()
-	{
-		return focused;
-	}
-
 	public void focus()
 	{
 		focused = true;
@@ -122,25 +132,9 @@ public final class SearchBox
 		allSelected = focused && text.length() > 0;
 	}
 
-	/** True while all the text is selected. */
-	public boolean isAllSelected()
-	{
-		return allSelected;
-	}
-
 	public String getText()
 	{
 		return text.toString();
-	}
-
-	public List<SearchEntry> getResults()
-	{
-		return results;
-	}
-
-	public int getSelected()
-	{
-		return selected;
 	}
 
 	public void select(int row)
@@ -244,15 +238,6 @@ public final class SearchBox
 		return selected >= 0 && selected < results.size() ? results.get(selected) : null;
 	}
 
-	/**
-	 * A line of help for what is typed: a way to finish a filter, a word that is not understood, or why there are
-	 * no results. Empty when there is nothing to say.
-	 */
-	public String getHint()
-	{
-		return hint;
-	}
-
 	/** Finishes the filter being typed with the best name for it, if there is one. Returns true when it did. */
 	public boolean complete()
 	{
@@ -267,10 +252,10 @@ public final class SearchBox
 		return true;
 	}
 
-	private static final java.util.regex.Pattern AREA_FILTER = java.util.regex.Pattern.compile(
-		"^(-?)(region|in|area|at|where|place|map):\"?([^\"]*)\"?$", java.util.regex.Pattern.CASE_INSENSITIVE);
-	private static final java.util.regex.Pattern KIND_FILTER = java.util.regex.Pattern.compile(
-		"^(-?)(type|kind):([^,\"]*,)*([^,\"]*)$", java.util.regex.Pattern.CASE_INSENSITIVE);
+	private static final Pattern AREA_FILTER = Pattern.compile(
+		"^(-?)(region|in|area|at|where|place|map):\"?([^\"]*)\"?$", Pattern.CASE_INSENSITIVE);
+	private static final Pattern KIND_FILTER = Pattern.compile(
+		"^(-?)(type|kind):([^,\"]*,)*([^,\"]*)$", Pattern.CASE_INSENSITIVE);
 
 	private void explain(SearchQuery query, SearchContext where)
 	{
@@ -288,14 +273,14 @@ public final class SearchBox
 		{
 			String last = tokens.get(tokens.size() - 1);
 			String before = typed.substring(0, typed.length() - last.length());
-			java.util.regex.Matcher area = AREA_FILTER.matcher(last);
-			java.util.regex.Matcher kind = KIND_FILTER.matcher(last);
+			Matcher area = AREA_FILTER.matcher(last);
+			Matcher kind = KIND_FILTER.matcher(last);
 			if (area.matches() && !area.group(3).trim().isEmpty())
 			{
 				List<String> names = places.suggest(SearchQuery.splitCamel(area.group(3)), 1);
 				if (!names.isEmpty())
 				{
-					completion = before + area.group(1) + area.group(2).toLowerCase(java.util.Locale.ROOT) + ":\""
+					completion = before + area.group(1) + area.group(2).toLowerCase(Locale.ROOT) + ":\""
 						+ names.get(0) + "\"";
 				}
 			}
@@ -327,7 +312,7 @@ public final class SearchBox
 		completion = "";
 		if (query.hasBadFilter())
 		{
-			hint = "A filter value was not understood. Try cost:500, dist:40 or sort:cost";
+			hint = "A filter value was not understood. Try dist:40 or sort:name";
 			return;
 		}
 		if (!results.isEmpty())
@@ -363,7 +348,7 @@ public final class SearchBox
 	{
 		String first = region.split(" ")[0];
 		// A slip in the last letters still points at the right name, so shorter and shorter starts are tried.
-		List<String> names = new java.util.ArrayList<>();
+		List<String> names = new ArrayList<>();
 		for (int length = first.length(); length >= 3 && names.isEmpty(); length--)
 		{
 			names = places.suggest(first.substring(0, length), 2);
@@ -378,8 +363,8 @@ public final class SearchBox
 
 	private static String firstKindStarting(String part)
 	{
-		List<String> all = new java.util.ArrayList<>(java.util.Arrays.asList(SearchQuery.RESULT_KINDS));
-		all.addAll(java.util.Arrays.asList(ItemKinds.ALL));
+		List<String> all = new ArrayList<>(Arrays.asList(SearchQuery.RESULT_KINDS));
+		all.addAll(Arrays.asList(SearchQuery.ITEM_KINDS));
 		for (String kind : all)
 		{
 			if (kind.startsWith(part) && !kind.equals(part))
@@ -390,22 +375,37 @@ public final class SearchBox
 		return null;
 	}
 
+	/**
+	 * Puts the results of other plugins among the results of this search by the same score (of the plain words, as the filtered search
+	 * scores them), so that "every bank" is where a result of that name belongs, with a filter or without. They already passed the
+	 * filters. Without plain words, or with sort: or a distance, the order is not by score and they go last.
+	 */
+	private static void merge(List<SearchEntry> own, List<SearchEntry> more, String typed)
+	{
+		SearchQuery query = SearchQuery.parse(typed);
+		String normalized = query.hasFilters() ? String.join(" ", query.getWords()) : SearchEntry.normalize(typed);
+		if (normalized.isEmpty() || query.getSort() != SearchQuery.Sort.RELEVANCE || query.getMaxDistance() >= 0)
+		{
+			own.addAll(more);
+			return;
+		}
+		String[] words = normalized.split(" ");
+		for (SearchEntry entry : more)
+		{
+			int score = SearchIndex.score(entry, normalized, words);
+			int at = 0;
+			while (at < own.size() && SearchIndex.score(own.get(at), normalized, words) >= score)
+			{
+				at++;
+			}
+			own.add(at, entry);
+		}
+	}
+
 	private void refresh()
 	{
 		SearchContext where = context.get();
 		results = index.search(text.toString(), MAX_RESULTS, where);
-		if (filter != null)
-		{
-			List<SearchEntry> kept = new java.util.ArrayList<>(results.size());
-			for (SearchEntry entry : results)
-			{
-				if (filter.test(entry))
-				{
-					kept.add(entry);
-				}
-			}
-			results = kept;
-		}
 		boolean sameSearch = text.toString().equals(lastQuery);
 		int[] tile = TileQuery.parse(text.toString());
 		if (tile != null)
@@ -413,12 +413,22 @@ public final class SearchBox
 			int map = tileMap.applyAsInt(tile[0], tile[1]);
 			if (map >= 0)
 			{
-				java.util.List<SearchEntry> withTile = new java.util.ArrayList<>(results.size() + 1);
+				List<SearchEntry> withTile = new ArrayList<>(results.size() + 1);
 				withTile.add(new SearchEntry(SearchKind.TILE, "Tile " + tile[0] + ", " + tile[1],
 					"Go to these coordinates",
 					map, tile[0] + 0.5, tile[1] + 0.5));
 				withTile.addAll(results);
 				results = withTile;
+			}
+		}
+		if (extra != null)
+		{
+			List<SearchEntry> more = extra.apply(text.toString(), where);
+			if (!more.isEmpty())
+			{
+				List<SearchEntry> both = new ArrayList<>(results.subList(0, Math.min(results.size(), Math.max(0, MAX_RESULTS - more.size()))));
+				merge(both, more, text.toString());
+				results = both;
 			}
 		}
 		// Something other than typing, such as the index being rebuilt, must not throw the list back to the top.

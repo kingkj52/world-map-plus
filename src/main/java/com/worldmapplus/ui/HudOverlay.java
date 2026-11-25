@@ -1,25 +1,17 @@
 package com.worldmapplus.ui;
 
-import com.worldmapplus.MapAssets;
-import com.worldmapplus.WorldMapPlusConfig;
-import com.worldmapplus.game.PlayerLocator;
-import com.worldmapplus.game.PlayerPosition;
-import com.worldmapplus.input.ViewerInput;
-import com.worldmapplus.prefs.ViewMemory;
-import java.awt.Dimension;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.util.ArrayList;
+import com.worldmapplus.*;
+import com.worldmapplus.game.*;
+import com.worldmapplus.input.*;
+import com.worldmapplus.prefs.*;
+import java.awt.*;
+import java.util.*;
 import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import net.runelite.api.Client;
-import net.runelite.api.GameState;
+import javax.inject.*;
+import net.runelite.api.*;
 import net.runelite.api.gameval.InterfaceID;
-import net.runelite.api.widgets.Widget;
-import net.runelite.client.ui.overlay.Overlay;
-import net.runelite.client.ui.overlay.OverlayLayer;
-import net.runelite.client.ui.overlay.OverlayPosition;
+import net.runelite.api.widgets.*;
+import net.runelite.client.ui.overlay.*;
 
 /**
  * A see-through map you can keep open while you play.
@@ -97,7 +89,7 @@ public class HudOverlay extends Overlay
 			.alpha(Math.max(25, config.hudOpacity()) / 100f)
 			.interactive(!passThrough)
 			.controlFOverMapOnly(true)
-			.passInput(passThrough ? java.util.Collections.emptyList() : interfacePanels(bounds))
+			.passInput(passThrough ? Collections.emptyList() : interfacePanels(bounds))
 			.showFrame(true);
 		surface.render(g, bounds, position, options, System.currentTimeMillis());
 		return null;

@@ -1,11 +1,8 @@
 package com.worldmapplus.theme;
 
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Stroke;
-import java.util.EnumMap;
-import java.util.Map;
+import java.awt.*;
+import java.util.*;
+import lombok.*;
 
 /**
  * One complete look: a colour for every {@link Role}, plus the fonts and strokes the chrome is drawn with. Immutable, and
@@ -79,16 +76,12 @@ public final class Palette
 	}
 
 	/** Builds a palette role by role. */
+	@RequiredArgsConstructor
 	public static final class Builder
 	{
 		private final String name;
 		private final Map<Role, Color> set = new EnumMap<>(Role.class);
 		private float edgeWidth = 1f;
-
-		public Builder(String name)
-		{
-			this.name = name;
-		}
 
 		public Builder set(Role role, int r, int g, int b)
 		{

@@ -1,9 +1,7 @@
 package com.worldmapplus.ui;
 
-import com.worldmapplus.theme.Motion;
-import java.awt.AlphaComposite;
-import java.awt.Composite;
-import java.awt.Graphics2D;
+import com.worldmapplus.theme.*;
+import java.awt.*;
 
 /**
  * Fades something in when it opens. The start is the time of the first frame drawn after {@link #restart}, so a popup made

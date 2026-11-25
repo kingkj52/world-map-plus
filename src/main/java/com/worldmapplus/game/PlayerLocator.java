@@ -1,10 +1,8 @@
 package com.worldmapplus.game;
 
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import net.runelite.api.Client;
-import net.runelite.api.GameState;
+import javax.annotation.*;
+import javax.inject.*;
+import net.runelite.api.*;
 
 /**
  * Reads the local player's position every frame, rather than once per game tick.

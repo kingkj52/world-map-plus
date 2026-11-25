@@ -1,76 +1,35 @@
 package com.worldmapplus.ui;
 
-import com.worldmapplus.bridge.Sounds;
-import com.worldmapplus.theme.Motion;
-import com.worldmapplus.theme.Palette;
-import com.worldmapplus.MapAssets;
-import com.worldmapplus.WorldMapPlusConfig;
-import com.worldmapplus.game.PlayerPosition;
-import com.worldmapplus.bridge.ExternalLine;
-import com.worldmapplus.bridge.ExternalMarker;
-import com.worldmapplus.bridge.ExternalOverlays;
-import com.worldmapplus.bridge.MapActions;
-import com.worldmapplus.bridge.RouteHop;
-import com.worldmapplus.bridge.NativePoints;
-import com.worldmapplus.farming.FarmingCards;
-import com.worldmapplus.farming.FarmingTracker;
-import com.worldmapplus.game.TrailTracker;
-import com.worldmapplus.input.ChatSearch;
-import com.worldmapplus.input.MapInput;
-import com.worldmapplus.input.ViewerInput;
-import com.worldmapplus.layers.GameIconLayer;
-import com.worldmapplus.layers.Hotspot;
-import com.worldmapplus.layers.HoverCard;
-import com.worldmapplus.layers.IconCards;
-import com.worldmapplus.layers.IconExtra;
-import com.worldmapplus.layers.OverlayLines;
-import com.worldmapplus.layers.PoiLayer;
-import com.worldmapplus.layers.PoiSelection;
-import com.worldmapplus.layers.NpcLayer;
-import com.worldmapplus.map.MapCatalog;
-import com.worldmapplus.map.MapInfo;
-import com.worldmapplus.pins.Pin;
-import com.worldmapplus.pins.PanelLauncher;
-import com.worldmapplus.pins.PinStore;
-import com.worldmapplus.pins.RouteNavigator;
-import com.worldmapplus.pins.RouteStore;
-import com.worldmapplus.pins.SavedRoute;
-import com.worldmapplus.prefs.Settings;
-import com.worldmapplus.prefs.ViewMemory;
-import com.worldmapplus.search.SearchBox;
-import com.worldmapplus.search.SearchContext;
-import com.worldmapplus.search.SearchEntry;
-import com.worldmapplus.search.SearchIndex;
-import com.worldmapplus.search.SearchKind;
-import com.worldmapplus.unlock.Need;
-import com.worldmapplus.unlock.Shortfall;
-import com.worldmapplus.unlock.UnlockView;
-import com.worldmapplus.wiki.WikiBrowser;
-import com.worldmapplus.wiki.WikiTitles;
-import com.worldmapplus.view.MapViewer;
-import com.worldmapplus.view.ViewTransform;
-import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.RenderingHints;
-import java.awt.Shape;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.Line2D;
-import java.awt.geom.Path2D;
-import java.awt.geom.QuadCurve2D;
-import java.util.ArrayList;
-import java.util.Collections;
+import com.worldmapplus.*;
+import com.worldmapplus.bridge.*;
+import com.worldmapplus.compat.*;
+import com.worldmapplus.data.*;
+import com.worldmapplus.game.*;
+import com.worldmapplus.input.*;
+import com.worldmapplus.layers.*;
+import com.worldmapplus.map.*;
+import com.worldmapplus.pins.*;
+import com.worldmapplus.prefs.*;
+import com.worldmapplus.search.*;
+import com.worldmapplus.theme.*;
+import com.worldmapplus.unlock.*;
+import com.worldmapplus.view.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.geom.*;
+import java.awt.image.*;
+import java.util.*;
 import java.util.List;
-import net.runelite.api.coords.WorldPoint;
-import javax.annotation.Nullable;
+import java.util.function.BiPredicate;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
+import javax.annotation.*;
+import lombok.*;
+import net.runelite.api.Client;
+import net.runelite.api.coords.*;
 
 /**
  * One drawn and operable map: the viewer, its controls, search and cards, inside a rectangle.
@@ -96,8 +55,8 @@ public final class MapSurface
 		private boolean showFrame;
 		private boolean resume = true;
 		private boolean controlFOverMapOnly;
-		private java.util.List<Rectangle> keepClear = java.util.Collections.emptyList();
-		private java.util.List<Rectangle> passInput = java.util.Collections.emptyList();
+		private List<Rectangle> keepClear = Collections.emptyList();
+		private List<Rectangle> passInput = Collections.emptyList();
 
 		/** Which remembered view this surface uses. */
 		public Options memorySlot(String slot)
@@ -164,9 +123,9 @@ public final class MapSurface
 		 * Places inside the map's rectangle that belong to the game, such as its close button. The surface
 		 * draws nothing there and takes no mouse events there.
 		 */
-		public Options keepClear(java.util.List<Rectangle> areas)
+		public Options keepClear(List<Rectangle> areas)
 		{
-			this.keepClear = areas == null ? java.util.Collections.emptyList() : areas;
+			this.keepClear = areas == null ? Collections.emptyList() : areas;
 			return this;
 		}
 
@@ -174,9 +133,9 @@ public final class MapSurface
 		 * Places inside the map's rectangle where mouse events go to the game, while the map is still drawn there.
 		 * For parts of the game's interface that are drawn over a map that sits under it.
 		 */
-		public Options passInput(java.util.List<Rectangle> areas)
+		public Options passInput(List<Rectangle> areas)
 		{
-			this.passInput = areas == null ? java.util.Collections.emptyList() : areas;
+			this.passInput = areas == null ? Collections.emptyList() : areas;
 			return this;
 		}
 
@@ -195,12 +154,8 @@ public final class MapSurface
 	private static final Color FOUND = new Color(80, 220, 255);
 	private static final Color PIN_FILL = new Color(230, 60, 140);
 	private static final Color RULER = new Color(120, 255, 160);
-	private static final Color TRAIL = new Color(80, 190, 255);
 	private static final Color ROUTE_TARGET = new Color(255, 214, 0);
 	private static final Color ROUTE_START = new Color(90, 220, 120);
-
-	/** How near the mouse must be to a pin or a marker to get its card, in pixels. */
-	private static final double HOVER_PIXELS = 12;
 
 	/** The zoom step of the zoom buttons: one doubling. */
 	private static final double BUTTON_ZOOM_FACTOR = 2.0;
@@ -221,10 +176,9 @@ public final class MapSurface
 	/** Below this width the search bar does not fit and is left out. */
 	private static final int MIN_WIDTH_FOR_SEARCH = 420;
 
-	private final net.runelite.api.Client client;
+	private final Client client;
 	private final MapAssets assets;
 	private final WorldMapPlusConfig config;
-	private final NpcLayer npcLayer;
 	private final ViewMemory memory;
 	private final PinStore pins;
 	private final RouteStore routes;
@@ -235,6 +189,7 @@ public final class MapSurface
 	/** The game's own map underneath, where this map is shown over it. Null for a map in a window of its own. */
 	private NativeMap nativeMap;
 	/** True while this map is being kept where the game's map is. */
+	@Getter
 	private boolean linedUp;
 	/** True from when the player moves this map until the game's map has caught up with it. */
 	private boolean catchingUp;
@@ -248,17 +203,12 @@ public final class MapSurface
 	private int differentMapFrames;
 	/** Where a click that was left for the game began, to tell a click from a drag. */
 	private Point gamePressPoint;
-	private final TrailTracker trail;
-	private final FarmingTracker farming;
-	private final NativePoints nativePoints;
-	private final com.worldmapplus.compat.MapCensus census;
-	private com.worldmapplus.compat.MapCensus.Snapshot mapUsers = null;
-	private String hiddenText = "";
-	private java.util.Set<String> hiddenNames = java.util.Collections.emptySet();
 	/** The layers list. Built when it is first needed, because its rows come from the bundled data, which loads on first use. */
 	private volatile LayerPanel layerPanel;
-	private java.util.Set<String> poiOn = java.util.Collections.emptySet();
+	private Set<String> poiOn = Collections.emptySet();
 	private String poiOnText = "";
+	/** The input handler to register with RuneLite for this surface. */
+	@Getter
 	private final ViewerInput input = new ViewerInput();
 	private final ContextMenu menu = new ContextMenu();
 	private final Ruler ruler = new Ruler();
@@ -268,9 +218,11 @@ public final class MapSurface
 	private int lastPlayerFloor = -1;
 	private final SearchBox searchBox = new SearchBox();
 	private final SearchBar searchBar = new SearchBar();
-	/** The panel of a chosen result with several places: tabs, Back, counts and orders. */
-	private final ResultsPanel results = new ResultsPanel();
-	/** True while the thumb of the results panel's scroll bar is being dragged. */
+	/** This surface's number for the panels of partners, and where their panel says it is (x, y, width, height, wants a frame). */
+	private static final AtomicInteger SURFACES = new AtomicInteger();
+	private final int surfaceId = SURFACES.incrementAndGet();
+	private final int[] panelBox = new int[5];
+	/** True while the thumb of a partner panel's scroll bar is being dragged. */
 	private boolean resultsScrollDrag;
 	private HoverCardPainter cardPainter;
 	private BufferedImage layerImage;
@@ -316,7 +268,7 @@ public final class MapSurface
 	/** The route store's version the search index was made with. */
 	private int searchRouteVersion = -1;
 	private List<Pin> pinList = new ArrayList<>();
-	private final java.util.Map<Long, Pin> pinById = new java.util.HashMap<>();
+	private final Map<Long, Pin> pinById = new HashMap<>();
 
 	/** The saved place the open menu was opened on, or 0. */
 	private long menuPinId;
@@ -328,13 +280,12 @@ public final class MapSurface
 	private boolean pressOnMenu;
 	private Point rightPress;
 
-	public MapSurface(net.runelite.api.Client client, MapAssets assets, WorldMapPlusConfig config,
+	public MapSurface(Client client, MapAssets assets, WorldMapPlusConfig config,
 		SurfaceServices services)
 	{
 		this.client = client;
 		this.assets = assets;
 		this.config = config;
-		this.npcLayer = services.npcLayer();
 		this.memory = services.memory();
 		this.pins = services.pins();
 		this.routes = services.routes();
@@ -342,10 +293,6 @@ public final class MapSurface
 		this.external = services.external();
 		this.actions = services.actions();
 		this.settings = services.settings();
-		this.trail = services.trail();
-		this.farming = services.farming();
-		this.nativePoints = services.nativePoints();
-		this.census = services.census();
 		this.chat = services.chatSearch();
 	}
 
@@ -433,12 +380,6 @@ public final class MapSurface
 		}
 	}
 
-	/** The input handler to register with RuneLite for this surface. */
-	public ViewerInput getInput()
-	{
-		return input;
-	}
-
 	/** Opens a map in a window of its own. */
 	public interface WindowOpener
 	{
@@ -449,8 +390,8 @@ public final class MapSurface
 
 	/** True for the surface of an extra window, which draws on the interface thread and never acts for the game. */
 	private boolean windowed;
-	private java.util.function.Supplier<Point> pointerSource;
-	private java.util.function.Consumer<Runnable> gameThread = Runnable::run;
+	private Supplier<Point> pointerSource;
+	private Consumer<Runnable> gameThread = Runnable::run;
 	private MapInfo startMap;
 	private double startX;
 	private double startY;
@@ -468,7 +409,7 @@ public final class MapSurface
 	* for another plugin go through {@code onGameThread}, requests from other plugins to move the map are left to the
 	* main map, and a window keeps its view however long it is left alone.
 	*/
-	public void asWindow(java.util.function.Supplier<Point> pointer, java.util.function.Consumer<Runnable> onGameThread)
+	public void asWindow(Supplier<Point> pointer, Consumer<Runnable> onGameThread)
 	{
 		this.windowed = true;
 		this.pointerSource = pointer;
@@ -516,27 +457,19 @@ public final class MapSurface
 		lastPlayer = position;
 		refreshSearch();
 		applyFocus(now);
+		applyShow(now);
 		trackFloor(position);
 
 		boolean interactive = options.interactive;
 		// Before the layers panel is laid out, since the plugins listed in it come from this.
-		takeCensus(now, interactive);
+		syncLayers();
 		if (interactive)
 		{
 			input.setActive(bounds);
 			input.setControlFNeedsPointer(options.controlFOverMapOnly);
 			input.setPointerOver(mouse(bounds) != null);
-			if (options.passInput.isEmpty())
-			{
-				input.setKeepClear(options.keepClear);
-			}
-			else
-			{
-				java.util.List<Rectangle> both = new ArrayList<>(options.keepClear);
-				both.addAll(options.passInput);
-				input.setKeepClear(both);
-			}
 			gameAreas = options.passInput.isEmpty() ? options.keepClear : both(options.keepClear, options.passInput);
+			input.setKeepClear(gameAreas);
 			searchAvailable = bounds.width >= MIN_WIDTH_FOR_SEARCH;
 			buttons.setLineUp(nativeMap != null, config.lineUpWithGameMap());
 			buttons.setZoomShown(!linedUp);
@@ -616,7 +549,7 @@ public final class MapSurface
 			{
 				layerGraphics.dispose();
 			}
-			java.awt.Composite oldComposite = g.getComposite();
+			Composite oldComposite = g.getComposite();
 			g.setComposite(AlphaComposite.SrcOver.derive(options.alpha));
 			g.drawImage(layer, bounds.x, bounds.y, null);
 			g.setComposite(oldComposite);
@@ -647,32 +580,19 @@ public final class MapSurface
 		g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 		Shape oldClip = g.getClip();
-		java.awt.geom.Area drawable = new java.awt.geom.Area(bounds);
+		Area drawable = new Area(bounds);
 		for (Rectangle area : options.keepClear)
 		{
-			drawable.subtract(new java.awt.geom.Area(area));
+			drawable.subtract(new Area(area));
 		}
 		g.clip(drawable);
 		try
 		{
 			assets.getRenderer().paint(g, view, map, hasFloors(map) ? viewer.getFloor() : 0);
-			if (config.showRegions() && map.getId() == assets.getCatalog().surface().getId())
-			{
-				assets.getRegions().paint(g, view);
-			}
-			if (config.showGrid())
-			{
-				OverlayLines.paintGrid(g, view, map);
-			}
-			if (config.showWilderness())
-			{
-				OverlayLines.paintWilderness(g, view, map);
-			}
-			if (config.showTrail())
-			{
-				drawTrail(g, view, map, position);
-			}
-			java.util.Set<String> poi = enabledPoi();
+			// The region borders, the grid, the Wilderness lines and the trail are painters of the Helper that draw here, under the icons.
+			paintMap = map;
+			external.partners().paintUnder(g, view, map.getId(), iconFloor(map), onPaintMap);
+			Set<String> poi = enabledPoi();
 			if (!poi.isEmpty())
 			{
 				assets.getPoiLayer().paint(g, view, map, poi);
@@ -680,20 +600,27 @@ public final class MapSurface
 			applyHiddenGameIcons();
 			applyProgress();
 			icons().paint(g, view, map, iconFloor(map));
-			npcLayer.paint(g, view, map, position);
 			// Names go over the map's icons and dots, so an icon never hides the name of the place it is in.
 			if (config.showLabels())
 			{
 				labelLayer().paint(g, view, map, hasFloors(map) ? viewer.getFloor() : 0);
 			}
-			drawExternalLines(g, view, map);
+			drawHops(g, view, map);
+			// The Helper's walking lines draw here, under the numbered discs and the pins as they did before the split.
+			external.partners().paintRoute(g, view, map.getId(), iconFloor(map), onPaintMap);
 			RoutePlan plan = routePlan(position);
 			drawRouteLegs(g, view, map, plan);
 			drawRouteTarget(g, view, map, position);
 			drawFlash(g, view, map, now);
 			drawSavedRoutes(g, view, map);
 			drawPins(g, view, map);
-			drawExternalMarkers(g, view, map);
+			external.partners().paint(g, view, map.getId(), iconFloor(map), onPaintMap);
+			if (external.partners().searchVersion() != seenSearch)
+			{
+				// A search provider of another plugin has answered: the list is made again with its results.
+				seenSearch = external.partners().searchVersion();
+				searchBox.refreshExtras();
+			}
 			drawFound(g, view, map, now);
 
 			if (position != null && playerIsOnViewedMap(position))
@@ -712,7 +639,7 @@ public final class MapSurface
 				buttons.paint(g, overButton);
 				drawTip(g, overButton);
 				drawFloors(g, mouse);
-				drawResults(g, bounds, mouse, now);
+				drawPanels(g, bounds, mouse, now);
 				if (bounds.width >= MIN_WIDTH_FOR_SEARCH)
 				{
 					searchBar.setMissing(config.markUnusable() || config.onlyUsable() ? resultMissing : null);
@@ -855,15 +782,10 @@ public final class MapSurface
 		showing = false;
 		// Whatever is still being loaded for this map stops; another map that is showing asks again with its next frame.
 		assets.endView();
-		input.setActive(null);
-		input.setCaptureKeys(false);
-		input.setCaptureEscape(false);
-		input.setWatchClicks(false);
-		closeChat();
-		input.getQueue().clear();
+		releaseInput();
 		searchBox.blur();
 		found = null;
-		results.close();
+		closePanel();
 		if (viewer != null && viewer.getMap() != null)
 		{
 			memory.save(slot, viewer.getMap().getId(), viewer.getCamera().getX(), viewer.getCamera().getY(),
@@ -878,14 +800,30 @@ public final class MapSurface
 		layerImage = null;
 		viewer = null;
 		found = null;
-		results.close();
+		closePanel();
 		searchBox.blur();
+		releaseInput();
+	}
+
+	/** Lets go of the mouse, the keys and the chat area prompt, and forgets the events not yet used. */
+	private void releaseInput()
+	{
 		input.setActive(null);
 		input.setCaptureKeys(false);
 		input.setCaptureEscape(false);
 		input.setWatchClicks(false);
 		closeChat();
 		input.getQueue().clear();
+	}
+
+	/** Forgets which part of the map a button held down was pressed on. */
+	private void clearPresses()
+	{
+		pressOnControls = false;
+		scrollDrag = false;
+		layerScrollDrag = false;
+		menuScrollDrag = false;
+		pressOnMenu = false;
 	}
 
 	private void applySettings()
@@ -951,7 +889,7 @@ public final class MapSurface
 	public boolean isMoving()
 	{
 		long now = lastFrame;
-		return viewer != null && (viewer.isMoving() || menu.moving(now) || results.moving(now)
+		return viewer != null && (viewer.isMoving() || menu.moving(now) || panelBox[4] != 0
 			|| layerPanel != null && layerPanel.moving(now));
 	}
 
@@ -961,11 +899,7 @@ public final class MapSurface
 		showing = true;
 		input.getQueue().clear();
 		searchBox.blur();
-		pressOnControls = false;
-		scrollDrag = false;
-		layerScrollDrag = false;
-		menuScrollDrag = false;
-		pressOnMenu = false;
+		clearPresses();
 		menu.close();
 		closeLayerPanel();
 		viewer.cancelGesture();
@@ -978,17 +912,8 @@ public final class MapSurface
 	 */
 	public void suspend()
 	{
-		input.setActive(null);
-		input.setCaptureKeys(false);
-		input.setWatchClicks(false);
-		closeChat();
-		input.getQueue().clear();
-		pressOnControls = false;
-		scrollDrag = false;
-		layerScrollDrag = false;
-		menuScrollDrag = false;
-		pressOnMenu = false;
-		input.setCaptureEscape(false);
+		releaseInput();
+		clearPresses();
 		if (viewer != null)
 		{
 			viewer.cancelGesture();
@@ -1007,6 +932,7 @@ public final class MapSurface
 			return at == null ? -1 : at.getId();
 		});
 		searchBox.setContext(this::searchContext);
+		searchBox.setExtra(external.partners()::search);
 		searchBox.setIndex(assets.getSearchIndex());
 		// That index has no saved places in it. Forgetting the version makes the next frame add them again.
 		searchPinVersion = -1;
@@ -1088,12 +1014,23 @@ public final class MapSurface
 		}
 		else if (event.kind == MapInput.Kind.RELEASE && event.button() == MouseEvent.BUTTON1)
 		{
-			if (gamePressPoint != null && Math.hypot(event.x - gamePressPoint.x, event.y - gamePressPoint.y) <= 5)
+			if (isClick(gamePressPoint, event))
 			{
 				click(event.x, event.y, position);
 			}
 			gamePressPoint = null;
 		}
+	}
+
+	/** True when a button is let go within a few pixels of where it went down. */
+	private static boolean isClick(@Nullable Point press, MapInput event)
+	{
+		return press != null && Math.hypot(event.x - press.x, event.y - press.y) <= 5;
+	}
+
+	private static int wheelRows(MapInput event)
+	{
+		return event.amount > 0 ? WHEEL_ROWS : -WHEEL_ROWS;
 	}
 
 	private void apply(MapInput event, @Nullable PlayerPosition position, long now)
@@ -1111,21 +1048,21 @@ public final class MapSurface
 					// A menu taller than the map scrolls, and the wheel over it never zooms the map under it.
 					if (event.amount != 0)
 					{
-						menu.scroll(event.amount > 0 ? WHEEL_ROWS : -WHEEL_ROWS);
+						menu.scroll(wheelRows(event));
 					}
 				}
 				else if (layerPanel != null && layerPanel.contains(event.x, event.y))
 				{
 					if (event.amount != 0)
 					{
-						layerPanel.scroll(event.amount > 0 ? WHEEL_ROWS : -WHEEL_ROWS);
+						layerPanel.scroll(wheelRows(event));
 					}
 				}
-				else if (results.contains(event.x, event.y) && !searchBar.overResults(event.x, event.y))
+				else if (Partners.onPanel(panelBox, event.x, event.y) && !searchBar.overResults(event.x, event.y))
 				{
 					if (event.amount != 0)
 					{
-						results.scroll(event.amount > 0 ? WHEEL_ROWS : -WHEEL_ROWS);
+						external.partners().panelInput(surfaceId, "wheel", event.x, event.y, wheelRows(event));
 					}
 				}
 				else if (searchBar.overResults(event.x, event.y))
@@ -1134,7 +1071,7 @@ public final class MapSurface
 					{
 						if (event.amount != 0)
 						{
-							searchBox.scroll(event.amount > 0 ? WHEEL_ROWS : -WHEEL_ROWS);
+							searchBox.scroll(wheelRows(event));
 						}
 					}
 				}
@@ -1184,12 +1121,8 @@ public final class MapSurface
 						scrollDrag = searchBar.hit(event.x, event.y).isScrollBar();
 						layerScrollDrag = layerPanel != null && layerPanel.scrollBarHit(event.x, event.y);
 						resultsScrollDrag = !scrollDrag && !layerScrollDrag && searchBar.hit(event.x, event.y) == SearchBar.Hit.NONE
-							&& results.scrollBarHit(event.x, event.y);
-						if (resultsScrollDrag)
-						{
-							results.dragBarTo(event.y);
-						}
-						else if (scrollDrag)
+							&& Partners.onPanel(panelBox, event.x, event.y) && external.partners().panelInput(surfaceId, "press", event.x, event.y, 0);
+						if (scrollDrag)
 						{
 							searchBox.scrollToFraction(searchBar.scrollFractionAt(event.y));
 						}
@@ -1215,7 +1148,7 @@ public final class MapSurface
 				}
 				else if (resultsScrollDrag)
 				{
-					results.dragBarTo(event.y);
+					external.partners().panelInput(surfaceId, "drag", event.x, event.y, 0);
 				}
 				else if (scrollDrag)
 				{
@@ -1230,7 +1163,7 @@ public final class MapSurface
 			case RELEASE:
 				if (event.button() == MouseEvent.BUTTON3)
 				{
-					if (rightPress != null && Math.hypot(event.x - rightPress.x, event.y - rightPress.y) <= 5)
+					if (isClick(rightPress, event))
 					{
 						openMenu(event.x, event.y);
 					}
@@ -1238,7 +1171,7 @@ public final class MapSurface
 				}
 				else if (event.button() == MouseEvent.BUTTON2)
 				{
-					if (middlePress != null && Math.hypot(event.x - middlePress.x, event.y - middlePress.y) <= 5)
+					if (isClick(middlePress, event))
 					{
 						openInWindow(event.x, event.y);
 					}
@@ -1270,6 +1203,7 @@ public final class MapSurface
 						if (resultsScrollDrag)
 						{
 							resultsScrollDrag = false;
+							external.partners().panelInput(surfaceId, "release", event.x, event.y, 0);
 						}
 						else if (scrollDrag)
 						{
@@ -1375,14 +1309,7 @@ public final class MapSurface
 	{
 		if (heldCard != null && heldButton != null && heldButton.contains(x, y))
 		{
-			if (HoverCardPainter.hasPage(heldCard))
-			{
-				openWiki(heldCard.getWiki());
-			}
-			else
-			{
-				searchWiki(heldCard.getWikiSearch());
-			}
+			pressButton(heldCard.getButtonKey(), Partners.subject(heldCard.getTitle(), heldCard.getWiki(), heldCard.getWikiSearch()));
 			return;
 		}
 		if (overHeldCard(x, y))
@@ -1413,9 +1340,9 @@ public final class MapSurface
 			return;
 		}
 		SearchBar.Hit hit = searchBar.hit(x, y);
-		if (hit == SearchBar.Hit.NONE && results.contains(x, y))
+		if (hit == SearchBar.Hit.NONE && Partners.onPanel(panelBox, x, y))
 		{
-			clickResults(x, y, now);
+			external.partners().panelInput(surfaceId, "click", x, y, 0);
 			return;
 		}
 		if (hit.isField())
@@ -1464,9 +1391,8 @@ public final class MapSurface
 				{
 					settings.setBoolean("lineUpWithGameMap", on);
 				}
-				routeNotice = on ? "Lined up with the game map. It moves and zooms this map (Ctrl and right click for this"
-					+ " map's menu), and lines other plugins draw, such as Quest Helper's, land on the right tiles."
-					: "Zoom is yours again. Lines other plugins draw on the game's map will not line up.";
+				routeNotice = on ? "Lined up with the game map. It moves and zooms this map (Ctrl and right click for this map's menu)."
+					: "Zoom is yours again.";
 				routeNoticeSince = lastFrame;
 				break;
 			}
@@ -1549,18 +1475,9 @@ public final class MapSurface
 			{
 				routeToPin((Pin) candidate.what);
 			}
-			else if (candidate.what instanceof ExternalMarker)
+			else if (candidate.what instanceof Partners.Thing)
 			{
-				ExternalMarker marker = (ExternalMarker) candidate.what;
-				if (marker.getJumpTarget() != null)
-				{
-					focusOn(marker.getJumpTarget().getX(), marker.getJumpTarget().getY());
-				}
-				else
-				{
-					// The plugin that sent the marker asked to hear of a click, and decides itself what it means.
-					external.markerClicked(marker);
-				}
+				external.partners().clicked((Partners.Thing) candidate.what);
 			}
 			else
 			{
@@ -1591,6 +1508,7 @@ public final class MapSurface
 			return;
 		}
 		cue(Sounds.Cue.CHOOSE);
+		external.partners().selected(entry);
 		if (entry.getKind() == SearchKind.ROUTE)
 		{
 			// A saved route found in the search starts as its Start button in the side panel starts it (round 48).
@@ -1598,16 +1516,10 @@ public final class MapSurface
 			searchBox.blur();
 			return;
 		}
-		openResults(entry);
-		String kindId = entry.getKindId();
-		if (kindId != null)
+		external.partners().chosen(surfaceId, entry);
+		if (entry.getReveal() != null)
 		{
-			entry = KindResults.target(assets.getKinds(), entry, kindPlayerMap(), viewer.getMap() == null ? -1 : viewer.getMap().getId());
-			if (entry == null)
-			{
-				return;
-			}
-			revealKind(kindId);
+			revealCategory(entry.getReveal(), FOUND_MILLIS);
 		}
 		MapInfo target = assets.getCatalog().byId(entry.getMapId());
 		if (target == null)
@@ -1637,216 +1549,50 @@ public final class MapSurface
 		searchBox.blur();
 	}
 
-	/** The results panel, for tests. */
-	ResultsPanel results()
+	/** Puts away the panels of partners on this surface, for when the map closes. */
+	private void closePanel()
 	{
-		return results;
+		panelBox[2] = 0;
+		panelBox[4] = 0;
+		if (external.partners().any(Partners.Kind.PANEL))
+		{
+			external.partners().panelInput(surfaceId, "close", 0, 0, 0);
+		}
 	}
 
-	/**
-	 * Shows the panel for a result chosen in the search, in place of whatever it showed, or puts it away for a result with one place.
-	 * Made once, when the result is chosen.
-	 */
-	private void openResults(SearchEntry entry)
+	/** Lets the partners' panels (the results panel of the Helper) draw under the route panel at the left of the map. */
+	private void drawPanels(Graphics2D g, Rectangle bounds, @Nullable Point mouse, long now)
 	{
-		ResultView view = config.showResultsPanel() ? makeView(entry) : null;
-		if (view == null)
+		if (!external.partners().any(Partners.Kind.PANEL))
 		{
-			results.close();
-		}
-		else
-		{
-			measure(view);
-			results.replace(view);
-		}
-		noteWaiting(entry, view);
-	}
-
-	/**
-	 * The panel's view for a result, with its drop tab when the setting is on and the drop tables are read. While they are not, it
-	 * asks for them (one read on the shared executor) and the view is made without; {@link #finishDrops} makes it again later.
-	 */
-	@Nullable
-	private ResultView makeView(SearchEntry entry)
-	{
-		com.worldmapplus.drops.DropTables tables = null;
-		if (config.showDropTables() && ResultViews.canHaveDrops(entry))
-		{
-			com.worldmapplus.drops.DropLoader loader = assets.getDrops();
-			tables = loader.ready();
-			if (tables == null)
-			{
-				loader.request();
-			}
-		}
-		ResultView view = ResultViews.forEntry(entry, assets.getKinds(), assets.getSearchEntries(), tables);
-		if (view != null && view.drops != null)
-		{
-			// The prices are read later on the client thread; the rows show them when they are there.
-			assets.getPrices().request(view.drops.itemIds);
-		}
-		return view;
-	}
-
-	/** The result whose view was made while the drop tables were still being read, or null. */
-	@Nullable
-	private SearchEntry dropsWaitingFor;
-	/** The view shown for it then (null when it had none) and the panel's change count then. */
-	@Nullable
-	private ResultView dropsWaitingView;
-	private int dropsWaitingChanges;
-
-	/** Remembers that a view was made without the drop tables that would add to it. */
-	private void noteWaiting(SearchEntry entry, @Nullable ResultView view)
-	{
-		boolean waiting = config.showResultsPanel() && config.showDropTables() && ResultViews.canHaveDrops(entry)
-			&& assets.getDrops().ready() == null;
-		dropsWaitingFor = waiting ? entry : null;
-		dropsWaitingView = waiting ? view : null;
-		dropsWaitingChanges = results.changes();
-	}
-
-	/**
-	 * Once the drop tables are read, makes the view of the result chosen while they were read again, with its drop tab, but only
-	 * when the panel still shows what it showed then (nothing chosen, closed or gone back since). Looked at once a frame: a field
-	 * read until the tables are there, then one view made.
-	 */
-	private void finishDrops()
-	{
-		SearchEntry entry = dropsWaitingFor;
-		if (entry == null || assets.getDrops().ready() == null)
-		{
+			panelBox[2] = 0;
+			panelBox[4] = 0;
 			return;
-		}
-		ResultView old = dropsWaitingView;
-		boolean current = results.changes() == dropsWaitingChanges && results.view() == old;
-		dropsWaitingFor = null;
-		dropsWaitingView = null;
-		if (!current || !config.showResultsPanel() || !config.showDropTables())
-		{
-			return;
-		}
-		ResultView next = makeView(entry);
-		if (next == null)
-		{
-			return;
-		}
-		measure(next);
-		if (old == null)
-		{
-			results.replace(next);
-		}
-		else
-		{
-			results.swap(old, next);
-		}
-	}
-
-	/** Works out how far each row of a view is from the player now. */
-	private void measure(ResultView view)
-	{
-		int map = kindPlayerMap();
-		view.measureFrom(lastPlayer != null && map >= 0, map, lastPlayer == null ? 0 : lastPlayer.getX(),
-			lastPlayer == null ? 0 : lastPlayer.getY(), id ->
-			{
-				MapInfo info = assets.getCatalog().byId(id);
-				return info == null ? null : "In " + info.getName();
-			});
-	}
-
-	/** Lays out and draws the results panel, under the route panel at the left of the map. */
-	private void drawResults(Graphics2D g, Rectangle bounds, @Nullable Point mouse, long now)
-	{
-		if (dropsWaitingFor != null)
-		{
-			finishDrops();
-		}
-		if (!results.isOpen())
-		{
-			return;
-		}
-		ResultView shown = results.view();
-		if (shown != null && shown.drops != null && shown.priceVersion != assets.getPrices().version()
-			&& shown.refreshPrices(assets.getPrices()))
-		{
-			// New prices (a field compare until they come): the drop rows' text and order are made once.
-			measure(shown);
 		}
 		int top = Math.max(bounds.y + 40, routePanelRect.isEmpty() ? 0 : routePanelRect.y + routePanelRect.height + 8);
-		results.layout(bounds, top, buttons.block().isEmpty() ? bounds.x + bounds.width : buttons.block().x);
-		results.paint(g, mouse, now);
+		int map = kindPlayerMap();
+		external.partners().paintPanels(g, surfaceId, panelBox, bounds, top, buttons.block().isEmpty() ? bounds.x + bounds.width : buttons.block().x,
+			mouse, now, Motion.fades(), lastPlayer != null && map >= 0 ? map : -1, lastPlayer == null ? 0 : lastPlayer.getX(),
+			lastPlayer == null ? 0 : lastPlayer.getY());
 	}
 
-	/** A click that began and ended on the results panel. */
-	private void clickResults(int x, int y, long now)
+	/** Takes the map to a place a partner's panel asked for and marks its tiles, as a chosen search result is marked. */
+	private void applyShow(long now)
 	{
-		ResultsPanel.Hit hit = results.hit(x, y);
-		ResultView view = results.view();
-		if (view == null)
+		Partners.Show show = external.partners().takeShow(surfaceId);
+		MapInfo target = show == null || viewer == null ? null : assets.getCatalog().byId(show.mapId);
+		if (target == null)
 		{
 			return;
 		}
-		switch (hit.part)
-		{
-			case CLOSE:
-				results.close();
-				break;
-			case BACK:
-				results.back();
-				if (results.view() != null)
-				{
-					measure(results.view());
-				}
-				break;
-			case TAB:
-				view.selectTab(hit.index);
-				break;
-			case SORT:
-				measure(view);
-				ResultView.sort(view.current(), view.current().sorts.get(hit.index));
-				break;
-			case ROW:
-				goToRow(view.current().rows.get(hit.index), now);
-				break;
-			default:
-				break;
-		}
-	}
-
-	/** Takes the map to a row of the panel and marks its places; a row that stands for another result opens that in the panel. */
-	private void goToRow(ResultView.Row row, long now)
-	{
-		if (viewer == null)
-		{
-			return;
-		}
-		// A drop row of an item has no place of its own: it only opens that item.
-		MapInfo target = row.mapId < 0 ? null : assets.getCatalog().byId(row.mapId);
-		if (target == null && row.drop == null)
-		{
-			return;
-		}
-		if (target != null)
-		{
-			viewer.getCamera().setFollowing(false);
-			goTo(target, row.x, row.y, now);
-			zoomForJump(Math.max(viewer.getZoom().targetPixelsPerTile(), FOUND_MIN_ZOOM));
-			placesKey = "";
-			foundNumber = 0;
-			foundOf = 0;
-			found = new SearchEntry(SearchKind.PIN, row.label, row.count, row.mapId, row.x, row.y, row.mark);
-			foundSince = now;
-		}
-		if (row.follow != null)
-		{
-			ResultView next = makeView(row.follow);
-			if (next != null)
-			{
-				measure(next);
-				results.open(next);
-				noteWaiting(row.follow, next);
-			}
-		}
+		viewer.getCamera().setFollowing(false);
+		goTo(target, show.x, show.y, now);
+		zoomForJump(Math.max(viewer.getZoom().targetPixelsPerTile(), FOUND_MIN_ZOOM));
+		placesKey = "";
+		foundNumber = 0;
+		foundOf = 0;
+		found = new SearchEntry(SearchKind.PIN, show.name, show.detail, show.mapId, show.x, show.y, show.marks);
+		foundSince = now;
 	}
 
 	/** The map the player is on or nearest to (as when the map opens), or -1, for choosing the nearest place of a kind. */
@@ -1860,26 +1606,21 @@ public final class MapSurface
 		return map == null ? -1 : map.getId();
 	}
 
-	/** Draws the game's icons of a kind at every zoom for a while, as a click on the game's map key does. */
-	private void revealKind(String kindId)
+	/** Draws the game's icons of the categories with this name at every zoom, from now until a while after the given time. */
+	private void revealCategory(@Nullable String name, long millis)
 	{
-		com.worldmapplus.search.KindIndex.Kind kind = assets.getKinds().byId(kindId);
-		if (kind == null || kind.getCategory() == null)
-		{
-			return;
-		}
-		java.util.List<Integer> numbers = assets.getElements().categoriesNamed(kind.getCategory());
+		List<Integer> numbers = name == null ? Collections.<Integer>emptyList() : assets.getElements().categoriesNamed(name);
 		int[] categories = new int[numbers.size()];
 		for (int i = 0; i < categories.length; i++)
 		{
 			categories[i] = numbers.get(i);
 		}
-		icons().reveal(categories, System.currentTimeMillis() + FOUND_MILLIS + REVEAL_AFTER_MILLIS);
+		icons().reveal(categories, System.currentTimeMillis() + millis + REVEAL_AFTER_MILLIS);
 	}
 
 	/** The result with several places that was last gone to, to tell a second click on it from a click on another. */
 	private String placesKey = "";
-	private java.util.List<double[]> placesOrder = java.util.Collections.emptyList();
+	private List<double[]> placesOrder = Collections.emptyList();
 	private int placesAt;
 	private long placesSince;
 	/** Which place of how many the highlighted result is, or 0 when it has just the one. */
@@ -1896,7 +1637,7 @@ public final class MapSurface
 	 */
 	private SearchEntry chooseAmongPlaces(SearchEntry entry, long now)
 	{
-		java.util.List<double[]> spots = entry.getAlsoAt();
+		List<double[]> spots = entry.getAlsoAt();
 		if (spots.size() < 2)
 		{
 			placesKey = "";
@@ -1924,13 +1665,13 @@ public final class MapSurface
 	}
 
 	/** The places of a result, nearest the player first when the player is on its map, else as the result gives them. */
-	static java.util.List<double[]> nearestFirst(java.util.List<double[]> spots, SearchEntry entry,
+	static List<double[]> nearestFirst(List<double[]> spots, SearchEntry entry,
 		@Nullable PlayerPosition player)
 	{
-		java.util.List<double[]> order = new ArrayList<>(spots);
+		List<double[]> order = new ArrayList<>(spots);
 		if (player != null)
 		{
-			order.sort(java.util.Comparator.comparingDouble(tile -> Math.hypot(tile[0] - player.getX(), tile[1] - player.getY())));
+			order.sort(Comparator.comparingDouble(tile -> Math.hypot(tile[0] - player.getX(), tile[1] - player.getY())));
 		}
 		return order;
 	}
@@ -2049,16 +1790,16 @@ public final class MapSurface
 		FontMetrics metrics = g.getFontMetrics();
 		Rectangle rect = buttons.boundsOf(button);
 		String tip = button.tip();
-		com.worldmapplus.compat.MapCensus.Entry drawer = mapUsers == null ? null : mapUsers.firstDrawer();
-		if (button == MapButtons.Button.LINE_UP && drawer != null)
+		String drawer = external.lineUpTip();
+		if (button == MapButtons.Button.LINE_UP && !drawer.isEmpty())
 		{
-			tip = drawer.getName() + " draws " + drawer.getDrawsOnMap() + " on the game map itself. Line up with it";
+			tip = drawer;
 		}
 		// To the left of the whole stack of buttons, so it never covers one, and inside the map: a tag too wide for the room
 		// there is wrapped onto more lines.
 		Rectangle block = buttons.block();
 		int room = Math.max(40, block.x - 6 - (lastBounds.x + PopupText.EDGE) - 16);
-		java.util.List<String> lines = PopupText.wrap(tip, metrics, room);
+		List<String> lines = PopupText.wrap(tip, metrics, room);
 		int widest = 0;
 		for (String line : lines)
 		{
@@ -2136,15 +1877,7 @@ public final class MapSurface
 	/** Draws the icons of the flashing kind at every zoom for a while after the flashing, and puts that out when the flashing is put out. */
 	private void revealFlashing()
 	{
-		com.worldmapplus.data.MapElements elements = assets.getElements();
-		String name = flashCategory == 0 ? null : elements.categoryName(flashCategory);
-		java.util.List<Integer> numbers = name == null ? Collections.<Integer>emptyList() : elements.categoriesNamed(name);
-		int[] categories = new int[numbers.size()];
-		for (int i = 0; i < categories.length; i++)
-		{
-			categories[i] = numbers.get(i);
-		}
-		icons().reveal(categories, System.currentTimeMillis() + FLASH_MILLIS + REVEAL_AFTER_MILLIS);
+		revealCategory(flashCategory == 0 ? null : assets.getElements().categoryName(flashCategory), FLASH_MILLIS);
 	}
 
 	/** Spots this plugin knows of that the game's own icons for a category leave out, such as boats and gliders. */
@@ -2165,18 +1898,9 @@ public final class MapSurface
 		return spots;
 	}
 
-	private void drawRing(Graphics2D g, double sx, double sy, double phase, float fade)
+	/** The ring round one icon of the flashing kind: a dark edge, so it shows over any ground, then yellow. */
+	private void drawRing(Graphics2D g, double sx, double sy)
 	{
-		double radius = 9 + 13 * phase;
-		if (Motion.full())
-		{
-			g.setComposite(AlphaComposite.SrcOver.derive(fade * (float) (1 - phase * 0.7)));
-			g.setStroke(new BasicStroke(3f));
-			g.setColor(FLASH);
-			g.draw(new Ellipse2D.Double(sx - radius, sy - radius, radius * 2, radius * 2));
-		}
-		g.setComposite(AlphaComposite.SrcOver.derive(fade));
-		g.setStroke(new BasicStroke(2f));
 		g.setColor(Color.BLACK);
 		g.draw(new Ellipse2D.Double(sx - 9.5, sy - 9.5, 19, 19));
 		g.setColor(FLASH);
@@ -2186,8 +1910,8 @@ public final class MapSurface
 	private static final Color FLASH = new Color(255, 214, 0);
 
 	/**
-	 * Rings that pulse around every icon of the kind clicked in the map key, and a plate saying what is
-	 * flashing and how many there are on this map. They show at any zoom, so a kind of icon can be found from far out.
+	 * Rings round every icon of the kind clicked in the map key, and a plate saying what is flashing and how many there are on this
+	 * map. They show at any zoom, so a kind of icon can be found from far out.
 	 */
 	private void drawFlash(Graphics2D g, ViewTransform view, MapInfo map, long now)
 	{
@@ -2200,45 +1924,23 @@ public final class MapSurface
 			flashCategory = 0;
 			return;
 		}
-		double phase = ((now - flashSince) % 900) / 900.0;
-		float fade = (float) Math.min(1.0, (FLASH_MILLIS - (now - flashSince)) / 1500.0);
 		int count = 0;
-		java.awt.Composite old = g.getComposite();
-		try
+		g.setStroke(new BasicStroke(2f));
+		for (MapElements.Spot spot : assets.getElements().spotsOn(map.getId()))
 		{
-			for (com.worldmapplus.data.MapElements.Spot spot : assets.getElements().spotsOn(map.getId()))
+			if (spot.getCategory() == flashCategory)
 			{
-				if (spot.getCategory() != flashCategory)
-				{
-					continue;
-				}
 				count++;
-				double sx = view.screenX(spot.getX());
-				double sy = view.screenY(spot.getY());
-				if (!view.contains(sx, sy))
-				{
-					continue;
-				}
-				drawRing(g, sx, sy, phase, fade);
-			}
-			for (SearchEntry extra : flashExtra)
-			{
-				if (extra.getMapId() != map.getId())
-				{
-					continue;
-				}
-				count++;
-				double sx = view.screenX(extra.getX());
-				double sy = view.screenY(extra.getY());
-				if (view.contains(sx, sy))
-				{
-					drawRing(g, sx, sy, phase, fade);
-				}
+				ringAt(g, view, spot.getX(), spot.getY());
 			}
 		}
-		finally
+		for (SearchEntry extra : flashExtra)
 		{
-			g.setComposite(old);
+			if (extra.getMapId() == map.getId())
+			{
+				count++;
+				ringAt(g, view, extra.getX(), extra.getY());
+			}
 		}
 		String name = assets.getElements().categoryName(flashCategory);
 		if (name != null)
@@ -2251,30 +1953,19 @@ public final class MapSurface
 		}
 	}
 
-	/** Rebuilds the search index when the pins changed, so pins can be found by name. */
-	/** What the search was last told about finished quests: 0 for none, otherwise the progress version times two plus one. */
-	private int searchProgressKey;
-
-	/**
-	 * With the setting for it on, quests the player has finished are left out of the search results. The results are worked out again
-	 * only when the setting or the player's progress changes.
-	 */
-	private void refreshSearchFilter()
+	private void ringAt(Graphics2D g, ViewTransform view, double x, double y)
 	{
-		UnlockView progress = assets.getUnlocks();
-		boolean hide = progress != null && config.hideFinishedQuests();
-		int key = hide ? progress.version() * 2 + 1 : 0;
-		if (key == searchProgressKey)
+		double sx = view.screenX(x);
+		double sy = view.screenY(y);
+		if (view.contains(sx, sy))
 		{
-			return;
+			drawRing(g, sx, sy);
 		}
-		searchProgressKey = key;
-		searchBox.setFilter(hide ? entry -> entry.getKind() != SearchKind.QUEST || !progress.finishedQuest(entry.getName()) : null);
 	}
 
+	/** Rebuilds the search index when the pins changed, so pins can be found by name. */
 	private void refreshSearch()
 	{
-		refreshSearchFilter();
 		int version = pins.getVersion();
 		int routeVersion = routes.getVersion();
 		if (version == searchPinVersion && routeVersion == searchRouteVersion)
@@ -2292,7 +1983,7 @@ public final class MapSurface
 		// The player's own places and routes are found like everything else, and the index is made again only when either store
 		// changes (added, renamed, edited, removed), so a result never stands for something gone (round 48).
 		List<SearchEntry> entries = new ArrayList<>(assets.getSearchEntries());
-		entries.addAll(com.worldmapplus.pins.OwnSearch.entries(pinList, routes.all(), MapSurface::kindText));
+		entries.addAll(OwnSearch.entries(pinList, routes.all(), MapSurface::kindText));
 		searchBox.setIndex(new SearchIndex(entries));
 	}
 
@@ -2354,96 +2045,70 @@ public final class MapSurface
 	}
 
 	// ------------------------------------------------------------------
-	// Other plugins' markers in the menu, and following a party member
+	// Following a point that moves (the Helper sends where a party member is)
 	// ------------------------------------------------------------------
 
-	/** The class RuneLite's own Party plugin makes its members' points with. Compared as text: no class of that plugin is touched. */
-	static final String PARTY_POINT = "net.runelite.client.plugins.party.PartyWorldMapPoint";
+	/** The entries other plugins added to the open menu, and what they are told when one is chosen. */
+	private List<Partners.Slot> menuPartners = Collections.emptyList();
+	private Map<String, Object> menuContext = Collections.emptyMap();
+	private int seenSearch;
+	/** The map the partners' painters and hit tests are asked about, and the question they may ask: is a place on it. */
+	private MapInfo paintMap;
+	private final BiPredicate<Double, Double> onPaintMap = (x, y) -> paintMap != null && onThisMap(paintMap, x, y);
 
-	/** How long a followed member may be missing from the points before following ends, in milliseconds. */
-	static final long FOLLOW_GRACE_MILLIS = 1_500;
-
-	/** The marker a menu was opened on, or null. */
-	private ExternalMarker menuMarker;
-
-	/** The display name of the party member being followed, or null. */
+	/** The name of the point being followed, or null. */
 	private String followName;
 	private long followSeenAt;
 	private double memberX;
 	private double memberY;
 
-	/** The markers sent by plugins with the ones whose layer the player turned off left out. The list itself when none are. */
-	private static List<ExternalMarker> withoutHiddenLayers(List<ExternalMarker> markers, java.util.Set<String> hidden)
+	/** How long a followed point may go without news before following ends, in milliseconds. */
+	static final long FOLLOW_GRACE_MILLIS = 1_500;
+
+	/** The entries other plugins add to the menu, asked about this place and what is under the pointer. */
+	private void addPartnerItems(List<ContextMenu.Item> items, ViewTransform view, MapInfo map, int x, int y, int tx, int ty)
 	{
-		if (hidden.isEmpty())
+		menuPartners = Collections.emptyList();
+		if (external.partners().any(Partners.Kind.MENU))
 		{
-			return markers;
-		}
-		List<ExternalMarker> kept = null;
-		for (int i = 0; i < markers.size(); i++)
-		{
-			ExternalMarker marker = markers.get(i);
-			boolean drop = !marker.getLayer().isEmpty() && hidden.contains(marker.getLayer());
-			if (drop && kept == null)
+			Map<String, Object> context = new HashMap<>();
+			context.put("tile", new WorldPoint(tx, ty, planeNow()));
+			context.put("mapId", map.getId());
+			context.put("floor", planeNow());
+			List<Candidate> under = candidates(view, map, x, y);
+			if (!under.isEmpty())
 			{
-				kept = new ArrayList<>(markers.subList(0, i));
+				context.put("thing", thingOf(under.get(0)));
+				List<Map<String, Object>> all = new ArrayList<>(under.size());
+				for (int i = 0; i < under.size() && i < 6; i++)
+				{
+					all.add(thingOf(under.get(i)));
+				}
+				context.put("things", Collections.unmodifiableList(all));
 			}
-			else if (!drop && kept != null)
-			{
-				kept.add(marker);
-			}
+			menuContext = Collections.unmodifiableMap(context);
+			menuPartners = external.partners().menu(menuContext);
+			menuPartners.forEach(slot -> items.add(new ContextMenu.Item(ContextMenu.Action.PARTNER_OPTION, slot.title)));
 		}
-		return kept == null ? markers : kept;
 	}
 
-	/** True when the marker is a party member's point made by RuneLite's Party plugin. */
-	static boolean isPartyMember(ExternalMarker marker)
+	/** Keeps the map on a point until the map is moved, the point goes, or something else takes the map. */
+	private void startFollowing(String name, WorldPoint at)
 	{
-		return PARTY_POINT.equals(marker.getOrigin()) && !marker.getName().isEmpty();
-	}
-
-	/** The menu entries for the marker under the pointer: the ones its plugin added, Focus on for a jump, Follow for a party member. */
-	private void addMarkerItems(List<ContextMenu.Item> items, ViewTransform view, MapInfo map, int x, int y)
-	{
-		for (Candidate candidate : candidates(view, map, x, y))
+		if (viewer == null)
 		{
-			if (!(candidate.what instanceof ExternalMarker))
-			{
-				continue;
-			}
-			ExternalMarker marker = (ExternalMarker) candidate.what;
-			menuMarker = marker;
-			for (String option : marker.getMenu())
-			{
-				items.add(new ContextMenu.Item(ContextMenu.Action.MARKER_OPTION, option));
-			}
-			if (marker.getJumpTarget() != null)
-			{
-				items.add(new ContextMenu.Item(ContextMenu.Action.FOCUS_MARKER, "Focus on " + candidate.title()));
-			}
-			if (isPartyMember(marker) && !isLinedUp())
-			{
-				items.add(marker.getName().equals(followName)
-					? new ContextMenu.Item(ContextMenu.Action.STOP_FOLLOWING, "Stop following " + marker.getName())
-					: new ContextMenu.Item(ContextMenu.Action.FOLLOW_MEMBER, "Follow " + marker.getName()));
-			}
 			return;
 		}
-		if (followName != null)
+		if (isLinedUp())
 		{
-			items.add(new ContextMenu.Item(ContextMenu.Action.STOP_FOLLOWING, "Stop following " + followName));
-		}
-	}
-
-	/** Keeps the map on a party member until the map is moved, the member goes, or something else takes the map. */
-	void startFollowing(String name)
-	{
-		if (name == null || name.isEmpty() || viewer == null)
-		{
+			external.followEnded(name);
+			say("Following is off while lined up with the game map.");
 			return;
 		}
 		followName = name;
 		followSeenAt = lastFrame;
+		memberX = at.getX() + 0.5;
+		memberY = at.getY() + 0.5;
 		viewer.getCamera().setFollowing(true);
 		say("Following " + name + ". Drag the map to stop.");
 	}
@@ -2454,6 +2119,7 @@ public final class MapSurface
 		{
 			return;
 		}
+		external.followEnded(followName);
 		followName = null;
 		if (viewer != null)
 		{
@@ -2465,7 +2131,7 @@ public final class MapSurface
 		}
 	}
 
-	/** The party member being followed, or null. For tests. */
+	/** The point being followed, or null. For tests. */
 	@Nullable
 	String following()
 	{
@@ -2473,63 +2139,71 @@ public final class MapSurface
 	}
 
 	/**
-	 * Works out where a followed party member is, once a frame. True when the camera should follow {@link #memberX} and
-	 * {@link #memberY}. Only the points the Party plugin put on the game's map are read, the same reading the markers come from, and
-	 * nothing is made per frame. Following ends when the camera has stopped following (the player dragged the map, or a search, a
-	 * focus or Locate me took it), in line up mode, or when the member has been gone for {@link #FOLLOW_GRACE_MILLIS}.
+	 * Works out where the followed point is, once a frame. True when the camera should follow {@link #memberX} and {@link #memberY}.
+	 * The Helper sends the point when it moves; nothing is read here. Following ends when the camera has stopped following (the
+	 * player dragged the map, or a search, a focus or Locate me took it), in line up mode, when the Helper says the point is gone, or
+	 * when no news has come for {@link #FOLLOW_GRACE_MILLIS}.
 	 */
 	private boolean followMember(long now)
 	{
+		ExternalOverlays.FollowRequest request = external.takeFollow();
+		if (request != null)
+		{
+			if ("start".equals(request.getOp()) && request.getPoint() != null)
+			{
+				startFollowing(request.getName(), request.getPoint());
+			}
+			else if (followName != null && followName.equals(request.getName()))
+			{
+				if ("stop".equals(request.getOp()))
+				{
+					stopFollowing(null);
+					return false;
+				}
+				if ("gone".equals(request.getOp()))
+				{
+					stopFollowing(followName + " is no longer on the map, so following stopped.");
+					return false;
+				}
+				if (request.getPoint() != null)
+				{
+					memberX = request.getPoint().getX() + 0.5;
+					memberY = request.getPoint().getY() + 0.5;
+					followSeenAt = now;
+				}
+			}
+		}
 		if (followName == null)
 		{
 			return false;
 		}
 		if (!viewer.getCamera().isFollowing() || isLinedUp())
 		{
+			external.followEnded(followName);
 			followName = null;
 			return false;
 		}
-		ExternalMarker member = null;
-		if (nativePoints != null && config.showOtherPluginPoints())
-		{
-			List<ExternalMarker> points = nativePoints.markers(now);
-			for (int i = 0; i < points.size(); i++)
-			{
-				ExternalMarker marker = points.get(i);
-				if (isPartyMember(marker) && marker.getName().equals(followName))
-				{
-					member = marker;
-					break;
-				}
-			}
-		}
-		MapInfo target = member == null ? null : assets.getCatalog().mapNear((int) member.getX(), (int) member.getY(), NEAR_MAP_TILES);
-		if (member == null || target == null)
+		MapInfo target = assets.getCatalog().mapNear((int) memberX, (int) memberY, NEAR_MAP_TILES);
+		if (target == null)
 		{
 			if (now - followSeenAt > FOLLOW_GRACE_MILLIS)
 			{
-				stopFollowing(member == null ? followName + " is no longer on the map, so following stopped."
-					: followName + " is somewhere this map has no picture of, so following stopped.");
+				stopFollowing(followName + " is somewhere this map has no picture of, so following stopped.");
 				return false;
 			}
-			// Held still for a moment: the points can be caught mid change, and a member can be between two places.
 			memberX = viewer.getCamera().getX();
 			memberY = viewer.getCamera().getY();
 			return true;
 		}
-		followSeenAt = now;
-		MapInfo exact = assets.getCatalog().mapFor((int) member.getX(), (int) member.getY());
+		MapInfo exact = assets.getCatalog().mapFor((int) memberX, (int) memberY);
 		MapInfo shown = viewer.getMap();
-		if (shown == null || !shown.contains((int) member.getX(), (int) member.getY()) && (exact != null || shown.getId() != target.getId()))
+		if (shown == null || !shown.contains((int) memberX, (int) memberY) && (exact != null || shown.getId() != target.getId()))
 		{
-			// The member went to another of this plugin's maps, such as down a ladder: that map is shown, and following goes on.
-			viewer.showMap(exact != null ? exact : target, member.getX(), member.getY());
+			// The point went to another of this plugin's maps, such as down a ladder: that map is shown, and following goes on.
+			viewer.showMap(exact != null ? exact : target, memberX, memberY);
 		}
-		memberX = member.getX();
-		memberY = member.getY();
 		return true;
 	}
-
 
 	private void openMenu(int x, int y)
 	{
@@ -2540,9 +2214,7 @@ public final class MapSurface
 			return;
 		}
 		menuPlane = -1;
-		menuWiki = null;
-		menuMarker = null;
-		menuWikiSearch = null;
+		menuButton = null;
 		MapInfo map = viewer.getMap();
 		if (map == null || isControl(x, y))
 		{
@@ -2584,15 +2256,12 @@ public final class MapSurface
 		}
 		items.add(new ContextMenu.Item(ContextMenu.Action.COPY_TILE, "Copy tile  " + tx + ", " + ty));
 		items.add(new ContextMenu.Item(ContextMenu.Action.NEAREST_TELEPORTS, "Nearest teleports"));
-		menuWiki = pin == null ? wikiAt(view, map, x, y) : null;
-		menuWikiSearch = pin == null && menuWiki == null ? wikiSearchAt(view, map, x, y) : null;
-		if (menuWiki != null)
+		HoverCard buttonCard = pin == null ? buttonCardAt(view, map, x, y) : null;
+		if (buttonCard != null)
 		{
-			items.add(new ContextMenu.Item(ContextMenu.Action.OPEN_WIKI, "Open wiki page: " + menuWiki));
-		}
-		else if (menuWikiSearch != null)
-		{
-			items.add(new ContextMenu.Item(ContextMenu.Action.SEARCH_WIKI, "Search the wiki for " + menuWikiSearch));
+			menuButton = buttonCard.getButtonKey();
+			menuSubject = Partners.subject(buttonCard.getTitle(), buttonCard.getWiki(), buttonCard.getWikiSearch());
+			items.add(new ContextMenu.Item(ContextMenu.Action.CARD_BUTTON, buttonCard.getButtonMenu()));
 		}
 		if (pin == null)
 		{
@@ -2605,15 +2274,20 @@ public final class MapSurface
 		items.add(ruler.isActive()
 			? new ContextMenu.Item(ContextMenu.Action.STOP_MEASURING, "Stop measuring")
 			: new ContextMenu.Item(ContextMenu.Action.MEASURE, "Measure from here"));
-		addMarkerItems(items, view, map, x, y);
+		addPartnerItems(items, view, map, x, y, tx, ty);
 
+		openMenuAt(items, x, y, tx, ty);
+	}
+
+	/** Opens the menu at a point of the screen. Its subject is the place it is about, a tile or a result's spot. */
+	private void openMenuAt(List<ContextMenu.Item> items, int x, int y, double placeX, double placeY)
+	{
 		// The menu's width needs font metrics, which a throwaway image can supply.
 		Graphics2D probe = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB).createGraphics();
 		probe.setFont(ContextMenu.font());
 		int width = ContextMenu.widthFor(items, probe.getFontMetrics());
 		probe.dispose();
-
-		menu.open(items, x, y, width, lastBounds, new double[] {tx, ty});
+		menu.open(items, x, y, width, lastBounds, new double[] {placeX, placeY});
 	}
 
 	/** The floor a menu's route or save is for: a search result's own, or -1 to use the floor being shown. */
@@ -2638,19 +2312,21 @@ public final class MapSurface
 		menuEntry = entry;
 		menuPlane = 0;
 		menuPinId = 0;
-		menuWiki = config.showWikiButtons() ? WikiTitles.forEntry(entry) : null;
-		menuWikiSearch = config.showWikiButtons() && menuWiki == null ? wikiSearchFor(entry) : null;
+		menuButton = null;
+		Partners.Button entryButton = null;
+		if (config.showWikiButtons())
+		{
+			menuSubject = Partners.subject(entry.getName(), wikiOf(entry), wikiSearchFor(entry));
+			entryButton = external.partners().button(menuSubject);
+			menuButton = entryButton == null ? null : entryButton.key;
+		}
 		menuSave = new SaveCandidate(entry.getName(), kindOf(entry.getKind()), entry.getMapId(), entry.getX(), entry.getY());
 		List<ContextMenu.Item> items = new ArrayList<>();
 		items.add(new ContextMenu.Item(ContextMenu.Action.SHOW_RESULT, "Show on the map"));
 		items.add(new ContextMenu.Item(ContextMenu.Action.SAVE_PLACE, "Save place: " + entry.getName()));
-		if (menuWiki != null)
+		if (entryButton != null)
 		{
-			items.add(new ContextMenu.Item(ContextMenu.Action.OPEN_WIKI, "Open wiki page: " + menuWiki));
-		}
-		else if (menuWikiSearch != null)
-		{
-			items.add(new ContextMenu.Item(ContextMenu.Action.SEARCH_WIKI, "Search the wiki for " + menuWikiSearch));
+			items.add(new ContextMenu.Item(ContextMenu.Action.CARD_BUTTON, entryButton.menu));
 		}
 		MapInfo surface = assets.getCatalog().surface();
 		if (surface != null && entry.getMapId() == surface.getId())
@@ -2659,14 +2335,11 @@ public final class MapSurface
 		}
 		items.add(new ContextMenu.Item(ContextMenu.Action.COPY_TILE, "Copy tile  " + (int) Math.floor(entry.getX()) + ", "
 		+ (int) Math.floor(entry.getY())));
-		Graphics2D probe = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB).createGraphics();
-		probe.setFont(ContextMenu.font());
-		int width = ContextMenu.widthFor(items, probe.getFontMetrics());
-		probe.dispose();
-		menu.open(items, x, y, width, lastBounds, new double[] {entry.getX(), entry.getY()});
+		openMenuAt(items, x, y, entry.getX(), entry.getY());
 	}
 
 	/** What a menu may offer to save: the reference place the mouse is on, or the place last searched for. */
+	@RequiredArgsConstructor
 	private static final class SaveCandidate
 	{
 		final String name;
@@ -2674,15 +2347,6 @@ public final class MapSurface
 		final int mapId;
 		final double x;
 		final double y;
-
-		SaveCandidate(String name, String kind, int mapId, double x, double y)
-		{
-			this.name = name;
-			this.kind = kind;
-			this.mapId = mapId;
-			this.x = x;
-			this.y = y;
-		}
 	}
 
 	@Nullable
@@ -2718,7 +2382,7 @@ public final class MapSurface
 			case TRANSPORT:
 			case TELEPORT:
 			case ITEM:
-				return kind.name().toLowerCase(java.util.Locale.ROOT);
+				return kind.name().toLowerCase(Locale.ROOT);
 			default:
 				return kind == SearchKind.PIN || kind == SearchKind.TILE ? "pin" : "place";
 		}
@@ -2776,21 +2440,26 @@ public final class MapSurface
 	/** Starts a saved route the way the side panel's Start button does, and says on the map what happened. */
 	private void startRoute(long routeId)
 	{
-		com.worldmapplus.pins.SavedRoute route = routes.get(routeId);
+		SavedRoute route = routes.get(routeId);
 		if (route == null)
 		{
 			return;
 		}
-		routeNotice = com.worldmapplus.pins.RouteStart.start(route, routes, pins, actions.shortestPathStatus()).getMessage();
+		routeNotice = RouteStart.start(route, routes, pins, actions.shortestPathStatus()).getMessage();
 		routeNoticeSince = lastFrame;
 	}
 
 	/** Asks Shortest Path for a route to a saved place. A route being followed gives way to it. */
 	private void routeToPin(Pin pin)
 	{
+		askShortestPath(RouteNavigator.pointOf(pin), actions::routeTo);
+	}
+
+	/** Stops the saved routes and puts a place to Shortest Path in one of the ways of {@link MapActions}, then says how it went. */
+	private void askShortestPath(WorldPoint place, Function<WorldPoint, MapActions.Status> way)
+	{
 		routes.stopAll();
-		WorldPoint at = RouteNavigator.pointOf(pin);
-		gameThread.accept(() -> routeNotice = noticeFor(actions.routeTo(at)));
+		gameThread.accept(() -> routeNotice = noticeFor(way.apply(place)));
 		routeNoticeSince = lastFrame;
 	}
 
@@ -2808,27 +2477,14 @@ public final class MapSurface
 		switch (item.getAction())
 		{
 			case ROUTE:
-				routes.stopAll();
-				WorldPoint destination = new WorldPoint(tx, ty, menuPlane >= 0 ? menuPlane : planeNow());
-				gameThread.accept(() -> routeNotice = noticeFor(actions.retarget(destination)));
-				routeNoticeSince = lastFrame;
+				askShortestPath(new WorldPoint(tx, ty, menuPlane >= 0 ? menuPlane : planeNow()), actions::retarget);
 				break;
 			case SET_ROUTE_START:
-			{
-				routes.stopAll();
-				WorldPoint from = new WorldPoint(tx, ty, menuPlane >= 0 ? menuPlane : planeNow());
-				gameThread.accept(() -> routeNotice = noticeFor(actions.setStart(from)));
-				routeNoticeSince = lastFrame;
+				askShortestPath(new WorldPoint(tx, ty, menuPlane >= 0 ? menuPlane : planeNow()), actions::setStart);
 				break;
-			}
 			case ADD_ROUTE_TARGET:
-			{
-				routes.stopAll();
-				WorldPoint more = new WorldPoint(tx, ty, menuPlane >= 0 ? menuPlane : planeNow());
-				gameThread.accept(() -> routeNotice = noticeFor(actions.addTarget(more)));
-				routeNoticeSince = lastFrame;
+				askShortestPath(new WorldPoint(tx, ty, menuPlane >= 0 ? menuPlane : planeNow()), actions::addTarget);
 				break;
-			}
 			case CLEAR_ROUTE:
 				routes.stopAll();
 				gameThread.accept(actions::clearRoute);
@@ -2857,11 +2513,8 @@ public final class MapSurface
 				case SHOW_RESULT:
 				activate(menuEntry, lastFrame);
 				break;
-			case OPEN_WIKI:
-				openWiki(menuWiki);
-				break;
-			case SEARCH_WIKI:
-				searchWiki(menuWikiSearch);
+			case CARD_BUTTON:
+				pressButton(menuButton, menuSubject);
 				break;
 			case ROUTE_TO_PIN:
 			{
@@ -2893,23 +2546,9 @@ public final class MapSurface
 			case STOP_MEASURING:
 				ruler.stop();
 				break;
-			case MARKER_OPTION:
-				external.markerMenu(menuMarker, item.getLabel());
-				break;
-			case FOCUS_MARKER:
-				if (menuMarker != null && menuMarker.getJumpTarget() != null)
-				{
-					focusOn(menuMarker.getJumpTarget().getX(), menuMarker.getJumpTarget().getY());
-				}
-				break;
-			case FOLLOW_MEMBER:
-				if (menuMarker != null)
-				{
-					startFollowing(menuMarker.getName());
-				}
-				break;
-			case STOP_FOLLOWING:
-				stopFollowing(null);
+			case PARTNER_OPTION:
+				menuPartners.stream().filter(slot -> slot.title.equals(item.getLabel())).findFirst()
+					.ifPresent(slot -> external.partners().choose(slot, menuContext));
 				break;
 			default:
 				break;
@@ -3106,57 +2745,6 @@ public final class MapSurface
 		}
 	}
 
-	private void drawExternalMarkers(Graphics2D g, ViewTransform view, MapInfo map)
-	{
-		if (map == null)
-		{
-			return;
-		}
-		g.setFont(Palette.BODY);
-		FontMetrics metrics = g.getFontMetrics();
-		boolean labels = view.getPixelsPerTile() >= 3;
-		for (ExternalMarker marker : allMarkers())
-		{
-			if (!onThisMap(map, marker.getX(), marker.getY()))
-			{
-				continue;
-			}
-			double sx = view.screenX(marker.getX());
-			double sy = view.screenY(marker.getY());
-			boolean snapped = false;
-			if (!view.contains(sx, sy))
-			{
-				if (!marker.isSnapToEdge())
-				{
-					continue;
-				}
-				sx = snapX(view, sx);
-				sy = snapY(view, sy);
-				snapped = true;
-			}
-			if (marker.getIcon() != null)
-			{
-				int[] anchor = snapped ? null : marker.getAnchor();
-				int left = anchor == null ? (int) sx - marker.getIcon().getWidth() / 2 : (int) sx - anchor[0];
-				int top = anchor == null ? (int) sy - marker.getIcon().getHeight() / 2 : (int) sy - anchor[1];
-				g.drawImage(marker.getIcon(), left, top, null);
-			}
-			else
-			{
-				Ellipse2D dot = new Ellipse2D.Double(sx - 6, sy - 6, 12, 12);
-				g.setColor(marker.getColor());
-				g.fill(dot);
-				g.setColor(PLAYER_RING);
-				g.setStroke(new BasicStroke(2f));
-				g.draw(dot);
-			}
-			if (labels && !marker.getName().isEmpty())
-			{
-				drawLabel(g, metrics, marker.getName(), (int) sx + 9, (int) sy + 4);
-			}
-		}
-	}
-
 	/**
 	 * True when a place belongs on this map: it is on the map's imagery, or no map has imagery of it (a spot underground the pictures leave
 	 * out) and this is the nearest map within a few squares. The game's own map shows such a place, so this one does too.
@@ -3178,132 +2766,45 @@ public final class MapSurface
 		return near != null && near.getId() == map.getId();
 	}
 
-	/** How far from the edge of the view a marker that snaps to the edge is kept, in pixels. */
-	private static final int EDGE_MARGIN = 14;
-
-	private static double snapX(ViewTransform view, double sx)
+	/** The tick boxes the Helper listed under the layers button: plugins with points on the game's map, and layers other plugins named. */
+	private void syncLayers()
 	{
-		return Math.max(view.getLeft() + EDGE_MARGIN, Math.min(view.getLeft() + view.getWidth() - EDGE_MARGIN, sx));
+		LayerPanel panel = layerPanel();
+		panel.setPlugins(external.pluginLayers());
+		panel.setLayers(external.sentLayers());
 	}
 
-	private static double snapY(ViewTransform view, double sy)
+	/** What the partners' hit tests are told about a place: whether it belongs on the map being asked about. */
+	private BiPredicate<Double, Double> onHitMap(MapInfo map)
 	{
-		return Math.max(view.getTop() + EDGE_MARGIN, Math.min(view.getTop() + view.getHeight() - EDGE_MARGIN, sy));
+		paintMap = map;
+		return onPaintMap;
 	}
 
-	/** What other plugins asked this map to show, and what they put on the game's own map. */
-	private List<ExternalMarker> allMarkers()
-	{
-		java.util.Set<String> hidden = hiddenSources();
-		List<ExternalMarker> own = withoutHiddenLayers(external.markers(), hidden);
-		if (nativePoints == null || !config.showOtherPluginPoints())
-		{
-			return own;
-		}
-		List<ExternalMarker> theirs = nativePoints.markers(System.currentTimeMillis());
-		if (theirs.isEmpty())
-		{
-			return own;
-		}
-		List<ExternalMarker> both = new ArrayList<>(own);
-		for (ExternalMarker marker : theirs)
-		{
-			if (hidden.isEmpty() || census == null || !hidden.contains(census.ownerOf(marker.getOrigin())))
-			{
-				both.add(marker);
-			}
-		}
-		return both;
-	}
-
-	/** The plugins the player has hidden the points of, parsed again only when the setting changes. */
-	private java.util.Set<String> hiddenSources()
-	{
-		String text = config.hiddenMapSources();
-		if (!text.equals(hiddenText))
-		{
-			hiddenText = text;
-			hiddenNames = com.worldmapplus.compat.HiddenSources.parse(text);
-		}
-		return hiddenNames;
-	}
-
-	/** Looks at which other plugins have something on the game's map, about four times a second at most. */
-	private void takeCensus(long now, boolean interactive)
-	{
-		// The layers other plugins named for what they sent get a tick box each, beside the plugins with points on the game's map.
-		layerPanel().setLayers(external.layers());
-		if (census == null)
-		{
-			return;
-		}
-		boolean show = config.showOtherPluginPoints();
-		List<ExternalMarker> theirs = nativePoints == null || !show ? java.util.Collections.emptyList()
-			: nativePoints.markers(System.currentTimeMillis());
-		if (!show && interactive && nativePoints != null && config.syncGameMap())
-		{
-			// Points that are not drawn here still say that the game's map has to be kept with this one.
-			census.remember(nativePoints.markers(System.currentTimeMillis()));
-		}
-		mapUsers = census.take(now, interactive, theirs);
-		layerPanel().setPlugins(mapUsers.getEntries());
-	}
-
-	/** The markers shown from other plugins and from the game's map now, after the ones the player hid. For tests. */
-	List<ExternalMarker> shownMarkers()
-	{
-		return allMarkers();
-	}
-
-	/** What the census last found, or null. */
-	@Nullable
-	com.worldmapplus.compat.MapCensus.Snapshot census()
-	{
-		return mapUsers;
-	}
-
-	private void drawExternalLines(Graphics2D g, ViewTransform view, MapInfo map)
+	/** The jumps of the route Shortest Path found, drawn as curves with their names. */
+	private void drawHops(Graphics2D g, ViewTransform view, MapInfo map)
 	{
 		if (map == null)
 		{
 			return;
 		}
-		g.setFont(Palette.BODY);
-		java.util.Set<String> hidden = hiddenSources();
-		for (ExternalLine line : external.lines())
+		List<RouteHop> hops = external.hops();
+		if (hops.isEmpty())
 		{
-			List<double[]> points = line.getPoints();
-			if (points.size() < 2 || !map.contains((int) points.get(0)[0], (int) points.get(0)[1])
-				|| !line.getLayer().isEmpty() && hidden.contains(line.getLayer()))
+			return;
+		}
+		g.setFont(Palette.BODY);
+		g.setColor(HOP_COLOR);
+		for (RouteHop hop : hops)
+		{
+			if (map.contains((int) hop.getFromX(), (int) hop.getFromY()))
 			{
-				continue;
+				drawHop(g, view, new double[] {hop.getFromX(), hop.getFromY()}, new double[] {hop.getToX(), hop.getToY()}, hop.getLabel());
 			}
-			g.setColor(line.getColor());
-			if (line.isHop())
-			{
-				drawHop(g, view, points.get(0), points.get(1), line.getLabel());
-				continue;
-			}
-			g.setStroke(new BasicStroke(2.5f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-			Path2D path = new Path2D.Double();
-			boolean first = true;
-			for (double[] point : points)
-			{
-				double sx = view.screenX(point[0]);
-				double sy = view.screenY(point[1]);
-				if (first)
-				{
-					path.moveTo(sx, sy);
-					first = false;
-				}
-				else
-				{
-					path.lineTo(sx, sy);
-				}
-			}
-			g.draw(path);
 		}
 	}
+
+	private static final Color HOP_COLOR = new Color(255, 120, 40);
 
 	/** A single jump, such as a boat or a teleport, as a curve with an arrowhead and its name. */
 	private void drawHop(Graphics2D g, ViewTransform view, double[] from, double[] to, String label)
@@ -3346,12 +2847,6 @@ public final class MapSurface
 		this.nativeMap = nativeMap;
 	}
 
-	/** True while this map is being kept at the game's map's zoom and place. */
-	public boolean isLinedUp()
-	{
-		return linedUp;
-	}
-
 	/**
 	 * True when the game's map should be kept with this one: another plugin has had points on it at any time this session
 	 * (such a plugin makes its points only near where the game's map looks, so at a new place there are none yet and the
@@ -3361,7 +2856,7 @@ public final class MapSurface
 	public boolean wantsGameMap()
 	{
 		MapInfo map = viewer.getMap();
-		return config.syncGameMap() && mapUsers != null && mapUsers.needsGameMap() && map != null && map.getId() < 10000;
+		return config.syncGameMap() && external.needsGameMap() && map != null && map.getId() < 10000;
 	}
 
 	/** The world x this map is centred on. */
@@ -3404,7 +2899,7 @@ public final class MapSurface
 		linedUp = true;
 		input.setTakes(this::takesPoint);
 		double zoom = theirs.getZoom();
-		com.worldmapplus.view.Camera camera = viewer.getCamera();
+		Camera camera = viewer.getCamera();
 		double[] theirCenter = LineUp.centerFor(theirs.getX(), theirs.getY(), zoom, bounds.width, bounds.height);
 
 		// Following the player is done by sending the game's map to the player once, not by following them every frame,
@@ -3457,7 +2952,7 @@ public final class MapSurface
 	/** Finishes a frame lined up: the view is exactly where the game's map is, whatever the map's own limits did. */
 	private ViewTransform lineUpFinish(double[] state, ViewTransform view, Rectangle bounds)
 	{
-		com.worldmapplus.view.Camera camera = viewer.getCamera();
+		Camera camera = viewer.getCamera();
 		if (state[1] != 0)
 		{
 			camera.setPosition(state[2], state[3]);
@@ -3502,7 +2997,7 @@ public final class MapSurface
 	/** The route Shortest Path found, as steps. Empty when there is none. */
 	private RoutePlan routePlan(@Nullable PlayerPosition position)
 	{
-		java.util.List<RouteHop> hops = external.hops();
+		List<RouteHop> hops = external.hops();
 		WorldPoint target = actions.getRouteTarget();
 		if (hops.isEmpty() && target == null)
 		{
@@ -3522,9 +3017,9 @@ public final class MapSurface
 	 * it does not say, so this takes the one nearest where the last jump comes out, or where the route starts.
 	 */
 	@Nullable
-	private WorldPoint endOfRoute(java.util.List<RouteHop> hops, @Nullable double[] start, int startPlane)
+	private WorldPoint endOfRoute(List<RouteHop> hops, @Nullable double[] start, int startPlane)
 	{
-		java.util.List<WorldPoint> targets = actions.getRouteTargets();
+		List<WorldPoint> targets = actions.getRouteTargets();
 		if (targets.size() < 2)
 		{
 			return actions.getRouteTarget();
@@ -3564,80 +3059,21 @@ public final class MapSurface
 		return best;
 	}
 
-	private static final Color WAY_EDGE = new Color(8, 24, 48, 200);
-	private static final Color WAY_FLOW = new Color(200, 230, 255, 235);
-
 	/** The frame's time, for things that move on their own. */
 	private long animNow;
 
-	/** Length of one light-and-gap of the pulse that runs along a walking line. */
-	private static final float FLOW_LENGTH = 38f;
-
-	/** The dash offset for a pulse that travels forward along a path, where a bigger offset moves it back. */
-	private float flowPhase()
-	{
-		return FLOW_LENGTH - (float) ((animNow % 1400) / 1400.0 * FLOW_LENGTH);
-	}
+	/** What was last told to the partners of the route (a hash of the steps) and when, so a route that did not change is not sent again. */
+	private long routeSent;
+	private long routeSentAt;
+	private static final long ROUTE_PUSH_MILLIS = 250;
 
 	/**
-	 * The tiles of the walk of a step, from Shortest Path's own walking data, or null when it is not worked out
-	 * yet, has no way, or the step changes floor.
+	 * The jumps of the route as numbered discs. The walks between them are drawn by the Helper, which is told the steps when they change
+	 * (at most four times a second): this plugin alone shows the route as these discs and the step list.
 	 */
-	@Nullable
-	private int[] walkingWay(RoutePlan.Step step, int number)
-	{
-		if (step.getFromPlane() != step.getToPlane())
-		{
-			return null;
-		}
-		int[] way = assets.getWalkPlanner().lookup("step" + number, (int) Math.floor(step.getFromX()),
-			(int) Math.floor(step.getFromY()), (int) Math.floor(step.getToX()), (int) Math.floor(step.getToY()),
-			step.getFromPlane());
-		return way == null || way.length < 4 ? null : way;
-	}
-
-	/** A walk as a line through the middle of each tile, with a dark edge so it reads over any terrain. */
-	private void drawWay(Graphics2D g, ViewTransform view, int[] way)
-	{
-		// Zoomed far out the tiles are less than a pixel apart, so only some of them are used.
-		int every = Math.max(1, (int) Math.ceil(1.5 / Math.max(0.05, view.getPixelsPerTile())));
-		Path2D line = new Path2D.Double();
-		int points = way.length / 2;
-		for (int i = 0; i < points; i += every)
-		{
-			addWayPoint(line, view, way, i, i == 0);
-		}
-		addWayPoint(line, view, way, points - 1, false);
-		g.setStroke(new BasicStroke(5.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-		g.setColor(WAY_EDGE);
-		g.draw(line);
-		g.setStroke(new BasicStroke(3f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-		g.setColor(WALK);
-		g.draw(line);
-		// A pulse of light runs along the way in the direction it is walked.
-		g.setStroke(new BasicStroke(1.6f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1f, new float[] {7f, FLOW_LENGTH - 7f},
-			flowPhase()));
-		g.setColor(WAY_FLOW);
-		g.draw(line);
-	}
-
-	private static void addWayPoint(Path2D line, ViewTransform view, int[] way, int index, boolean first)
-	{
-		double sx = view.screenX(way[index * 2] + 0.5);
-		double sy = view.screenY(way[index * 2 + 1] + 0.5);
-		if (first)
-		{
-			line.moveTo(sx, sy);
-		}
-		else
-		{
-			line.lineTo(sx, sy);
-		}
-	}
-
-	/** The walking between jumps, along the tiles Shortest Path walks where they are known, with the length. */
 	private void drawRouteLegs(Graphics2D g, ViewTransform view, MapInfo map, RoutePlan plan)
 	{
+		shareRoute(plan);
 		if (map == null || plan.isEmpty())
 		{
 			return;
@@ -3648,44 +3084,7 @@ public final class MapSurface
 		for (RoutePlan.Step step : plan.getSteps())
 		{
 			number++;
-			boolean from = map.contains((int) step.getFromX(), (int) step.getFromY());
-			boolean to = map.contains((int) step.getToX(), (int) step.getToY());
-			if (step.isWalk())
-			{
-				if (!from || !to)
-				{
-					continue;
-				}
-				double x1 = view.screenX(step.getFromX());
-				double y1 = view.screenY(step.getFromY());
-				double x2 = view.screenX(step.getToX());
-				double y2 = view.screenY(step.getToY());
-				int[] way = walkingWay(step, number);
-				int tiles = step.getTiles();
-				if (way != null)
-				{
-					drawWay(g, view, way);
-					tiles = way.length / 2 - 1;
-				}
-				else
-				{
-					// No exact way known yet, or none found: straight towards it, as an estimate.
-					g.setColor(WALK);
-					g.setStroke(new BasicStroke(2.4f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 1f,
-						new float[] {3f, 6f}, 9f - (float) ((animNow % 700) / 700.0 * 9f)));
-					g.draw(new Line2D.Double(x1, y1, x2, y2));
-				}
-				g.setColor(WALK);
-				g.setStroke(new BasicStroke(1f));
-				g.fill(new Ellipse2D.Double(x2 - 3.5, y2 - 3.5, 7, 7));
-				if (Math.hypot(x2 - x1, y2 - y1) > 90)
-				{
-					String text = tiles + " tiles";
-					drawLabel(g, metrics, text, (int) ((x1 + x2) / 2) - metrics.stringWidth(text) / 2,
-						(int) ((y1 + y2) / 2) - 4);
-				}
-			}
-			else if (from)
+			if (!step.isWalk() && map.contains((int) step.getFromX(), (int) step.getFromY()))
 			{
 				double sx = view.screenX(step.getFromX());
 				double sy = view.screenY(step.getFromY());
@@ -3703,24 +3102,38 @@ public final class MapSurface
 		}
 	}
 
+	/** Tells the partners the steps of the route when they are not what they were last told. */
+	private void shareRoute(RoutePlan plan)
+	{
+		long hash = plan.getSteps().size();
+		for (RoutePlan.Step step : plan.getSteps())
+		{
+			hash = hash * 31 + Double.doubleToLongBits(step.getFromX() + step.getFromY() * 7 + step.getToX() * 13 + step.getToY() * 17)
+				+ step.getFromPlane() * 5 + step.getToPlane() * 3 + (step.isWalk() ? 1 : 0);
+		}
+		long now = System.currentTimeMillis();
+		if (hash == routeSent || now - routeSentAt < ROUTE_PUSH_MILLIS)
+		{
+			return;
+		}
+		routeSent = hash;
+		routeSentAt = now;
+		List<double[]> steps = new ArrayList<>(plan.getSteps().size());
+		for (RoutePlan.Step step : plan.getSteps())
+		{
+			steps.add(new double[] {step.getFromX(), step.getFromY(), step.getToX(), step.getToY(), step.getFromPlane(), step.getToPlane(),
+				step.isWalk() ? 1 : 0, step.getTiles()});
+		}
+		external.partners().route(steps);
+	}
+
 	/** Lines of the route a panel shows. */
 	private static final int ROUTE_PANEL_ROWS = 9;
 
-	/** What a step says. A walk whose exact way is known says how many tiles that way is, and no longer "about". */
-	private String stepText(RoutePlan.Step step, int number)
-	{
-		if (!step.isWalk())
-		{
-			return step.getText();
-		}
-		int[] way = walkingWay(step, number);
-		return way == null ? step.getText() : step.getText().replaceFirst("about [0-9]+", String.valueOf(way.length / 2 - 1));
-	}
-
 	/** Where the route panel is and where each of its rows is, as of the last frame. */
 	private Rectangle routePanelRect = new Rectangle();
-	private final java.util.List<Rectangle> routeRows = new ArrayList<>();
-	private final java.util.List<RoutePlan.Step> routeRowSteps = new ArrayList<>();
+	private final List<Rectangle> routeRows = new ArrayList<>();
+	private final List<RoutePlan.Step> routeRowSteps = new ArrayList<>();
 	private final Fade stepFade = new Fade();
 
 	/** The row of the route panel at a point, or -1. */
@@ -3772,12 +3185,12 @@ public final class MapSurface
 		}
 		g.setFont(Palette.BODY);
 		FontMetrics metrics = g.getFontMetrics();
-		java.util.List<RoutePlan.Step> steps = plan.getSteps();
+		List<RoutePlan.Step> steps = plan.getSteps();
 		int rows = Math.min(steps.size(), ROUTE_PANEL_ROWS);
 		int width = metrics.stringWidth("Route");
 		for (int i = 0; i < rows; i++)
 		{
-			width = Math.max(width, metrics.stringWidth((i + 1) + "  " + stepText(steps.get(i), i + 1)));
+			width = Math.max(width, metrics.stringWidth((i + 1) + "  " + steps.get(i).getText()));
 		}
 		width = Math.min(width + 30, bounds.width / 2 - 20);
 		int lineHeight = metrics.getHeight() + 2;
@@ -3814,7 +3227,7 @@ public final class MapSurface
 			g.setColor(step.isWalk() ? WALK : JUMP);
 			g.fillRect(x + 8, rowY + 4, 4, metrics.getHeight() - 6);
 			g.setColor(Theme.TEXT);
-			String text = (i + 1) + "  " + stepText(step, i + 1);
+			String text = (i + 1) + "  " + step.getText();
 			while (text.length() > 4 && metrics.stringWidth(text) > width - 24)
 			{
 				text = text.substring(0, text.length() - 2) + "\u2026";
@@ -3839,29 +3252,21 @@ public final class MapSurface
 			case MISSING:
 				return "Shortest Path is not installed. Add it from the Plugin Hub to get routes.";
 			case DISABLED:
-				return "Shortest Path is turned off. Switch it on in the plugin list to get routes.";
+				return "Shortest Path is turned off. Switch it on to get routes.";
 			default:
-				return "Route sent to Shortest Path. It draws the path in the game view and on the minimap.";
+				return "Route sent to Shortest Path.";
 		}
 	}
 
 	private int hopCount()
 	{
-		int hops = 0;
-		for (ExternalLine line : external.lines())
-		{
-			if (line.isHop())
-			{
-				hops++;
-			}
-		}
-		return hops;
+		return external.hops().size();
 	}
 
 	/** A flag where the requested route ends, which goes once the player is there. */
 	private void drawRouteTarget(Graphics2D g, ViewTransform view, MapInfo map, @Nullable PlayerPosition position)
 	{
-		java.util.List<WorldPoint> targets = actions.getRouteTargets();
+		List<WorldPoint> targets = actions.getRouteTargets();
 		WorldPoint start = actions.getRouteStart();
 		if (map == null || targets.isEmpty())
 		{
@@ -3922,7 +3327,7 @@ public final class MapSurface
 		}
 		else if (actions.getRouteTarget() != null)
 		{
-			text = "Route sent to Shortest Path. Jumps such as boats and teleports show here once it has found them.";
+			text = "Route sent to Shortest Path. Its jumps show here once found.";
 		}
 		g.setFont(Palette.BODY);
 		FontMetrics metrics = g.getFontMetrics();
@@ -3930,7 +3335,7 @@ public final class MapSurface
 		int left = bounds.x + 8;
 		int right = Math.min(bounds.x + bounds.width - 8, Math.min(buttons.block().x - 8, bounds.x + bounds.width));
 		int room = Math.max(60, right - left - 8);
-		java.util.List<String> lines = PopupText.wrap(text, metrics, room);
+		List<String> lines = PopupText.wrap(text, metrics, room);
 		int baseline = bounds.y + bounds.height - 34;
 		int top = bounds.y + PopupText.EDGE + metrics.getAscent() + 1;
 		for (int i = lines.size() - 1; i >= 0; i--)
@@ -3985,53 +3390,11 @@ public final class MapSurface
 		g.drawString(text, x, y);
 	}
 
-	/** The card for a marker: its name, and its tooltip, which may run to several lines. */
-	private static HoverCard markerCard(ExternalMarker marker)
-	{
-		String[] lines = marker.getTooltip().isEmpty() ? new String[0] : marker.getTooltip().split("\\r?\\n");
-		String title = marker.getName();
-		int first = 0;
-		if (title.isEmpty())
-		{
-			title = lines.length > 0 ? lines[0] : "Marker";
-			first = lines.length > 0 ? 1 : 0;
-		}
-		HoverCard.Builder builder = HoverCard.builder(title);
-		for (int i = first; i < lines.length && i < first + MARKER_LINES; i++)
-		{
-			String line = lines[i].trim();
-			if (i == first)
-			{
-				builder.subtitle(line);
-			}
-			else
-			{
-				builder.row(line, "");
-			}
-		}
-		if (marker.getJumpTarget() != null)
-		{
-			builder.hint("Click to go there");
-		}
-		else if (marker.isClickable())
-		{
-			builder.hint(marker.getHint().isEmpty() ? "Click to choose" : marker.getHint());
-		}
-		else if (!marker.getMenu().isEmpty())
-		{
-			builder.hint("Right-click for more");
-		}
-		return builder.build();
-	}
-
 	/** What a saved place is called on its card. */
 	static String kindText(Pin pin)
 	{
 		return "pin".equals(pin.getKind()) ? "Your pin" : "Saved " + pin.getKind();
 	}
-
-	/** Lines of a marker's tooltip a card shows. */
-	private static final int MARKER_LINES = 8;
 
 	/** The floor icons are drawn and answered on: the one being looked at on a map with floors, the ground floor elsewhere. */
 	private int iconFloor(@Nullable MapInfo map)
@@ -4040,6 +3403,7 @@ public final class MapSurface
 	}
 
 	/** One thing the mouse is over, and how it ranks: how far its middle is from the mouse, and whether a click on it does anything. */
+	@RequiredArgsConstructor
 	private static final class Candidate
 	{
 		private final Object what;
@@ -4049,18 +3413,9 @@ public final class MapSurface
 		private final boolean actionable;
 		/** The floor of the game's icon this is, or -1 when it is not one. */
 		private int iconFloor = -1;
-		private List<IconExtra> extras = java.util.Collections.emptyList();
+		private List<IconExtra> extras = Collections.emptyList();
 		/** What the game's icon asks of the player, or null. */
 		private Need need;
-
-		Candidate(Object what, double distance, double x, double y, boolean actionable)
-		{
-			this.what = what;
-			this.distance = distance;
-			this.x = x;
-			this.y = y;
-			this.actionable = actionable;
-		}
 
 		/** Marks the candidate as one of the game's icons, on a floor, with what the plugin's own points add to its card. */
 		Candidate icon(int floor, List<IconExtra> extras, Need need)
@@ -4077,9 +3432,9 @@ public final class MapSurface
 			{
 				return ((Pin) what).getName();
 			}
-			if (what instanceof ExternalMarker)
+			if (what instanceof Partners.Thing)
 			{
-				return markerCard((ExternalMarker) what).getTitle();
+				return ((Partners.Thing) what).name;
 			}
 			return ((Hotspot) what).getCard().getTitle();
 		}
@@ -4106,41 +3461,14 @@ public final class MapSurface
 			double sy = view.screenY(pin.getY()) - PIN_HEIGHT * scale / 2;
 			found.add(new Candidate(pin, Math.hypot(x - sx, y - sy), sx, sy, true));
 		}
-		for (ExternalMarker marker : allMarkers())
+		boolean shopThing = false;
+		for (Partners.Thing thing : external.partners().hits(view, map.getId(), iconFloor(map), x, y, onHitMap(map)))
 		{
-			if (!onThisMap(map, marker.getX(), marker.getY()))
-			{
-				continue;
-			}
-			double sx = view.screenX(marker.getX());
-			double sy = view.screenY(marker.getY());
-			boolean snapped = false;
-			if (marker.isSnapToEdge() && !view.contains(sx, sy))
-			{
-				// A point that sits on the edge of the map while its place is off the view answers there, as it does on the game's map.
-				sx = snapX(view, sx);
-				sy = snapY(view, sy);
-				snapped = true;
-			}
-			double d = Math.hypot(sx - x, sy - y);
-			boolean hit = d <= HOVER_PIXELS;
-			java.awt.image.BufferedImage icon = marker.getIcon();
-			if (!hit && icon != null)
-			{
-				// The picture drawn around the point counts too, such as an arrow standing above its tile.
-				int[] anchor = snapped ? null : marker.getAnchor();
-				double left = anchor == null ? (int) sx - icon.getWidth() / 2 : (int) sx - anchor[0];
-				double top = anchor == null ? (int) sy - icon.getHeight() / 2 : (int) sy - anchor[1];
-				if (x >= left - 2 && x <= left + icon.getWidth() + 2 && y >= top - 2 && y <= top + icon.getHeight() + 2)
-				{
-					hit = true;
-					d = Math.hypot(left + icon.getWidth() / 2.0 - x, top + icon.getHeight() / 2.0 - y);
-				}
-			}
-			if (hit)
-			{
-				found.add(new Candidate(marker, d, sx, sy, marker.getJumpTarget() != null || marker.isClickable()));
-			}
+			shopThing |= SHOP.equals(thing.data().get("kind"));
+			WorldPoint at = thing.point;
+			double sx = at == null ? x : view.screenX(at.getX() + 0.5);
+			double sy = at == null ? y : view.screenY(at.getY() + 0.5);
+			found.add(new Candidate(thing, Math.hypot(sx - x, sy - y), sx, sy, thing.clickable));
 		}
 		if (config.showHotspots())
 		{
@@ -4154,7 +3482,8 @@ public final class MapSurface
 			GameIconLayer layer = icons();
 			int slot = layer.hit(view, map.getId(), iconFloor(map), x, y);
 			Hotspot card = layer.cardAt(slot);
-			if (card != null)
+			// A shop the Helper found under the pointer already has its whole card: the icon's plain one would only sit beside it.
+			if (card != null && !(shopThing && MapElements.kindFor(card.getCard().getTitle()) == Hotspot.Kind.SHOP))
 			{
 				double sx = layer.drawnCenterX(slot);
 				double sy = layer.drawnCenterY(slot);
@@ -4163,7 +3492,7 @@ public final class MapSurface
 			}
 		}
 		// Stable, so at an equal distance the order above stands: pins, markers, other cards, icons.
-		found.sort(java.util.Comparator.comparingDouble(c -> c.distance));
+		found.sort(Comparator.comparingDouble(c -> c.distance));
 		return found;
 	}
 
@@ -4176,9 +3505,9 @@ public final class MapSurface
 			Pin pin = (Pin) first.what;
 			card = HoverCard.builder(pin.getName()).subtitle(kindText(pin)).hint("Click to route here. Right-click for more").build();
 		}
-		else if (first.what instanceof ExternalMarker)
+		else if (first.what instanceof Partners.Thing)
 		{
-			card = markerCard((ExternalMarker) first.what);
+			card = ((Partners.Thing) first.what).card();
 		}
 		else
 		{
@@ -4188,8 +3517,8 @@ public final class MapSurface
 				card = iconCard(card, first);
 			}
 			card = withMissing(card, first.iconFloor >= 0 ? first.need : ((Hotspot) first.what).getNeed());
-			// Where the card names no page that is certain to exist, its button opens the wiki's search page for its name instead.
-			card = card.withWikiSearch(WikiTitles.searchName(card.getTitle()));
+			// Where the Helper finds no page that is certain to exist, its button opens the wiki's search page for the title instead.
+			card = card.withWikiSearch(card.getTitle());
 		}
 		if (all.size() > 1)
 		{
@@ -4206,7 +3535,33 @@ public final class MapSurface
 				card = card.withRow("Also here", also.toString());
 			}
 		}
-		return config.showWikiButtons() ? card : card.withoutWiki();
+		if (external.partners().any(Partners.Kind.CARD))
+		{
+			for (String line : external.partners().lines(thingOf(first)))
+			{
+				card = card.withRow(line, "");
+			}
+		}
+		if (!config.showWikiButtons())
+		{
+			return card.withoutWiki();
+		}
+		Partners.Button button = external.partners().button(Partners.subject(card.getTitle(), card.getWiki(), card.getWikiSearch()));
+		return button == null ? card : card.withButton(button.label, button.menu, button.key);
+	}
+
+	/** What other plugins are told of a thing under the pointer: its kind, name, tile and id. */
+	private Map<String, Object> thingOf(Candidate c)
+	{
+		ViewTransform view = currentView();
+		if (c.what instanceof Partners.Thing)
+		{
+			return ((Partners.Thing) c.what).data();
+		}
+		String kind = c.what instanceof Pin ? "pin" : c.what instanceof Hotspot && ((Hotspot) c.what).getCategory() != null
+			? ((Hotspot) c.what).getCategory() : "place";
+		return Partners.describe(kind, c.title(), new WorldPoint((int) Math.floor(view.worldX(c.x)), (int) Math.floor(view.worldY(c.y)),
+			iconFloor(viewer.getMap())), c.what instanceof Pin ? String.valueOf(((Pin) c.what).getId()) : "");
 	}
 
 	// ------------------------------------------------------------------
@@ -4216,7 +3571,7 @@ public final class MapSurface
 	/**
 	 * What the card for the thing under the mouse was built from, so a mouse that rests gets the same card and no new one is built.
 	 * The card is built again when the thing, what else is under the mouse, the floor or the extras of an icon, what the player is
-	 * missing, the layers that are on, or a setting a card reads changes. Cards that read live farming data are always built again.
+	 * missing, the layers that are on, or a setting a card reads changes. Cards whose body a partner plugin gives (farming) are kept for a second only, because they change with time.
 	 */
 	private static final class CardMemo
 	{
@@ -4231,8 +3586,12 @@ public final class MapSurface
 		int flags;
 		String nameKey;
 		String kindKey;
+		long builtAt;
 		HoverCard card;
 	}
+
+	/** How long a card that a partner plugin gives the body of is kept for a mouse that rests. */
+	private static final long BODY_KEPT_NANOS = 1_000_000_000L;
 
 	private final CardMemo cardMemo = new CardMemo();
 
@@ -4241,7 +3600,7 @@ public final class MapSurface
 	{
 		UnlockView progress = assets.getUnlocks();
 		int version = progress == null ? -1 : progress.version();
-		int flags = (config.markUnusable() ? 1 : 0) | (config.onlyUsable() ? 2 : 0) | (config.showWikiButtons() ? 4 : 0);
+		int flags = (config.markUnusable() ? 1 : 0) | (config.onlyUsable() ? 2 : 0) | (config.showWikiButtons() ? 4 : 0) | external.partners().version() << 3;
 		String name = null;
 		String kind = null;
 		if (first.what instanceof Pin)
@@ -4250,10 +3609,11 @@ public final class MapSurface
 			kind = ((Pin) first.what).getKind();
 		}
 		CardMemo m = cardMemo;
-		boolean same = m.card != null && !usesFarming(first) && under.size() <= CardMemo.MAX_UNDER && m.underCount == under.size()
+		long now = System.nanoTime();
+		boolean same = m.card != null && (!usesFarming(first) || now - m.builtAt < BODY_KEPT_NANOS) && under.size() <= CardMemo.MAX_UNDER && m.underCount == under.size()
 			&& m.iconFloor == first.iconFloor && m.extras == first.extras && m.need == first.need
-			&& m.progress == version && m.flags == flags && java.util.Objects.equals(m.poiText, config.poiLayers())
-			&& java.util.Objects.equals(m.nameKey, name) && java.util.Objects.equals(m.kindKey, kind);
+			&& m.progress == version && m.flags == flags && Objects.equals(m.poiText, config.poiLayers())
+			&& Objects.equals(m.nameKey, name) && Objects.equals(m.kindKey, kind);
 		for (int i = 0; same && i < m.underCount; i++)
 		{
 			same = m.under[i] == under.get(i).what;
@@ -4263,7 +3623,7 @@ public final class MapSurface
 			return m.card;
 		}
 		HoverCard card = cardOf(first, under);
-		java.util.Arrays.fill(m.under, null);
+		Arrays.fill(m.under, null);
 		m.underCount = Math.min(under.size(), CardMemo.MAX_UNDER);
 		for (int i = 0; i < m.underCount; i++)
 		{
@@ -4277,14 +3637,15 @@ public final class MapSurface
 		m.poiText = config.poiLayers();
 		m.nameKey = name;
 		m.kindKey = kind;
-		m.card = under.size() > CardMemo.MAX_UNDER || usesFarming(first) ? null : card;
+		m.card = under.size() > CardMemo.MAX_UNDER ? null : card;
+		m.builtAt = now;
 		return card;
 	}
 
-	/** True when the first thing's card may read the live state of farming patches, which changes with time. */
+	/** True when the first thing's card may be a farming card, which a partner plugin gives and which changes with time. */
 	private boolean usesFarming(Candidate first)
 	{
-		if (farming == null)
+		if (!external.partners().owns(FARMING))
 		{
 			return false;
 		}
@@ -4398,7 +3759,7 @@ public final class MapSurface
 			cardShown = card.getTitle();
 			cardSince = animNow;
 		}
-		java.awt.Composite before = g.getComposite();
+		Composite before = g.getComposite();
 		g.setComposite(AlphaComposite.SrcOver.derive(!Motion.fades() ? 1f
 			: (float) Fade.ease((animNow - cardSince) / (double) Motion.FADE_MILLIS)));
 		cardPainter.paint(g, card, mouse.x, mouse.y, bounds, input.isExpandHeld(), mouse);
@@ -4420,56 +3781,41 @@ public final class MapSurface
 	private Rectangle heldButton;
 	private long heldAt;
 
-	/** Opens a wiki page by title and says whether it did. The real one hands the address to the player's browser. */
-	private java.util.function.Predicate<String> wikiOpener = WikiBrowser::open;
+	/** The key of the partner button the open menu offers, and what that button is told, or null. */
+	private String menuButton;
+	private Map<String, Object> menuSubject;
 
-	/** The wiki page the open menu offers, or null. */
-	private String menuWiki;
-
-	/** The name the open menu offers to look up on the wiki's search page, or null. */
-	private String menuWikiSearch;
-
-	/** Opens the wiki's search page for a name, and says what it does, for a name that may have no page of its own. */
-	private java.util.function.Predicate<String> wikiSearcher = WikiBrowser::search;
-
-	/** Replaces what opens the wiki's search page, for tests. */
-	void wikiSearcher(java.util.function.Predicate<String> searcher)
+	/** Presses a partner's card button and shows the notice it answers with on the map. */
+	private void pressButton(@Nullable String key, Map<String, Object> subject)
 	{
-		this.wikiSearcher = searcher;
-	}
-
-	/** Opens the wiki's search page for a name from a card or a menu and says so on the map. */
-	private void searchWiki(@Nullable String name)
-	{
-		if (name == null)
+		String notice = key == null ? null : external.partners().press(key, subject);
+		if (notice != null)
 		{
-			return;
+			routeNotice = notice;
+			routeNoticeSince = lastFrame;
 		}
-		boolean opened = wikiSearcher.test(name);
-		routeNotice = opened ? "Opened the wiki's search for " + name + " in your browser." : "There is nothing to search the wiki for.";
-		routeNoticeSince = lastFrame;
 	}
 
-	/** The name to look up on the wiki for the card the mouse is over, when that card has no page of its own, or null. */
+	/** The card of the place the mouse is over when a partner put a button on it, or null. */
 	@Nullable
-	private String wikiSearchAt(ViewTransform view, @Nullable MapInfo map, int x, int y)
+	private HoverCard buttonCardAt(ViewTransform view, @Nullable MapInfo map, int x, int y)
 	{
 		if (map == null)
 		{
 			return null;
 		}
 		List<Candidate> under = candidates(view, map, x, y);
-		if (under.isEmpty() || !(under.get(0).what instanceof Hotspot))
+		if (under.isEmpty() || !(under.get(0).what instanceof Hotspot) && !(under.get(0).what instanceof Partners.Thing))
 		{
 			return null;
 		}
 		HoverCard card = cardOf(under.get(0), under);
-		return HoverCardPainter.isSearch(card) ? card.getWikiSearch() : null;
+		return card.getButtonLabel() == null ? null : card;
 	}
 
 	/**
-	 * The name to look up on the wiki for a search result with no page that is certain to exist: its name, or for every place of a kind
-	 * the kind's name. Nothing for the player's own pins and typed tiles, whose names are the player's.
+	 * The name to look up on the wiki for a search result with no page that is certain to exist: its name. Nothing for the player's own
+	 * pins and typed tiles, whose names are the player's.
 	 */
 	@Nullable
 	private String wikiSearchFor(SearchEntry entry)
@@ -4478,14 +3824,14 @@ public final class MapSurface
 		{
 			return null;
 		}
-		com.worldmapplus.search.KindIndex.Kind kind = assets.getKinds().byId(entry.getKindId());
-		return WikiTitles.searchName(kind != null ? kind.getSingular() : entry.getName());
+		return entry.getName();
 	}
 
-	/** Replaces what opens the wiki page, for tests. */
-	void wikiOpener(java.util.function.Predicate<String> opener)
+	/** What a search result is, for the Helper to name a wiki page from: its kind (an area name apart from other places), name and detail. */
+	private static String[] wikiOf(SearchEntry entry)
 	{
-		this.wikiOpener = opener;
+		String detail = entry.getDetail().replace(" (" + entry.getAlsoAt().size() + " places)", "").trim();
+		return new String[] {entry.getKind() == SearchKind.PLACE && entry.isAreaName() ? "AREA" : entry.getKind().name(), entry.getName(), detail};
 	}
 
 	/** The Wiki button of the card being kept, or null. For tests. */
@@ -4531,35 +3877,6 @@ public final class MapSurface
 	private boolean overHeldCard(int x, int y)
 	{
 		return heldCard != null && heldBox != null && heldBox.contains(x, y);
-	}
-
-	/** Opens a wiki page from a card or a menu and says so on the map. */
-	private void openWiki(@Nullable String title)
-	{
-		if (title == null)
-		{
-			return;
-		}
-		boolean opened = wikiOpener.test(title);
-		routeNotice = opened ? "Opened the wiki page for " + title + " in your browser." : "There is no wiki page to open for " + title + ".";
-		routeNoticeSince = lastFrame;
-	}
-
-	/** The title of the wiki page for whatever card the mouse is over at a point, or null. */
-	@Nullable
-	private String wikiAt(ViewTransform view, @Nullable MapInfo map, int x, int y)
-	{
-		if (map == null)
-		{
-			return null;
-		}
-		List<Candidate> under = candidates(view, map, x, y);
-		if (under.isEmpty() || !(under.get(0).what instanceof Hotspot))
-		{
-			return null;
-		}
-		HoverCard card = cardOf(under.get(0), under);
-		return HoverCardPainter.hasPage(card) ? card.getWiki() : null;
 	}
 
 	/** The title of the card being shown and when it first appeared, so a new card fades in. */
@@ -4669,16 +3986,17 @@ public final class MapSurface
 	 */
 	private HoverCard iconCard(HoverCard own, Candidate icon)
 	{
-		java.util.Set<String> on = enabledPoi();
+		Set<String> on = enabledPoi();
 		List<IconExtra> extras = icon.extras;
 		HoverCard base = own;
-		if (farming != null && on.contains("farming") && !extras.isEmpty())
+		if (on.contains(FARMING) && !extras.isEmpty() && external.partners().owns(FARMING))
 		{
 			List<IconExtra> rest = new ArrayList<>(extras.size());
 			for (IconExtra extra : extras)
 			{
-				HoverCard live = base == own && "farming".equals(extra.getLayer())
-					? FarmingCards.build(farming, extra.getName(), extra.getTileX(), extra.getTileY()) : null;
+				HoverCard live = base == own && FARMING.equals(extra.getLayer())
+					? external.partners().body(Partners.describe(FARMING, extra.getName(),
+						new WorldPoint(extra.getTileX(), extra.getTileY(), 0), "")) : null;
 				if (live != null)
 				{
 					base = live;
@@ -4697,9 +4015,9 @@ public final class MapSurface
 	private static final int MISSING_KEPT = 2000;
 
 	/** What is missing for each result drawn, for the progress version {@link #missingVersion}; null words for "nothing". */
-	private final java.util.Map<SearchEntry, String> missingWords = new java.util.HashMap<>();
+	private final Map<SearchEntry, String> missingWords = new HashMap<>();
 	private int missingVersion = Integer.MIN_VALUE;
-	private final java.util.function.Function<SearchEntry, String> resultMissing = this::missingFor;
+	private final Function<SearchEntry, String> resultMissing = this::missingFor;
 
 	/**
 	 * What the player is certainly missing for a search result, in the words of a card's Missing row, or null. Worked out once per
@@ -4724,8 +4042,7 @@ public final class MapSurface
 		{
 			return missingWords.get(entry);
 		}
-		Shortfall lack = progress.shortfall(need);
-		String words = lack == null ? null : lack.text();
+		String words = progress.shortfall(need);
 		missingWords.put(entry, words);
 		return words;
 	}
@@ -4741,8 +4058,8 @@ public final class MapSurface
 		{
 			return card;
 		}
-		Shortfall lack = progress.shortfall(need);
-		return lack == null ? card : card.withRow("Missing", lack.text());
+		String lack = progress.shortfall(need);
+		return lack == null ? card : card.withRow("Missing", lack);
 	}
 
 	/**
@@ -4751,10 +4068,23 @@ public final class MapSurface
 	 */
 	private HoverCard liveCard(Hotspot hotspot)
 	{
-		if (farming != null && "farming".equals(hotspot.getCategory()) && hotspot.getKind() == Hotspot.Kind.POI)
+		// The Helper's card of a shop replaces the plain card of the game's shop icon (asked when the card is built, then kept).
+		if (hotspot.getKind() == Hotspot.Kind.POI && MapElements.kindFor(hotspot.getCard().getTitle()) == Hotspot.Kind.SHOP
+			&& external.partners().owns(SHOP))
 		{
-			HoverCard live = FarmingCards.build(farming, hotspot.getCard().getTitle(),
-				(int) Math.floor(hotspot.getX()), (int) Math.floor(hotspot.getY()));
+			Map<String, Object> thing = new HashMap<>(Partners.describe(SHOP, hotspot.getCard().getTitle(),
+				new WorldPoint((int) Math.floor(hotspot.getX()), (int) Math.floor(hotspot.getY()), 0), ""));
+			thing.put("mapId", hotspot.getMapId());
+			HoverCard shop = external.partners().body(thing);
+			if (shop != null)
+			{
+				return shop;
+			}
+		}
+		if (FARMING.equals(hotspot.getCategory()) && hotspot.getKind() == Hotspot.Kind.POI && external.partners().owns(FARMING))
+		{
+			HoverCard live = external.partners().body(Partners.describe(FARMING, hotspot.getCard().getTitle(),
+				new WorldPoint((int) Math.floor(hotspot.getX()), (int) Math.floor(hotspot.getY()), 0), ""));
 			if (live != null)
 			{
 				return live;
@@ -4762,6 +4092,12 @@ public final class MapSurface
 		}
 		return hotspot.getCard();
 	}
+
+	/** The kind of thing (and the layer) of the farming points, whose cards the Helper plugin gives. */
+	private static final String FARMING = "farming";
+
+	/** The kind of thing whose card the Helper plugin gives in place of the plain card of a shop icon. */
+	private static final String SHOP = "shop";
 
 	/** Rows the wheel moves the search results by. */
 	private static final int WHEEL_ROWS = 3;
@@ -4790,7 +4126,7 @@ public final class MapSurface
 	 */
 	HoverCard nearestTeleports(int mapId, int tx, int ty)
 	{
-		java.util.List<Hotspot> found = new ArrayList<>();
+		List<Hotspot> found = new ArrayList<>();
 		for (Hotspot teleport : assets.getTeleports())
 		{
 			if (teleport.getMapId() == mapId)
@@ -4798,7 +4134,7 @@ public final class MapSurface
 				found.add(teleport);
 			}
 		}
-		found.sort(java.util.Comparator.comparingInt(h -> tilesBetween(h, tx, ty)));
+		found.sort(Comparator.comparingInt(h -> tilesBetween(h, tx, ty)));
 		HoverCard.Builder card = HoverCard.builder("Nearest teleports").subtitle("To " + tx + ", " + ty);
 		int shown = 0;
 		for (Hotspot teleport : found)
@@ -4808,7 +4144,7 @@ public final class MapSurface
 				break;
 			}
 			shown++;
-			java.util.List<String> ways = new ArrayList<>();
+			List<String> ways = new ArrayList<>();
 			for (HoverCard.Row row : teleport.getCard().visibleRows(true))
 			{
 				if (!row.getLabel().startsWith(" ") && !row.getLabel().startsWith("and "))
@@ -4856,7 +4192,7 @@ public final class MapSurface
 	private GameIconLayer ownIcons;
 
 	/** The label layer of a window of its own, made on first use. */
-	private com.worldmapplus.layers.LabelLayer ownLabels;
+	private LabelLayer ownLabels;
 
 	/**
 	 * The layer that draws and hit tests this surface's game icons. A layer keeps what it laid out in its own fields, and a window
@@ -4880,16 +4216,16 @@ public final class MapSurface
 	}
 
 	/** The layer that draws the game's text labels for this surface. Windows have their own, for the reason given at {@link #icons()}. */
-	com.worldmapplus.layers.LabelLayer labelLayer()
+	LabelLayer labelLayer()
 	{
 		if (!windowed)
 		{
 			return assets.getLabels();
 		}
-		com.worldmapplus.layers.LabelLayer own = ownLabels;
+		LabelLayer own = ownLabels;
 		if (own == null)
 		{
-			own = new com.worldmapplus.layers.LabelLayer(assets.getElements());
+			own = new LabelLayer(assets.getElements());
 			ownLabels = own;
 		}
 		return own;
@@ -4907,8 +4243,8 @@ public final class MapSurface
 		{
 			return;
 		}
-		java.util.Set<String> hidden = com.worldmapplus.compat.HiddenSources.parse(text);
-		com.worldmapplus.data.MapElements elements = assets.getElements();
+		Set<String> hidden = HiddenSources.parse(text);
+		MapElements elements = assets.getElements();
 		for (int category = 0; category < elements.categoryCount(); category++)
 		{
 			layer.setCategoryShown(category, !hidden.contains(elements.categoryKind(category)));
@@ -4927,7 +4263,7 @@ public final class MapSurface
 	}
 
 	/** The point of interest layers that are on, parsed again only when the setting changes. */
-	private java.util.Set<String> enabledPoi()
+	private Set<String> enabledPoi()
 	{
 		String text = config.poiLayers();
 		if (!text.equals(poiOnText))
@@ -4970,19 +4306,18 @@ public final class MapSurface
 	{
 		LayerPanel shown = layerPanel;
 		return searchBar.hit(x, y) != SearchBar.Hit.NONE || shown != null && shown.contains(x, y) || routePanelRect.contains(x, y)
-			|| results.contains(x, y)
-		|| overGame(x, y) || overHeldCard(x, y);
+			|| Partners.onPanel(panelBox, x, y) || overGame(x, y) || overHeldCard(x, y);
 	}
 
 	/** The places inside the map that belong to the game, for this frame. */
-	private java.util.List<Rectangle> gameAreas = java.util.Collections.emptyList();
+	private List<Rectangle> gameAreas = Collections.emptyList();
 
 	/** False when the map is too narrow for the search bar, which is then neither drawn nor used. */
 	private boolean searchAvailable = true;
 
-	private static java.util.List<Rectangle> both(java.util.List<Rectangle> first, java.util.List<Rectangle> second)
+	private static List<Rectangle> both(List<Rectangle> first, List<Rectangle> second)
 	{
-		java.util.List<Rectangle> all = new ArrayList<>(first);
+		List<Rectangle> all = new ArrayList<>(first);
 		all.addAll(second);
 		return all;
 	}
@@ -4998,78 +4333,6 @@ public final class MapSurface
 		}
 		return false;
 	}
-
-	/** Where the player has walked this session, fading towards the oldest part. */
-	private void drawTrail(Graphics2D g, ViewTransform view, MapInfo map, @Nullable PlayerPosition position)
-	{
-		List<double[]> points = trail.snapshot();
-		if (map == null || points.size() < 2)
-		{
-			return;
-		}
-		double[] fade = trailFades(points, position, config.trailFade());
-		g.setStroke(new BasicStroke(2.2f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND));
-		for (int i = 1; i < points.size(); i++)
-		{
-			double[] a = points.get(i - 1);
-			double[] b = points.get(i);
-			if (b[2] == 1 || (int) b[3] != map.getId() || fade[i] <= 0)
-			{
-				continue;
-			}
-			int alpha = (int) ((60 + 170.0 * i / points.size()) * fade[i]);
-			if (alpha <= 0)
-			{
-				continue;
-			}
-			g.setColor(new Color(TRAIL.getRed(), TRAIL.getGreen(), TRAIL.getBlue(), alpha));
-			g.draw(new Line2D.Double(view.screenX(a[0]), view.screenY(a[1]), view.screenX(b[0]), view.screenY(b[1])));
-		}
-	}
-
-	/** Tiles in one step of the trail's fade setting. */
-	static final double TRAIL_FADE_STEP = 10.0;
-
-	/** The most the fade setting is taken as, in steps, so a typing slip cannot do anything odd. */
-	static final double TRAIL_FADE_MOST = 100.0;
-
-	/**
-	 * How much of its colour each piece of the trail keeps: 1 for the newest, down to 0 for a piece as far back along the
-	 * walk as the setting says, in tens of tiles. The distance is how far the player walked, so standing still or
-	 * walking in circles fades nothing. Element {@code i} is the piece ending at point {@code i}. A setting of 0 or less
-	 * keeps everything.
-	 */
-	static double[] trailFades(List<double[]> points, @Nullable PlayerPosition player, double setting)
-	{
-		double[] keep = new double[points.size()];
-		java.util.Arrays.fill(keep, 1.0);
-		double limit = Math.min(Math.max(setting, 0), TRAIL_FADE_MOST) * TRAIL_FADE_STEP;
-		if (!(limit > 0) || points.isEmpty())
-		{
-			return keep;
-		}
-		double[] newest = points.get(points.size() - 1);
-		double walked = player == null ? 0 : Math.hypot(player.getX() - newest[0], player.getY() - newest[1]);
-		if (walked > MAX_STEP_FOR_FADE)
-		{
-			walked = 0;
-		}
-		for (int i = points.size() - 1; i >= 1; i--)
-		{
-			double[] a = points.get(i - 1);
-			double[] b = points.get(i);
-			double step = b[2] == 1 ? 0 : Math.hypot(b[0] - a[0], b[1] - a[1]);
-			// A piece is as faded as the far end of it is.
-			double far = walked + step;
-			keep[i] = Math.max(0, 1.0 - far / limit);
-			walked = far;
-		}
-		keep[0] = 0;
-		return keep;
-	}
-
-	/** A longer jump from the newest point to the player is a teleport, not walking, and adds nothing to the distance. */
-	private static final double MAX_STEP_FOR_FADE = 40.0;
 
 	private void drawPlayer(Graphics2D g, ViewTransform view, PlayerPosition position)
 	{

@@ -1,9 +1,8 @@
 package com.worldmapplus.pins;
 
-import com.worldmapplus.bridge.MapActions;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import net.runelite.api.coords.WorldPoint;
+import com.worldmapplus.bridge.*;
+import javax.inject.*;
+import net.runelite.api.coords.*;
 
 /**
  * Lets a saved route ask Shortest Path for each leg, through the same {@link MapActions} the map's own

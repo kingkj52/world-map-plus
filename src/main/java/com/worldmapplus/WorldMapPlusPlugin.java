@@ -1,65 +1,55 @@
 package com.worldmapplus;
 
-import com.google.inject.Provides;
-import com.worldmapplus.bridge.ExternalOverlays;
-import com.worldmapplus.farming.FarmingTracker;
-import com.worldmapplus.input.GameTextEntry;
-import com.worldmapplus.game.PlayerLocator;
-import com.worldmapplus.game.PlayerPosition;
-import com.worldmapplus.map.MapInfo;
-import com.worldmapplus.panel.PlacesPanel;
-import com.worldmapplus.pins.PanelLauncher;
-import com.worldmapplus.pins.PinStore;
-import com.worldmapplus.pins.RouteRunner;
-import com.worldmapplus.pins.RouteStore;
-import com.worldmapplus.game.TrailTracker;
-import com.worldmapplus.ui.HudOverlay;
-import com.worldmapplus.ui.HudState;
-import com.worldmapplus.ui.ViewerOverlay;
-import java.awt.event.KeyEvent;
-import java.awt.image.BufferedImage;
+import com.google.inject.*;
+import com.worldmapplus.bridge.*;
+import com.worldmapplus.game.*;
+import com.worldmapplus.input.*;
+import com.worldmapplus.map.*;
+import com.worldmapplus.panel.*;
+import com.worldmapplus.pins.*;
+import com.worldmapplus.theme.*;
+import com.worldmapplus.ui.*;
+import java.awt.event.*;
+import java.awt.image.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.ScheduledExecutorService;
 import javax.inject.Inject;
-import lombok.extern.slf4j.Slf4j;
-import javax.swing.SwingUtilities;
-import net.runelite.api.GameState;
-import net.runelite.api.events.MenuEntryAdded;
-import net.runelite.api.events.ClientTick;
-import net.runelite.api.events.GameStateChanged;
-import net.runelite.api.events.GameTick;
-import net.runelite.api.events.StatChanged;
-import net.runelite.api.events.VarbitChanged;
-import net.runelite.api.events.WidgetClosed;
-import net.runelite.api.events.WidgetLoaded;
-import net.runelite.api.gameval.InterfaceID;
-import net.runelite.client.callback.ClientThread;
-import net.runelite.client.game.ItemManager;
-import net.runelite.client.config.ConfigManager;
-import net.runelite.client.eventbus.Subscribe;
-import net.runelite.client.events.ConfigChanged;
-import net.runelite.client.events.PluginMessage;
-import net.runelite.client.input.KeyManager;
-import net.runelite.client.input.MouseManager;
-import net.runelite.client.plugins.Plugin;
-import net.runelite.client.plugins.PluginDescriptor;
-import net.runelite.client.ui.ClientToolbar;
-import net.runelite.client.ui.NavigationButton;
-import net.runelite.client.ui.overlay.OverlayManager;
-import net.runelite.client.util.HotkeyListener;
+import javax.swing.*;
+import lombok.extern.slf4j.*;
+import net.runelite.api.*;
+import net.runelite.api.coords.*;
+import net.runelite.api.events.*;
+import net.runelite.api.gameval.*;
+import net.runelite.client.callback.*;
+import net.runelite.client.config.*;
+import net.runelite.client.eventbus.*;
+import net.runelite.client.events.*;
+import net.runelite.client.game.*;
+import net.runelite.client.input.*;
+import net.runelite.client.plugins.*;
+import net.runelite.client.ui.*;
+import net.runelite.client.ui.overlay.*;
+import net.runelite.client.util.*;
 
 /**
  * A replacement world map viewer.
  * <p>
- * <b>What this plugin does:</b> it draws its own map, from imagery bundled in the plugin, over
+ * <b>What this plugin does:</b> it draws its own map, from map pictures downloaded from the plugin's own GitHub release and kept on disk, over
  * the world map interface and, optionally, as a see-through map over the game scene. It adds
  * a much larger zoom range, search, hover information and nearby NPC markers.
  * <p>
- * <b>What it deliberately does not do:</b> it makes no network requests, adds no menu entries
+ * <b>What it deliberately does not do:</b> its only network use is downloading map pictures (see MapDownloader), it adds no menu entries
  * and never creates, hides, moves or resizes any game widget. It never draws other players and
  * offers no combat information.
  */
 @Slf4j
 @PluginDescriptor(
 	name = "World Map Plus",
+	internalName = "worldmapplus",
 	description = "A replacement world map with a huge zoom range, search and hover cards",
 	tags = {"map", "world map", "zoom", "search", "route", "pins", "dungeon", "shop", "transparent"}
 )
@@ -69,7 +59,7 @@ public class WorldMapPlusPlugin extends Plugin
 	private OverlayManager overlayManager;
 
 	@Inject
-	private net.runelite.api.Client client;
+	private Client client;
 
 	@Inject
 	private MouseManager mouseManager;
@@ -96,28 +86,18 @@ public class WorldMapPlusPlugin extends Plugin
 	private ExternalOverlays external;
 
 	@Inject
-	private com.worldmapplus.bridge.MapActions actions;
+	private MapActions actions;
 
 	@Inject
 	private PlayerLocator locator;
-
-	@Inject
-	private TrailTracker trail;
-
-	@Inject
-	private FarmingTracker farming;
 
 	@Inject
 	private ClientToolbar clientToolbar;
 
 	@Inject
 	private ClientThread clientThread;
-
 	@Inject
-	private ItemManager itemManager;
-
-	/** Item prices for the drop tabs, read from RuneLite's item manager on the client thread while the plugin runs. */
-	private com.worldmapplus.drops.ItemPrices prices;
+	private ScheduledExecutorService executor;
 
 	@Inject
 	private PinStore pins;
@@ -132,35 +112,13 @@ public class WorldMapPlusPlugin extends Plugin
 	private PanelLauncher panelLauncher;
 
 	@Inject
-	private com.worldmapplus.bridge.ShareChat shareChat;
+	private MapWindows windows;
 
 	@Inject
-	private com.worldmapplus.share.ShareInbox shareInbox;
-
-	@Inject
-	private com.worldmapplus.ui.MapWindows windows;
-
-	@Inject
-	private com.worldmapplus.input.ChatSearch chatSearch;
-
-	@Inject
-	private com.worldmapplus.unlock.Unlocks unlocks;
+	private ChatSearch chatSearch;
 
 	@Inject
 	private GameTextEntry textEntry;
-
-	@Inject
-	private com.worldmapplus.pins.RouteOrderer routeOrderer;
-
-	/** The typing guide for share codes: the guide itself, the reader of the chat input line, and the overlay that draws it. */
-	@Inject
-	private com.worldmapplus.typing.TypingGuide typingGuide;
-
-	@Inject
-	private com.worldmapplus.typing.ChatLineReader chatLine;
-
-	@Inject
-	private com.worldmapplus.typing.TypingGuideOverlay typingOverlay;
 
 	private PlacesPanel panel;
 	private NavigationButton navButton;
@@ -219,7 +177,7 @@ public class WorldMapPlusPlugin extends Plugin
 	 * for the contract. Everything in a message is checked before it is used.
 	 */
 	@Inject
-	private net.runelite.client.eventbus.EventBus eventBus;
+	private EventBus eventBus;
 
 	/** Made once, so the client tick hands the same object over and makes nothing. */
 	private final ExternalOverlays.Coverage coverage = this::coverOf;
@@ -227,9 +185,9 @@ public class WorldMapPlusPlugin extends Plugin
 	/** How the maps cover a tile, for the answers to other plugins' questions. */
 	private ExternalOverlays.Cover coverOf(int x, int y)
 	{
-		com.worldmapplus.map.MapCatalog catalog = assets.getCatalog();
+		MapCatalog catalog = assets.getCatalog();
 		boolean exact = catalog.mapFor(x, y) != null;
-		com.worldmapplus.map.MapInfo map = catalog.mapNear(x, y, 192);
+		MapInfo map = catalog.mapNear(x, y, 192);
 		return map == null ? new ExternalOverlays.Cover(false, false, "", "")
 			: new ExternalOverlays.Cover(true, exact, map.getName(), ExternalOverlays.kindOf(map.getId()));
 	}
@@ -255,28 +213,18 @@ public class WorldMapPlusPlugin extends Plugin
 			return;
 		}
 		String key = event.getKey();
-		if (key == null || "hideFinishedQuests".equals(key) || "markUnusable".equals(key) || "onlyUsable".equals(key)
-			|| "colourQuestsByProgress".equals(key))
-		{
-			// Switching a setting on is what makes the plugin look at the player's progress, so it is asked then and not before.
-			clientThread.invokeLater(this::wantProgress);
-		}
 		if ("theme".equals(key))
 		{
 			// The colours of the map change at once; the panel is recoloured on the interface thread.
-			com.worldmapplus.theme.Palette before = com.worldmapplus.theme.Palettes.current();
-			com.worldmapplus.theme.Look.use(config.theme());
-			com.worldmapplus.theme.Palette after = com.worldmapplus.theme.Palettes.current();
+			Palette before = Palettes.current();
+			Look.use(config.theme());
+			external.partners().themeChanged();
+			Palette after = Palettes.current();
 			PlacesPanel shown = panel;
 			if (shown != null)
 			{
 				SwingUtilities.invokeLater(() -> shown.restyle(before, after));
 			}
-		}
-		if ("typingGuide".equals(key) && !config.typingGuide())
-		{
-			// Switching the guide off removes it at once.
-			typingGuide.stop();
 		}
 		if ("hudStartsClickThrough".equals(key))
 		{
@@ -293,89 +241,11 @@ public class WorldMapPlusPlugin extends Plugin
 		}
 	}
 
-	/**
-	 * Tells the progress snapshot what the settings need. Quests are wanted by all three settings, levels only by the two that judge
-	 * what can be used. With all three off nothing is read. Runs on the client thread.
-	 */
-	private void wantProgress()
-	{
-		boolean judge = config.markUnusable() || config.onlyUsable();
-		unlocks.want(judge, judge || config.hideFinishedQuests() || config.colourQuestsByProgress());
-	}
-
-	/** A level up updates the snapshot's level of that skill. Nothing happens unless a setting needs the snapshot. */
-	@Subscribe
-	public void onStatChanged(StatChanged event)
-	{
-		unlocks.onStatChanged(event.getSkill(), event.getLevel());
-	}
-
-	/** Any change of a game variable may be a quest moving on, so the snapshot looks at the quests again soon, at its own pace. */
-	@Subscribe
-	public void onVarbitChanged(VarbitChanged event)
-	{
-		unlocks.variablesChanged();
-	}
-
-	/**
-	 * Share codes arrive through RuneLite's chat command manager (see {@code ShareChat.start}); this only offers "Open in
-	 * World Map Plus" on a chat line that holds one, the way Chat History offers its copy entry.
-	 */
-	@Subscribe
-	public void onMenuEntryAdded(MenuEntryAdded event)
-	{
-		shareChat.onMenuEntryAdded(event);
-	}
-
-	/** Shows a share someone sent: listed and marked in the side panel, marked on the map, the map centred on it. */
-	private void openShare(com.worldmapplus.share.Share share)
-	{
-		shareInbox.open(share, System.currentTimeMillis());
-		showShare(share);
-		SwingUtilities.invokeLater(() ->
-		{
-			if (panel != null && navButton != null)
-			{
-				clientToolbar.openPanel(navButton);
-				panel.showOpenedShare();
-			}
-		});
-	}
-
-	/** Asks Shortest Path for the way to a share's first point, as the side panel's Go does for a saved place. Nothing is saved. */
-	private void goToShare(com.worldmapplus.share.Share share)
-	{
-		com.worldmapplus.share.SharePoint first = share.getPoints().get(0);
-		clientThread.invokeLater(() ->
-		{
-			routes.stopAll();
-			actions.routeTo(new net.runelite.api.coords.WorldPoint(first.getX(), first.getY(), first.getPlane()));
-		});
-	}
-
-	/** Marks a share on the map, nothing saved, and asks the map to centre on its first point. */
-	private void showShare(com.worldmapplus.share.Share share)
-	{
-		java.util.List<net.runelite.api.coords.WorldPoint> points = new java.util.ArrayList<>();
-		for (com.worldmapplus.share.SharePoint p : share.getPoints())
-		{
-			points.add(new net.runelite.api.coords.WorldPoint(p.getX(), p.getY(), p.getPlane()));
-		}
-		String title = "Shared " + share.describe();
-		external.showShare(points, share.getKind() == com.worldmapplus.share.Share.Kind.ROUTE, title);
-		external.focusOn(points.get(0), title);
-	}
-
 	/** Once a client tick: finds out whether the game is taking typed text, so no key of this plugin acts while the player types. */
 	@Subscribe
 	public void onClientTick(ClientTick tick)
 	{
 		textEntry.onClientTick();
-		// Reads the chat input line only while a typing guide runs (and the setting is on), once a client tick.
-		if (config.typingGuide())
-		{
-			chatLine.onClientTick();
-		}
 		postAnswers();
 	}
 
@@ -390,6 +260,7 @@ public class WorldMapPlusPlugin extends Plugin
 		{
 			external.setCoverage(coverage);
 		}
+		external.partners().tick(System.currentTimeMillis());
 		if (external.idle())
 		{
 			return;
@@ -418,21 +289,11 @@ public class WorldMapPlusPlugin extends Plugin
 		}
 	}
 
-	/**
-	 * Once a game tick: adds the player's tile to the trail while the trail layer is on, and reads the
-	 * farming patches near the player, which the farming cards on the map are built from.
-	 */
+	/** Once a game tick: lets go of map tiles nobody uses and gives a followed route its next stop. */
 	@Subscribe
 	public void onGameTick(GameTick tick)
 	{
-		unlocks.onGameTick();
 		PlayerPosition player = locator.get();
-		// The maps may still be loading just after the plugin starts. A tick is not worth waiting for on the client thread.
-		if (config.showTrail() && assets.isLoaded())
-		{
-			trail.add(assets.getCatalog(), player);
-		}
-		farming.onGameTick();
 		// The decoded map tiles are let go of once the map has been closed for a while. The tick is the clock; no timer is made.
 		assets.releaseIfIdle();
 		// A saved route being followed asks Shortest Path for its next stop once the player has reached the last.
@@ -452,8 +313,6 @@ public class WorldMapPlusPlugin extends Plugin
 	@Subscribe
 	public void onGameStateChanged(GameStateChanged event)
 	{
-		farming.onGameState(event.getGameState());
-		unlocks.onGameStateChanged(event.getGameState());
 		if (event.getGameState() != GameState.LOGGED_IN && event.getGameState() != GameState.LOADING)
 		{
 			// Following a route is never carried across a log out.
@@ -462,9 +321,64 @@ public class WorldMapPlusPlugin extends Plugin
 			if (event.getGameState() == GameState.LOGIN_SCREEN)
 			{
 				actions.routeArrived();
-				trail.clear();
 			}
 		}
+	}
+
+	/**
+	 * Gives the plugin API's messages that act on this plugin what they need: whether a map holds a tile, the panel's status line and how
+	 * to open it, how to ask Shortest Path for a route, and whether the game's chat area is taken by this plugin's search. Features that
+	 * live in the Helper plugin (share codes, the typing guide) are what these are for, so the panel says once if it is missing.
+	 */
+	private void connectPartners()
+	{
+		PlacesPanel shown = panel;
+		external.partners().connect(
+			(map, x, y) ->
+			{
+				MapInfo info = assets.isLoaded() ? assets.getCatalog().byId(map) : null;
+				return info != null && info.contains(x, y);
+			},
+			text -> shown.showStatus(text),
+			() ->
+			{
+				if (navButton != null)
+				{
+					clientToolbar.openPanel(navButton);
+				}
+			},
+			at ->
+			{
+				MapActions.Status status = actions.shortestPathStatus();
+				if (status == MapActions.Status.MISSING)
+				{
+					return "missing";
+				}
+				if (status == MapActions.Status.DISABLED)
+				{
+					return "disabled";
+				}
+				routes.stopAll();
+				actions.routeTo(at);
+				return "ok";
+			},
+			chatSearch::isOpen);
+		external.partners().mapNames(id ->
+		{
+			MapInfo info = assets.isLoaded() ? assets.getCatalog().byId(id) : null;
+			return info == null ? null : info.getName();
+		});
+		if (config.shareCodesInChat() || config.typingGuide())
+		{
+			external.partners().expectHelper();
+		}
+	}
+
+	/** The map that holds a tile, or -1 for none or while the maps are still loading. */
+	private int mapIdAt(int x, int y)
+	{
+		MapInfo at = assets.isLoaded() ? assets.getCatalog().mapFor(x, y) : null;
+		return at == null ? -1 : at.getId();
 	}
 
 	private String areaName(int mapId)
@@ -490,38 +404,35 @@ public class WorldMapPlusPlugin extends Plugin
 
 	private void start()
 	{
+		try
+		{
+			assets.setCacheFolder(getPluginDirectory());
+		}
+		catch (IOException | IllegalArgumentException e)
+		{
+			log.warn("World Map Plus: no folder to keep map pictures in, they are kept in memory only", e);
+		}
 		actions.setActive(true);
 		actions.setLater(clientThread::invokeLater);
 		// Other plugins learn that the map is there, and send again what a restart of this plugin forgot.
 		external.announceReady();
-		assets.setUnlocks(unlocks);
-		// Prices are only read when a drop tab asks, a bounded batch on the client thread, from what RuneLite already holds.
-		prices = new com.worldmapplus.drops.ItemPrices(itemManager::getItemPrice, clientThread::invokeLater);
-		assets.setPrices(prices);
-		clientThread.invokeLater(this::wantProgress);
+		external.partners().attach(SwingUtilities::invokeLater, clientThread::invokeLater, executor::execute, pins, routes, this::mapIdAt);
+		assets.setUnlocks(external.partners().unlocks());
 		overlayManager.add(viewerOverlay);
 		overlayManager.add(hudOverlay);
-		overlayManager.add(typingOverlay);
-		chatLine.setOtherInput(chatSearch::isOpen);
 
 		mouseManager.registerMouseListener(viewerOverlay.getInput());
 		mouseManager.registerMouseWheelListener(viewerOverlay.getInput());
 		mouseManager.registerMouseListener(hudOverlay.getInput());
 		mouseManager.registerMouseWheelListener(hudOverlay.getInput());
-		mouseManager.registerMouseListener(typingOverlay.getInput());
 		registerKeys();
 
-		com.worldmapplus.theme.Look.use(config.theme());
-		com.worldmapplus.bridge.Sounds sounds = new com.worldmapplus.bridge.Sounds(config::sounds, client::playSoundEffect,
+		Look.use(config.theme());
+		Sounds sounds = new Sounds(config::sounds, client::playSoundEffect,
 			System::currentTimeMillis);
 		viewerOverlay.setSounds(sounds);
-		shareChat.setSounds(sounds);
-		com.worldmapplus.share.ShareImport shareImport = new com.worldmapplus.share.ShareImport(pins, routes, assets::getCatalog);
-		panel = new PlacesPanel(pins, routes, routeRunner, actions, external, clientThread, this::areaName, shareInbox, shareImport);
-		panel.setShareHandlers(this::showShare, this::goToShare);
-		panel.setTypingGuide(typingGuide, config::typingGuide);
-		shareChat.start(this::openShare, shareImport::knownName);
-		panel.setOrderer(routeOrderer);
+		panel = new PlacesPanel(pins, routes, routeRunner, actions, external, clientThread, this::areaName);
+		connectPartners();
 		navButton = NavigationButton.builder()
 			.tooltip("World Map Plus places and routes")
 			.icon(panelIcon())
@@ -596,27 +507,15 @@ public class WorldMapPlusPlugin extends Plugin
 	/** Undoes everything startUp does. Safe to call when only part of it was done. */
 	private void stopEverything()
 	{
+		// Partner plugins hear that the map is going, so they stop sending until it says ready again.
+		eventBus.post(new PluginMessage(ExternalOverlays.NAMESPACE, "main_goodbye", new HashMap<>()));
 		actions.setActive(false);
 		actions.setLater(null);
 		assets.setUnlocks(null);
-		assets.setPrices(null);
-		if (prices != null)
-		{
-			prices.clear();
-			prices = null;
-		}
-		clientThread.invokeLater(() -> unlocks.want(false, false));
 		panelLauncher.setOpener(null);
 		panelLauncher.setRouteEditor(null);
-		if (routeOrderer != null)
-		{
-			routeOrderer.cancel();
-		}
-		shareChat.stop();
-		shareInbox.clear();
 		viewerOverlay.setWindowOpener(null);
 		viewerOverlay.setSounds(null);
-		shareChat.setSounds(null);
 		hudOverlay.setWindowOpener(null);
 		windows.setEnabled(false);
 		if (navButton != null)
@@ -638,22 +537,17 @@ public class WorldMapPlusPlugin extends Plugin
 		unregisterKeys();
 		mouseManager.unregisterMouseWheelListener(hudOverlay.getInput());
 		mouseManager.unregisterMouseListener(hudOverlay.getInput());
-		mouseManager.unregisterMouseListener(typingOverlay.getInput());
 
 		mouseManager.unregisterMouseWheelListener(viewerOverlay.getInput());
 		mouseManager.unregisterMouseListener(viewerOverlay.getInput());
 
-		overlayManager.remove(typingOverlay);
 		overlayManager.remove(hudOverlay);
 		overlayManager.remove(viewerOverlay);
 
 		// The search prompt in the chat area, if it is open, must not outlive the plugin.
 		chatSearch.closeAll();
-		typingGuide.stop();
-		chatLine.setOtherInput(null);
 		hudState.hide();
 		external.clear();
-		trail.clear();
 		hudOverlay.reset();
 		viewerOverlay.reset();
 		assets.release();

@@ -1,10 +1,11 @@
 package com.worldmapplus.prefs;
 
-import com.worldmapplus.WorldMapPlusConfig;
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import net.runelite.client.config.ConfigManager;
+import com.worldmapplus.*;
+import java.util.Locale;
+import javax.annotation.*;
+import javax.inject.*;
+import lombok.*;
+import net.runelite.client.config.*;
 
 /**
  * Remembers where the map was last looking, so it can open there again.
@@ -30,6 +31,7 @@ public class ViewMemory
 	}
 
 	/** A remembered view. */
+	@Getter
 	public static final class Saved
 	{
 		private final int mapId;
@@ -43,26 +45,6 @@ public class ViewMemory
 			this.x = x;
 			this.y = y;
 			this.pixelsPerTile = pixelsPerTile;
-		}
-
-		public int getMapId()
-		{
-			return mapId;
-		}
-
-		public double getX()
-		{
-			return x;
-		}
-
-		public double getY()
-		{
-			return y;
-		}
-
-		public double getPixelsPerTile()
-		{
-			return pixelsPerTile;
 		}
 	}
 
@@ -84,7 +66,7 @@ public class ViewMemory
 
 	private static String round(double value)
 	{
-		return String.format(java.util.Locale.ROOT, "%.3f", value);
+		return String.format(Locale.ROOT, "%.3f", value);
 	}
 
 	@Nullable

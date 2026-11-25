@@ -1,21 +1,14 @@
 package com.worldmapplus.data;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
-import com.worldmapplus.layers.Hotspot;
-import com.worldmapplus.layers.HoverCard;
-import com.worldmapplus.layers.PoiCategory;
-import com.worldmapplus.map.MapCatalog;
-import com.worldmapplus.map.MapInfo;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import lombok.extern.slf4j.Slf4j;
+import com.google.gson.*;
+import com.worldmapplus.layers.*;
+import com.worldmapplus.map.*;
+import java.io.*;
+import java.nio.charset.*;
+import java.time.*;
+import java.util.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
 
 /**
  * Reads the bundled points of interest: agility courses, banks, fishing spots and the other kinds
@@ -35,6 +28,7 @@ public final class PoiLoader
 	}
 
 	/** The categories, in the order the layers panel lists them, and every point as a hotspot. */
+	@Getter
 	public static final class Result
 	{
 		private final List<PoiCategory> categories;
@@ -44,16 +38,6 @@ public final class PoiLoader
 		{
 			this.categories = Collections.unmodifiableList(categories);
 			this.hotspots = Collections.unmodifiableList(hotspots);
-		}
-
-		public List<PoiCategory> getCategories()
-		{
-			return categories;
-		}
-
-		public List<Hotspot> getHotspots()
-		{
-			return hotspots;
 		}
 	}
 
@@ -77,7 +61,7 @@ public final class PoiLoader
 
 	public static Result read(Reader reader, Gson gson, MapCatalog catalog)
 	{
-		java.time.LocalDate now = java.time.LocalDate.now();
+		LocalDate now = LocalDate.now();
 		return read(reader, gson, catalog, now.getYear() * 10000 + now.getMonthValue() * 100 + now.getDayOfMonth());
 	}
 

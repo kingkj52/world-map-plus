@@ -10,12 +10,8 @@ import com.worldmapplus.MapAssets;
 import com.worldmapplus.WorldMapPlusConfig;
 import com.worldmapplus.bridge.ExternalOverlays;
 import com.worldmapplus.bridge.MapActions;
-import com.worldmapplus.bridge.NativePoints;
-import com.worldmapplus.compat.MapCensus;
 import com.worldmapplus.game.PlayerPosition;
-import com.worldmapplus.game.TrailTracker;
 import com.worldmapplus.layers.HoverCard;
-import com.worldmapplus.layers.NpcLayer;
 import com.worldmapplus.layers.PoiCategory;
 import com.worldmapplus.map.MapInfo;
 import com.worldmapplus.pins.PinStore;
@@ -32,6 +28,7 @@ import java.awt.image.BufferedImage;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -195,30 +192,16 @@ public class PopupLayoutTest
 				}
 				return null;
 			});
-		NpcLayer quiet = new NpcLayer()
-		{
-			@Override
-			public void paint(Graphics2D g, ViewTransform view, MapInfo viewed, PlayerPosition player)
-			{
-			}
-		};
-		if (pluginName != null)
-		{
-			for (int i = 0; i < 3; i++)
-			{
-				rig.points.add(new WorldMapPoint(new WorldPoint(3222 + i, 3218, 0), null)
-				{
-				});
-			}
-		}
-		NativePoints nativePoints = new NativePoints(rig.points::forEach);
-		MapCensus census = new MapCensus(() -> pluginName == null ? Collections.emptyList()
-			: Collections.singletonList(new MapCensus.PluginInfo(pluginName, "com.worldmapplus.ui.FakePlugin", true)), sink ->
-		{
-		}, "com.example.own");
 		PinStore pins = new PinStore(PinStore.Storage.inMemory(), new Gson());
 		ExternalOverlays external = new ExternalOverlays();
-		SurfaceServices services = new SurfaceServices(quiet, new ViewMemory(null)
+		if (pluginName != null)
+		{
+			// The Helper tells which plugins have points on the game's map, with how many each.
+			Map<String, Object> layers = new HashMap<>();
+			layers.put("plugins", Collections.singletonMap(pluginName, 3));
+			com.worldmapplus.bridge.PartnerDouble.post(external, "state", "layers", layers);
+		}
+		SurfaceServices services = new SurfaceServices(new ViewMemory(null)
 		{
 			@Override
 			public Saved load(String slot)
@@ -230,9 +213,8 @@ public class PopupLayoutTest
 			public void save(String slot, int mapId, double x, double y, double ppt)
 			{
 			}
-		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), new TrailTracker(), null, nativePoints,
-			new com.worldmapplus.pins.RouteStore(PinStore.Storage.inMemory(), new Gson(), pins),
-			new com.worldmapplus.pins.PanelLauncher(), census);
+		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), new com.worldmapplus.pins.RouteStore(PinStore.Storage.inMemory(), new Gson(), pins),
+			new com.worldmapplus.pins.PanelLauncher());
 		rig.surface = new MapSurface(client, assets, new WorldMapPlusConfig()
 		{
 		}, services);

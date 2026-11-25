@@ -1,19 +1,12 @@
 package com.worldmapplus.map;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nullable;
-import lombok.extern.slf4j.Slf4j;
+import com.google.gson.*;
+import java.io.*;
+import java.nio.charset.*;
+import java.util.*;
+import javax.annotation.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
 
 /**
  * The maps the viewer knows about, and which of them covers a given world position.
@@ -27,10 +20,13 @@ public final class MapCatalog
 {
 	private static final String RESOURCE = "/com/worldmapplus/maps.json";
 
+	@Getter
 	private final List<MapInfo> maps;
 	private final Map<Integer, MapInfo> byId = new HashMap<>();
 	/** The same maps ordered smallest area first, which is the order position lookups test them. */
 	private final List<MapInfo> bySpecificity;
+	/** The wiki map version the bundled imagery was taken from. */
+	@Getter
 	private final String version;
 
 	public MapCatalog(String version, List<MapInfo> maps)
@@ -88,17 +84,6 @@ public final class MapCatalog
 			}
 		}
 		return new MapCatalog(resource.version, list);
-	}
-
-	public List<MapInfo> getMaps()
-	{
-		return maps;
-	}
-
-	/** The wiki map version the bundled imagery was taken from. */
-	public String getVersion()
-	{
-		return version;
 	}
 
 	@Nullable

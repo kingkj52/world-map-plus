@@ -1,17 +1,25 @@
 package com.worldmapplus.layers;
 
-import java.awt.Color;
+import java.awt.*;
+import lombok.*;
 
 /**
  * A kind of point of interest that can be switched on and off as a layer: agility courses, banks,
  * fishing spots and so on.
  */
+@Getter
 public final class PoiCategory
 {
+	/** Short stable name, the one saved in the settings. */
 	private final String id;
 	private final String label;
+	/** A letter drawn on a coloured disc for points that have no icon of their own. */
 	private final String glyph;
 	private final Color color;
+	/**
+	 * True when the points can be switched on as a layer. False for kinds that are only searched,
+	 * because the game's own map already draws them.
+	 */
 	private final boolean layer;
 
 	public PoiCategory(String id, String label, String glyph, Color color)
@@ -26,37 +34,6 @@ public final class PoiCategory
 		this.label = label;
 		this.glyph = glyph;
 		this.color = color;
-	}
-
-	/** Short stable name, the one saved in the settings. */
-	public String getId()
-	{
-		return id;
-	}
-
-	public String getLabel()
-	{
-		return label;
-	}
-
-	/** A letter drawn on a coloured disc for points that have no icon of their own. */
-	public String getGlyph()
-	{
-		return glyph;
-	}
-
-	public Color getColor()
-	{
-		return color;
-	}
-
-	/**
-	 * True when the points can be switched on as a layer. False for kinds that are only searched,
-	 * because the game's own map already draws them.
-	 */
-	public boolean isLayer()
-	{
-		return layer;
 	}
 
 	/** Parses {@code #rrggbb}, giving grey for anything else. */

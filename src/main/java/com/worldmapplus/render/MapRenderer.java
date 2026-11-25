@@ -1,14 +1,11 @@
 package com.worldmapplus.render;
 
-import com.worldmapplus.map.MapInfo;
-import com.worldmapplus.tiles.TileCache;
-import com.worldmapplus.tiles.TileSource;
-import com.worldmapplus.view.ViewTransform;
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.Shape;
-import java.awt.image.BufferedImage;
+import com.worldmapplus.map.*;
+import com.worldmapplus.tiles.*;
+import com.worldmapplus.view.*;
+import java.awt.*;
+import java.awt.image.*;
+import lombok.*;
 
 /**
  * Draws the map imagery for one view.
@@ -41,6 +38,8 @@ public final class MapRenderer
 	private static final double NATIVE = 4.0;
 
 	private final TileCache tiles;
+	/** True when previews are enlarged smoothly. Part of what decides a preview's pixels. */
+	@Getter
 	private boolean smoothMagnify;
 
 	public MapRenderer(TileCache tiles)
@@ -95,12 +94,6 @@ public final class MapRenderer
 	 */
 	private static final ThreadLocal<int[]> STAND_INS = ThreadLocal.withInitial(() -> new int[1]);
 
-	/** True when previews are enlarged smoothly. Part of what decides a preview's pixels. */
-	public boolean isSmoothMagnify()
-	{
-		return smoothMagnify;
-	}
-
 	private void paint(Graphics2D g, ViewTransform view, MapInfo map, int floor, boolean mainView)
 	{
 		Shape oldClip = g.getClip();
@@ -150,6 +143,11 @@ public final class MapRenderer
 			{
 				drawTiles(g, view, map, floor, source, scale, underlay ? null : groundPicture, mainView);
 			}
+			String status = mainView ? tiles.getSource().status() : null;
+			if (status != null)
+			{
+				drawStatus(g, view, status);
+			}
 		}
 		finally
 		{
@@ -159,6 +157,18 @@ public final class MapRenderer
 				g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, oldInterpolation);
 			}
 		}
+	}
+
+	/** A small line in the lower left corner while map pictures are downloading or could not be: no popup, nothing to click. */
+	private static void drawStatus(Graphics2D g, ViewTransform view, String text)
+	{
+		g.setFont(g.getFont().deriveFont(Font.PLAIN, 11f));
+		int x = view.getLeft() + 8;
+		int y = view.getTop() + view.getHeight() - 8;
+		g.setColor(new Color(0, 0, 0, 170));
+		g.drawString(text, x + 1, y + 1);
+		g.setColor(new Color(235, 235, 235, 220));
+		g.drawString(text, x, y);
 	}
 
 	private void drawOverview(Graphics2D g, ViewTransform view, MapInfo map, BufferedImage image)

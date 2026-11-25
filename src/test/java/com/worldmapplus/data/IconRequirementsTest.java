@@ -10,6 +10,7 @@ import com.google.gson.Gson;
 import com.worldmapplus.layers.Hotspot;
 import com.worldmapplus.layers.HoverCard;
 import com.worldmapplus.layers.IconExtra;
+import com.worldmapplus.unlock.Judge;
 import com.worldmapplus.unlock.Need;
 import com.worldmapplus.unlock.Needs;
 import java.util.Collections;
@@ -40,7 +41,7 @@ public class IconRequirementsTest
 		IconExtra point = new IconExtra("agility", "Ardougne Rooftop Course", "Agility course", 10, 20);
 		Hotspot result = requirements.apply(plain, "Agility training", 0, 10.5, 20.5, 0, Collections.singletonList(point));
 		assertNotNull(result.getNeed());
-		assertEquals("90 Agility", result.getNeed().alternatives()[0].describe());
+		assertEquals("90 Agility", Judge.ways(result.getNeed())[0].describe());
 		assertEquals("Requires", result.getCard().getRows().get(0).getLabel());
 		assertEquals("90 Agility", result.getCard().getRows().get(0).getValue());
 		// Another kind of icon with the same name is left alone.
@@ -53,7 +54,7 @@ public class IconRequirementsTest
 		IconRequirements requirements = read("{\"icons\":[{\"kind\":\"Dungeon\",\"name\":\"God Wars Dungeon\",\"at\":[0,10.5,20.5,0],"
 			+ "\"ways\":[[\"60 Strength\"],[\"60 Agility\"]]}]}");
 		Hotspot result = requirements.apply(card("Somewhere"), "Dungeon", 0, 10.5, 20.5, 0, null);
-		assertEquals(2, result.getNeed().alternatives().length);
+		assertEquals(2, Judge.ways(result.getNeed()).length);
 		assertEquals("60 Strength or 60 Agility", result.getCard().getRows().get(0).getValue());
 		// Another floor or place is not the icon.
 		assertNull(requirements.apply(card("Somewhere"), "Dungeon", 0, 10.5, 20.5, 1, null).getNeed());
@@ -61,15 +62,15 @@ public class IconRequirementsTest
 	}
 
 	@Test
-	public void aCardThatAlreadyAsksSomethingIsKeptAndWordsNotUnderstoodGiveNothing()
+	public void aCardThatAlreadyAsksSomethingIsKept()
 	{
 		IconRequirements requirements = read("{\"icons\":[{\"kind\":\"Dungeon\",\"name\":\"A\",\"requires\":[\"90 Agility\"]},"
 			+ "{\"kind\":\"Dungeon\",\"name\":\"B\",\"requires\":[\"a rope\"]}]}");
 		Need own = Needs.ofWay(Collections.singletonList("50 Agility"), null);
 		Hotspot asks = card("A").withNeed(own);
 		assertSame(asks, requirements.apply(asks, "Dungeon", 0, 10.5, 20.5, 0, null));
-		Hotspot rope = card("B");
-		assertSame("nothing the plugin judges: no need, no row", rope, requirements.apply(rope, "Dungeon", 0, 10.5, 20.5, 0, null));
+		// Words the Helper cannot read are kept too: it judges them as asking nothing, so they are never held against the player.
+		assertTrue(requirements.apply(card("B"), "Dungeon", 0, 10.5, 20.5, 0, null).getNeed() != null);
 	}
 
 	@Test

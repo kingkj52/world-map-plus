@@ -1,13 +1,12 @@
 package com.worldmapplus.search;
 
-import com.worldmapplus.data.MapElements;
-import com.worldmapplus.layers.RegionLines;
-import com.worldmapplus.map.MapCatalog;
-import com.worldmapplus.map.MapInfo;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import com.worldmapplus.data.*;
+import com.worldmapplus.layers.*;
+import com.worldmapplus.map.*;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Consumer;
+import lombok.*;
 
 /**
  * Answers "is this spot in Varrock", "in Kandarin", "in the Dwarven Mines".
@@ -38,22 +37,16 @@ public final class Gazetteer
 	static final double MARGIN = 15;
 
 	/** A named place, found from where a shop says it is. */
+	@RequiredArgsConstructor
 	public static final class Place
 	{
 		private final String name;
 		private final int mapId;
 		private final double x;
 		private final double y;
-
-		public Place(String name, int mapId, double x, double y)
-		{
-			this.name = name;
-			this.mapId = mapId;
-			this.x = x;
-			this.y = y;
-		}
 	}
 
+	@RequiredArgsConstructor
 	private static final class Circle
 	{
 		final String name;
@@ -62,22 +55,12 @@ public final class Gazetteer
 		final double x;
 		final double y;
 		final double radius;
-
-		Circle(String name, String display, int mapId, double x, double y, double radius)
-		{
-			this.name = name;
-			this.display = display;
-			this.mapId = mapId;
-			this.x = x;
-			this.y = y;
-			this.radius = radius;
-		}
 	}
 
 	private final List<MapInfo> maps;
 
 	/** Each map's name, normalised once, by map id. */
-	private final Map<Integer, String> mapNames = new java.util.HashMap<>();
+	private final Map<Integer, String> mapNames = new HashMap<>();
 	private final RegionLines regions;
 	private final List<Circle> towns = new ArrayList<>();
 
@@ -107,10 +90,10 @@ public final class Gazetteer
 		"deep", "narrows", "sound"};
 
 	/** The labels by map and size, each size being one class of area. */
-	private final Map<Integer, List<List<Area>>> labelAreas = new java.util.HashMap<>();
+	private final Map<Integer, List<List<Area>>> labelAreas = new ConcurrentHashMap<>();
 
 	/** What each spot is in, by label, worked out once. */
-	private final Map<Long, String[]> spotCache = new java.util.HashMap<>();
+	private final Map<Long, String[]> spotCache = new ConcurrentHashMap<>();
 
 	private Gazetteer(List<MapInfo> maps, RegionLines regions)
 	{
@@ -150,8 +133,8 @@ public final class Gazetteer
 				xs[i] = group.get(i).x;
 				ys[i] = group.get(i).y;
 			}
-			java.util.Arrays.sort(xs);
-			java.util.Arrays.sort(ys);
+			Arrays.sort(xs);
+			Arrays.sort(ys);
 			double cx = xs[xs.length / 2];
 			double cy = ys[ys.length / 2];
 			// A shop whose page puts it in the wrong place, such as a garden centre in Falador that says it is in the
@@ -170,7 +153,7 @@ public final class Gazetteer
 			{
 				away[i] = near.get(i);
 			}
-			java.util.Arrays.sort(away);
+			Arrays.sort(away);
 			double far = away.length == 0 ? 0 : away[Math.min(away.length - 1, (int) Math.ceil(away.length * 0.8) - 1)];
 			towns.add(new Circle(SearchEntry.normalize(group.get(0).name), group.get(0).name, group.get(0).mapId, cx, cy,
 				Math.min(MAX_RADIUS, Math.max(MIN_RADIUS, far + MARGIN))));
@@ -339,7 +322,7 @@ public final class Gazetteer
 	private static final Circle[] NO_TOWNS = new Circle[0];
 
 	/** The towns whose names have the region's words in them, kept for the last few regions asked about (one per key press). */
-	private final java.util.Map<String, Circle[]> townsByRegion = new java.util.concurrent.ConcurrentHashMap<>();
+	private final Map<String, Circle[]> townsByRegion = new ConcurrentHashMap<>();
 
 	private Circle[] townsNamed(String region)
 	{
@@ -365,7 +348,7 @@ public final class Gazetteer
 	}
 
 	/** The normalised name and id of each region of the lore map, made once, since a search asks for them for every entry. */
-	private final java.util.Map<RegionLines.Region, String[]> loreNames = new java.util.concurrent.ConcurrentHashMap<>();
+	private final Map<RegionLines.Region, String[]> loreNames = new ConcurrentHashMap<>();
 
 	private String[] loreNamesOf(RegionLines.Region lore)
 	{
@@ -394,14 +377,14 @@ public final class Gazetteer
 	public List<String> suggest(String typed, int limit)
 	{
 		String region = SearchEntry.normalize(typed);
-		java.util.Set<String> seen = new java.util.LinkedHashSet<>();
+		Set<String> seen = new LinkedHashSet<>();
 		if (region.isEmpty() || limit <= 0)
 		{
 			return new ArrayList<>();
 		}
 		List<String> starts = new ArrayList<>();
 		List<String> contains = new ArrayList<>();
-		java.util.function.Consumer<String> offer = display ->
+		Consumer<String> offer = display ->
 		{
 			String name = SearchEntry.normalize(display);
 			if (!name.isEmpty() && allWords(name, region) && seen.add(name))
@@ -431,8 +414,8 @@ public final class Gazetteer
 				}
 			}
 		}
-		java.util.Comparator<String> shortest = java.util.Comparator.comparingInt(String::length)
-			.thenComparing(java.util.Comparator.naturalOrder());
+		Comparator<String> shortest = Comparator.comparingInt(String::length)
+			.thenComparing(Comparator.naturalOrder());
 		starts.sort(shortest);
 		contains.sort(shortest);
 		List<String> result = new ArrayList<>(starts);

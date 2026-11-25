@@ -1,24 +1,13 @@
 package com.worldmapplus.data;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
-import com.worldmapplus.layers.Hotspot;
-import com.worldmapplus.layers.HoverCard;
-import com.worldmapplus.layers.IconExtra;
-import com.worldmapplus.unlock.Need;
-import com.worldmapplus.unlock.Requirement;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import javax.annotation.Nullable;
-import lombok.extern.slf4j.Slf4j;
+import com.google.gson.*;
+import com.worldmapplus.layers.*;
+import com.worldmapplus.unlock.*;
+import java.io.*;
+import java.nio.charset.*;
+import java.util.*;
+import javax.annotation.*;
+import lombok.extern.slf4j.*;
 
 /**
  * What the wiki says an icon of the game's map asks of the player before it is any use, for the kinds whose other data says nothing:
@@ -27,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
  * merged into it (every icon of that kind and name), or the icon's exact place ({@code at}: map, x, y, floor).
  * <p>
  * Each entry gives what is asked in the wiki's own words ({@code requires}, all of them), or several ways of which any one is
- * enough ({@code ways}). The words are read by {@link Requirement}; what it does not understand is left out, so the icon is never
+ * enough ({@code ways}). The words are judged by the Helper; what it does not understand is left out, so the icon is never
  * held to more than the words say. The card gets a row "Requires" with the words as they are.
  */
 @Slf4j
@@ -181,19 +170,19 @@ public final class IconRequirements
 		{
 			return card;
 		}
-		List<Requirement> ways = new ArrayList<>();
+		List<List<List<String>>> ways = new ArrayList<>();
 		List<String> texts = new ArrayList<>();
 		if (entry.ways != null && !entry.ways.isEmpty())
 		{
 			for (List<String> way : entry.ways)
 			{
-				ways.add(Requirement.of(null, null, way));
+				ways.add(Needs.way(null, null, way));
 				texts.add(way == null ? "" : String.join(", ", way));
 			}
 		}
 		else
 		{
-			ways.add(Requirement.of(null, null, entry.requires));
+			ways.add(Needs.way(null, null, entry.requires));
 			texts.add(String.join(", ", entry.requires));
 		}
 		Need need = Need.anyOf(ways);

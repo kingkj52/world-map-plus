@@ -1,13 +1,8 @@
 package com.worldmapplus.search;
 
-import com.worldmapplus.layers.Hotspot;
-import com.worldmapplus.layers.HoverCard;
-import com.worldmapplus.map.MapCatalog;
-import com.worldmapplus.map.MapInfo;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import com.worldmapplus.layers.*;
+import com.worldmapplus.map.*;
+import java.util.*;
 
 /**
  * Builds the search entries from what the plugin already has: the list of maps and the hotspots.
@@ -50,9 +45,6 @@ public final class SearchSources
 					transport.setNeed(hotspot.getNeed());
 					entries.add(transport);
 					break;
-				case SHOP:
-					addShop(entries, hotspot);
-					break;
 				case TELEPORT:
 					addTeleports(entries, hotspot);
 					break;
@@ -84,10 +76,10 @@ public final class SearchSources
 	 * for: an icon with a need on the same map, within {@link #ICON_TILES} tiles, whose card or a point merged into it has the same
 	 * name. So a search result says what is missing exactly where the icon's card does (round 47).
 	 */
-	public static void attachIconNeeds(List<SearchEntry> entries, List<com.worldmapplus.layers.GameIconSet.Spec> icons)
+	public static void attachIconNeeds(List<SearchEntry> entries, List<GameIconSet.Spec> icons)
 	{
-		Map<String, List<com.worldmapplus.layers.GameIconSet.Spec>> byName = new java.util.HashMap<>();
-		for (com.worldmapplus.layers.GameIconSet.Spec icon : icons)
+		Map<String, List<GameIconSet.Spec>> byName = new HashMap<>();
+		for (GameIconSet.Spec icon : icons)
 		{
 			if (icon.getNeed() == null || !icon.getNeed().hasAlternatives())
 			{
@@ -100,7 +92,7 @@ public final class SearchSources
 			}
 			if (icon.getExtras() != null)
 			{
-				for (com.worldmapplus.layers.IconExtra extra : icon.getExtras())
+				for (IconExtra extra : icon.getExtras())
 				{
 					if (extra.getName() != null)
 					{
@@ -120,12 +112,12 @@ public final class SearchSources
 			{
 				continue;
 			}
-			List<com.worldmapplus.layers.GameIconSet.Spec> same = byName.get(entry.getMapId() + "|" + entry.getName());
+			List<GameIconSet.Spec> same = byName.get(entry.getMapId() + "|" + entry.getName());
 			if (same == null)
 			{
 				continue;
 			}
-			for (com.worldmapplus.layers.GameIconSet.Spec icon : same)
+			for (GameIconSet.Spec icon : same)
 			{
 				if (Math.abs(icon.getX() - entry.getX()) <= ICON_TILES && Math.abs(icon.getY() - entry.getY()) <= ICON_TILES)
 				{
@@ -197,55 +189,6 @@ public final class SearchSources
 			// The way's own need: another way to the same place may ask nothing.
 			way.setNeed(hotspot.wayNeed(row.getLabel()));
 			entries.add(way);
-		}
-	}
-
-	private static final java.util.regex.Pattern PRICE = java.util.regex.Pattern.compile("^([\\d,]+) coins?\\b");
-
-	/** The price in coins at the start of a shop row such as {@code 1,200 coins, 10 in stock}, or -1. */
-	static long coinPrice(String value)
-	{
-		java.util.regex.Matcher m = PRICE.matcher(value == null ? "" : value);
-		if (!m.find())
-		{
-			return -1;
-		}
-		try
-		{
-			return Long.parseLong(m.group(1).replace(",", ""));
-		}
-		catch (NumberFormatException e)
-		{
-			return -1;
-		}
-	}
-
-	private static void addShop(List<SearchEntry> entries, Hotspot hotspot)
-	{
-		HoverCard card = hotspot.getCard();
-		String subtitle = card.getSubtitle();
-		entries.add(new SearchEntry(SearchKind.SHOP, card.getTitle(), subtitle,
-			hotspot.getMapId(), hotspot.getX(), hotspot.getY()));
-
-		String prefix = "Run by ";
-		if (subtitle != null && subtitle.startsWith(prefix))
-		{
-			String keeper = subtitle.substring(prefix.length());
-			int comma = keeper.indexOf(',');
-			if (comma > 0)
-			{
-				keeper = keeper.substring(0, comma);
-			}
-			entries.add(new SearchEntry(SearchKind.NPC, keeper, "Runs " + card.getTitle(),
-				hotspot.getMapId(), hotspot.getX(), hotspot.getY()));
-		}
-
-		for (HoverCard.Row row : card.visibleRows(true))
-		{
-			entries.add(new SearchEntry(SearchKind.ITEM, row.getLabel(),
-				"Sold at " + card.getTitle() + " for " + row.getValue(),
-				hotspot.getMapId(), hotspot.getX(), hotspot.getY(), java.util.Collections.emptyList(),
-				coinPrice(row.getValue()), ItemKinds.join(ItemKinds.classify(row.getLabel()))));
 		}
 	}
 }

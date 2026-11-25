@@ -6,8 +6,6 @@ import com.worldmapplus.WorldMapPlusConfig;
 import com.worldmapplus.bridge.ExternalOverlays;
 import com.worldmapplus.bridge.MapActions;
 import com.worldmapplus.game.PlayerPosition;
-import com.worldmapplus.game.TrailTracker;
-import com.worldmapplus.layers.NpcLayer;
 import com.worldmapplus.map.MapInfo;
 import com.worldmapplus.pins.PinStore;
 import com.worldmapplus.prefs.Settings;
@@ -52,7 +50,7 @@ public class PreviewIcons
 		File out = new File("build/preview");
 		out.mkdirs();
 		ScheduledExecutorService executor = Executors.newScheduledThreadPool(3);
-		MapAssets assets = new MapAssets(new Gson(), executor);
+		MapAssets assets = new MapAssets(new Gson(), executor, new com.worldmapplus.tiles.SourceTiles(new Gson()));
 		Client client = (Client) Proxy.newProxyInstance(Client.class.getClassLoader(), new Class<?>[] {Client.class},
 			(proxy, method, a) ->
 			{
@@ -63,13 +61,6 @@ public class PreviewIcons
 				Class<?> type = method.getReturnType();
 				return type == boolean.class ? (Object) false : type.isPrimitive() ? (Object) 0 : null;
 			});
-		NpcLayer quiet = new NpcLayer()
-		{
-			@Override
-			public void paint(Graphics2D g, ViewTransform view, MapInfo viewed, PlayerPosition player)
-			{
-			}
-		};
 		PinStore pins = new PinStore(PinStore.Storage.inMemory(), new Gson());
 		ExternalOverlays external = new ExternalOverlays();
 		ViewMemory memory = new ViewMemory(null)
@@ -86,8 +77,8 @@ public class PreviewIcons
 			}
 		};
 		MapActions routing = new MapActions(new EventBus(), external);
-		SurfaceServices services = new SurfaceServices(quiet, memory, pins, external,
-			routing, new Settings(null), new TrailTracker(), new com.google.gson.Gson());
+		SurfaceServices services = new SurfaceServices(memory, pins, external,
+			routing, new Settings(null), new com.google.gson.Gson());
 		WorldMapPlusConfig config = new WorldMapPlusConfig()
 		{
 		};

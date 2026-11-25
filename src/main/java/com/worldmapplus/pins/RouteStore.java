@@ -1,15 +1,11 @@
 package com.worldmapplus.pins;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
-import com.worldmapplus.WorldMapPlusConfig;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import net.runelite.client.config.ConfigManager;
+import com.google.gson.*;
+import com.worldmapplus.*;
+import java.util.*;
+import javax.annotation.*;
+import javax.inject.*;
+import net.runelite.client.config.*;
 
 /**
  * The player's routes, kept in memory and saved to the plugin's settings as one JSON value.
@@ -43,20 +39,7 @@ public class RouteStore
 	@Inject
 	public RouteStore(ConfigManager configManager, Gson gson, PinStore pins)
 	{
-		this(new PinStore.Storage()
-		{
-			@Override
-			public String read()
-			{
-				return configManager.getConfiguration(WorldMapPlusConfig.GROUP, KEY);
-			}
-
-			@Override
-			public void write(String json)
-			{
-				configManager.setConfiguration(WorldMapPlusConfig.GROUP, KEY, json);
-			}
-		}, gson, pins);
+		this(PinStore.Storage.settings(configManager, KEY), gson, pins);
 	}
 
 	public RouteStore(PinStore.Storage storage, Gson gson, PinStore pins)
@@ -323,7 +306,7 @@ public class RouteStore
 				return result;
 			}
 			result.nextId = file.nextId;
-			java.util.Set<Long> seen = new java.util.HashSet<>();
+			Set<Long> seen = new HashSet<>();
 			for (SavedRoute route : file.routes)
 			{
 				if (route == null || result.routes.size() >= MAX_ROUTES || route.getId() <= 0 || !seen.add(route.getId()))

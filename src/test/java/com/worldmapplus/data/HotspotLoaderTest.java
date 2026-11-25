@@ -190,66 +190,6 @@ public class HotspotLoaderTest
 		assertNotNull(HotspotLoader.transports(new StringReader("{\"routes\":[null]}"), GSON, catalog()));
 	}
 
-	private static String shopJson(int items)
-	{
-		StringBuilder json = new StringBuilder("{\"shops\":[{\"name\":\"Bob's Brilliant Axes.\",\"owner\":\"Bob\","
-			+ "\"where\":\"Lumbridge\",\"x\":3230,\"y\":3203,\"items\":[");
-		for (int i = 0; i < items; i++)
-		{
-			if (i > 0)
-			{
-				json.append(',');
-			}
-			json.append("{\"item\":\"Axe ").append(i).append("\",\"stock\":5,\"price\":").append(1000 + i)
-				.append(",\"change\":20}");
-		}
-		json.append("]}]}");
-		return json.toString();
-	}
-
-	@Test
-	public void aShopCardNamesTheKeeperAndListsStock()
-	{
-		List<Hotspot> spots = HotspotLoader.shops(new StringReader(shopJson(3)), GSON, catalog());
-		assertEquals(1, spots.size());
-		Hotspot shop = spots.get(0);
-		assertEquals(Hotspot.Kind.SHOP, shop.getKind());
-		assertEquals(3230.5, shop.getX(), 1e-9);
-		assertEquals("Run by Bob, Lumbridge", shop.getCard().getSubtitle());
-		assertEquals(3, shop.getCard().getRows().size());
-		assertEquals("1,000 coins, 5 in stock", shop.getCard().getRows().get(0).getValue());
-		assertTrue(shop.getCard().getHint().contains("20%"));
-	}
-
-	@Test
-	public void aLongStockListKeepsTheRestForTheExpandedCard()
-	{
-		Hotspot shop = HotspotLoader.shops(new StringReader(shopJson(40)), GSON, catalog()).get(0);
-		assertEquals(HotspotLoader.MAX_SHOP_ROWS, shop.getCard().getRows().size());
-		assertEquals(40 - HotspotLoader.MAX_SHOP_ROWS, shop.getCard().getOverflow().size());
-		List<com.worldmapplus.layers.HoverCard.Row> collapsed = shop.getCard().visibleRows(false);
-		assertEquals(HotspotLoader.MAX_SHOP_ROWS + 1, collapsed.size());
-		assertTrue(collapsed.get(collapsed.size() - 1).getLabel().contains("26 more"));
-		assertEquals(40, shop.getCard().visibleRows(true).size());
-	}
-
-	@Test
-	public void otherCurrenciesAreNamed()
-	{
-		String json = "{\"shops\":[{\"name\":\"Odd shop\",\"x\":3230,\"y\":3203,\"items\":["
-			+ "{\"item\":\"Thing\",\"price\":30,\"currency\":\"Tokkul\"}]}]}";
-		Hotspot shop = HotspotLoader.shops(new StringReader(json), GSON, catalog()).get(0);
-		assertEquals("30 tokkul", shop.getCard().getRows().get(0).getValue());
-		assertEquals(null, shop.getCard().getSubtitle());
-	}
-
-	@Test
-	public void shopsOffEveryMapAreSkipped()
-	{
-		String json = "{\"shops\":[{\"name\":\"Nowhere\",\"x\":10,\"y\":10,\"items\":[{\"item\":\"X\",\"price\":1}]}]}";
-		assertTrue(HotspotLoader.shops(new StringReader(json), GSON, catalog()).isEmpty());
-	}
-
 	private static final String TELEPORTS = "{\"teleports\":["
 		+ "{\"name\":\"Varrock Teleport\",\"kind\":\"Spell\",\"group\":\"Standard spellbook\",\"x\":3213,\"y\":3424,"
 		+ "\"plane\":0,\"skills\":[\"25 Magic\"],\"items\":\"3 air rune, 1 law rune\",\"snap\":[3212,3424]},"
@@ -351,16 +291,12 @@ public class HotspotLoaderTest
 		MapCatalog bundled = MapCatalog.load(GSON);
 		List<Hotspot> all = HotspotLoader.load(GSON, bundled);
 		assertTrue("hotspots: " + all.size(), all.size() > 500);
-		int shops = 0;
 		int doorways = 0;
 		int transport = 0;
 		for (Hotspot h : all)
 		{
 			switch (h.getKind())
 			{
-				case SHOP:
-					shops++;
-					break;
 				case DOORWAY:
 					doorways++;
 					break;
@@ -368,7 +304,6 @@ public class HotspotLoaderTest
 					transport++;
 			}
 		}
-		assertTrue("shops " + shops, shops > 300);
 		assertTrue("doorways " + doorways, doorways > 200);
 		assertTrue("transport " + transport, transport > 100);
 	}

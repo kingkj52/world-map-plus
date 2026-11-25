@@ -1,6 +1,7 @@
 package com.worldmapplus.game;
 
-import net.runelite.api.coords.WorldPoint;
+import lombok.*;
+import net.runelite.api.coords.*;
 
 /**
  * Where the local player is, to a fraction of a tile.
@@ -10,32 +11,12 @@ import net.runelite.api.coords.WorldPoint;
  * between. Inside an instance they are the coordinates of the area the instance was copied from,
  * which is where the map should draw them.
  */
+@Getter
+@RequiredArgsConstructor
 public final class PlayerPosition
 {
 	private final double x;
 	private final double y;
-	private final WorldPoint tile;
-
-	public PlayerPosition(double x, double y, WorldPoint tile)
-	{
-		this.x = x;
-		this.y = y;
-		this.tile = tile;
-	}
-
-	public double getX()
-	{
-		return x;
-	}
-
-	public double getY()
-	{
-		return y;
-	}
-
 	/** The whole tile the player is on. */
-	public WorldPoint getTile()
-	{
-		return tile;
-	}
+	private final WorldPoint tile;
 }

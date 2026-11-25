@@ -1,7 +1,7 @@
 package com.worldmapplus.pins;
 
-import java.util.function.LongConsumer;
-import javax.inject.Singleton;
+import java.util.function.*;
+import javax.inject.*;
 
 /**
  * How the map asks for the side panel to open on a saved place. The plugin gives it the way to do so

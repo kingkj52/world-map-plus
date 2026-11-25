@@ -1,30 +1,11 @@
 package com.worldmapplus.panel;
 
-import com.worldmapplus.pins.Pin;
-import com.worldmapplus.pins.PinStore;
-import com.worldmapplus.pins.RouteStore;
-import com.worldmapplus.pins.SavedRoute;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.FlowLayout;
-import java.awt.GridLayout;
-import java.util.ArrayList;
+import com.worldmapplus.pins.*;
+import java.awt.*;
+import java.util.*;
 import java.util.List;
-import javax.annotation.Nullable;
-import javax.swing.BorderFactory;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-import javax.swing.ListSelectionModel;
-import javax.swing.SwingUtilities;
+import javax.annotation.*;
+import javax.swing.*;
 
 /**
  * A small window for making or changing a route: its name, its stops in order, and whether it loops.
@@ -45,9 +26,9 @@ final class RouteEditor
 	static void show(Component parent, PinStore pins, RouteStore routes, @Nullable SavedRoute existing,
 		List<Long> startingStops)
 	{
-		java.awt.Window owner = parent == null ? null : SwingUtilities.getWindowAncestor(parent);
+		Window owner = parent == null ? null : SwingUtilities.getWindowAncestor(parent);
 		JDialog dialog = new JDialog(owner, existing == null ? "New route" : "Edit route",
-			java.awt.Dialog.ModalityType.APPLICATION_MODAL);
+			Dialog.ModalityType.APPLICATION_MODAL);
 
 		JTextField name = new JTextField(existing == null ? "New route" : existing.getName(), 18);
 		JCheckBox loop = new JCheckBox("Loop: start again after the last stop", existing != null && existing.isLoop());
@@ -141,7 +122,7 @@ final class RouteEditor
 
 		JPanel middle = new JPanel(new BorderLayout(0, 4));
 		JScrollPane scroll = new JScrollPane(list);
-		scroll.setPreferredSize(new java.awt.Dimension(320, 190));
+		scroll.setPreferredSize(new Dimension(320, 190));
 		middle.add(scroll, BorderLayout.CENTER);
 		JPanel under = new JPanel(new GridLayout(2, 1, 0, 4));
 		under.add(order);

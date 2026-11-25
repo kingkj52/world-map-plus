@@ -1,9 +1,8 @@
 package com.worldmapplus.ui;
 
-import java.awt.Color;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import com.worldmapplus.theme.*;
+import java.awt.*;
+import java.util.*;
 
 /**
  * Eases a highlight in and out, so a row or a button warms up under the pointer and cools down after it instead of
@@ -63,7 +62,7 @@ final class Fade
 		if (stamp != now)
 		{
 			stamp = now;
-			stepSize = last == 0 || !com.worldmapplus.theme.Motion.fades() ? 1 : Math.min(1.0, Math.max(0, now - last) / (double) MILLIS);
+			stepSize = last == 0 || !Motion.fades() ? 1 : Math.min(1.0, Math.max(0, now - last) / (double) MILLIS);
 			last = now;
 		}
 		return stepSize;

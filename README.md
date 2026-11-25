@@ -4,7 +4,14 @@ World Map Plus takes over the in-game world map and gives you a better one. You 
 in until a single tile is 32 pixels wide, search for almost anything, hover over icons to see what they do, plan routes,
 save places and keep a see-through map on screen while you play.
 
-It works entirely from data that ships with the plugin, so it never connects to anything while you play.
+Everything the map shows comes with the plugin except the detailed map pictures, which are downloaded the first time you look at
+an area (see "Map pictures" below). Nothing else ever connects to anything while you play.
+
+> **Install World Map Plus Helper too.** The Plugin Hub limits how big one plugin can be, so World Map Plus comes in two
+> parts. Install both from the Plugin Hub for everything on this page: sharing, the results panel and drop tables, search for
+> monsters, items, shops and music, shop cards, walking lines on routes, progress marks, farming cards, wiki buttons, nearby
+> NPCs and support for other plugins. World Map Plus works on its own as a map, and anything that needs the Helper says so.
+> All settings stay in World Map Plus.
 
 ![A card on a shop icon, with its stock and prices](docs/images/hover.png)
 
@@ -12,6 +19,24 @@ It works entirely from data that ships with the plugin, so it never connects to 
 
 Install the plugin, log in and open the world map as usual. The new map appears over the old one. To go back to the
 game's own map at any time, turn off **Replace the world map** in the plugin settings.
+
+## Map pictures
+
+The plugin carries a picture of the whole world for each of the surface and its three floors, so the map always shows
+something. The sharp, detailed pictures are downloaded the first time you look at an area and are then kept on your
+computer, in the plugin's own folder inside RuneLite's data folder. About 12 MB in all if you look at everything, in packs
+of 0.1 to 0.9 MB; a pack is downloaded once and never again unless the maps are updated.
+
+- **What is sent.** The download is a plain request for a file from this plugin's own GitHub release
+  (`github.com/KingKj52/world-map-plus-maps`). GitHub sees your IP address, as for any download. Nothing about you or your
+  account is sent, and nothing from the game.
+- **Turn it off.** The setting **Download map pictures** (General) is on by default. Off, the map shows the overview and
+  whatever was downloaded before.
+- **While it downloads** a small line in the lower left corner of the map says so, and the overview shows in place of the
+  pictures that have not come yet. If GitHub cannot be reached the line says so and the plugin tries again later, waiting
+  longer each time. It asks for nothing else and never in a loop.
+- **Updates.** When the maps change (a game update), a new release is made and the plugin fetches only the packs that
+  changed, with no new version of the plugin needed in most cases. The files are checked against a SHA-256 before they are used.
 
 ## The map
 
@@ -72,16 +97,17 @@ spelling still comes first. A plain word for a kind of place, such as `bank`, `a
 zoom for a while, and goes to the nearest. Add a town, as in `shark catherby` or `bank varrock`, to get that kind in that
 town alone. A town's name on its own does not list everything in it.
 
-After you choose a result with several places, the **results panel** at the left of the map lists them: how many are at
+With the **World Map Plus Helper** plugin installed (it is part of World Map Plus, split in two for the Plugin Hub), the **results panel**
+appears after you choose a result with several places. It sits at the left of the map and lists them: how many are at
 each place ("Catherby, 2 banks", "3 here") and how far and which way each is from you. Click a row to go there. An item
 has a tab for the shops that sell it, which you can sort by nearest, stock, name or price, and a tab for where it lies on
 the ground; a shop row opens what that shop sells, and **Back** goes through up to twenty earlier lists. The cross closes the
 panel, and **Results panel** in the settings turns it off.
 
-A monster or NPC also has a **Drops** tab: what it drops (and gives when pickpocketed), how rare, how many, sorted by rarity,
+With the Helper, a monster or NPC also has a **Drops** tab: what it drops (and gives when pickpocketed), how rare, how many, sorted by rarity,
 value or name, with the value of each item and the coins you can expect per kill where they can be worked out. An item has a
 **Dropped by** tab: every monster that drops it, how rare, and the nearest place of that monster, which a click goes to. The
-tables come from the Old School RuneScape Wiki and are bundled in the plugin; the values are RuneLite's own item prices, so this
+tables come from the Old School RuneScape Wiki and are bundled in the Helper; the values are RuneLite's own item prices, so this
 plugin makes no request for them, and an item RuneLite has no price for shows none. **Drop tables** in the settings turns the
 tabs off.
 
@@ -116,8 +142,8 @@ within 500 coins near you.
 ## Routes
 
 Right-click anywhere and choose **Route here**. If you have the Shortest Path plugin, it works out the route, and the
-map draws it: numbered markers for the boats, teleports and shortcuts, a line along the walkable tiles for the walking
-in between, and a list of the steps. Click a step to jump to where it starts.
+map draws it: numbered markers for the boats, teleports and shortcuts, a line for the walking in between (along the walkable
+tiles with the World Map Plus Helper, straight without it), and a list of the steps. Click a step to jump to where it starts.
 
 Once a route exists, the menu also offers **Set route start here**, to route from a tile you pick instead of from where
 you stand, and **Add route target 2 here** (and 3, and so on) to head for whichever target is nearest. **Clear route**
@@ -139,11 +165,15 @@ the next stop. Routes still pass through hidden pins. Each route in the side pan
 three and "+12 more", which shows them all.
 
 **Order** on a route of three to twelve stops puts them in the shortest order. You choose whether the first stop stays
-first and whether the route comes back to it at the end. The lengths are the walks this plugin finds between stops on the
+first and whether the route comes back to it at the end. The lengths are the walks the World Map Plus Helper finds between stops on the
 same map and floor, and the straight line elsewhere (teleports are not counted). The side panel says the length before and
 after, and **Undo order** puts the stops back as they were.
 
 ## Sharing
+
+Sharing is in a second Plugin Hub plugin, **World Map Plus Helper**, which needs this one. Install it for everything in this
+section: the buttons below stay in this plugin's side panel, and without the Helper they say it is missing. The settings stay
+in this plugin's settings, under Sharing, and say "Needs World Map Plus Helper". Codes made before the split still work.
 
 **Share ticked** in the places tab (one ticked place makes a pin code, more make a set of places) and **Share** on a
 route show a short chat command, such as `!wmp p10kgkm86a` for a pin at the Farming Guild. Type it into the game's chat
@@ -267,7 +297,10 @@ window has its own view, search and menu, and you can have up to six open next t
 
 ## Other plugins
 
-Plugins that put things on the world map keep working. Points they add, such as the golems from Golems Don't Die, show
+Support for other plugins is in **World Map Plus Helper**, the second Plugin Hub plugin (it needs this one, and this one
+works without it). With both installed, plugins that put things on the world map keep working; without the Helper this
+map shows what the game's own map shows of them and nothing else. The settings for it stay in this plugin's settings and say
+"Needs World Map Plus Helper". Points they add, such as the golems from Golems Don't Die, show
 on this map too, and so do the other members of your party from RuneLite's own Party plugin, with their names. The layers list names 
 each plugin that has points on the map and lets you hide any of them.
 
@@ -277,7 +310,9 @@ somewhere this map has no picture of. Following only reads the point the Party p
 
 A point on the game's map that jumps somewhere when clicked has **Focus on** in this map's right click menu, as it does
 on the game's map. Plugin authors can add markers, lines, menu entries and layers of their own through a small set of
-plugin messages, described in `docs/COMPAT.md` ("Plugin API v1"), with a one file helper in `docs/api`.
+plugin messages, described in `docs/COMPAT.md` ("Plugin API v1"), with a one file helper in `docs/api`. Version 3 of the
+same messages (side panel sections, painters on the map, hover card lines, search results, menu entries, saved places) is what a
+second plugin can use to add parts of the interface; it is described in the same file ("Plugin API v3"), with its own helper.
 
 Some plugins only fill in the area around where the game's own map is looking. So that they still work here, the game's
 map is moved to the middle of what you are looking at whenever you stop moving this map, even though the two are zoomed

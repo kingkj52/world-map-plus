@@ -8,17 +8,20 @@ RuneScape and Old School RuneScape are trademarks of Jagex Limited. The policy i
 https://legal.jagex.com/docs/policies/fan-content-policy. This plugin is also not affiliated with or endorsed by
 the OSRS Wiki or the authors of the plugins named below.
 
-This plugin bundles map imagery and reference data. None of it is fetched while the plugin runs. It was gathered
-once, at build time, by the plugin's build tools, which are kept outside this repository, and is refreshed only
-when the plugin is rebuilt for a release. The
+This plugin bundles reference data and four overview pictures of the map, and downloads the detailed map pictures from its own
+GitHub release (see Map imagery). The imagery and data were gathered once, at build time, by the plugin's build tools, which
+are kept outside this repository, and are refreshed only when a new release is made. The
 version of the wiki's map that the tiles were taken from is recorded in maps.json, in the plugin's jar. This file is
 also inside the jar, as META-INF/NOTICE, next to META-INF/LICENSE.
 
 ----------------------------------------------------------------------------------------------------
 Map imagery
 ----------------------------------------------------------------------------------------------------
-What is bundled: the map tiles of the game's maps (the surface, its floors, and the dungeon and other
-maps), and a few overview pictures made by averaging them.
+What is bundled and what is downloaded: the map tiles of the game's maps (the surface, its floors, and the dungeon and other
+maps) are downloaded, the first time an area is viewed, from the plugin's own GitHub release
+(https://github.com/KingKj52/world-map-plus-maps) and kept on the player's computer. Only files of that release are
+fetched, each checked against a SHA-256, and GitHub sees the player's IP address, as for any download. Four overview pictures
+made by averaging the tiles are bundled in the jar.
 
 Where from: the Old School RuneScape Wiki's map server (https://maps.runescape.wiki/osrs/), fetched once at
 build time. The wiki's page RuneScape:Map (https://oldschool.runescape.wiki/w/RuneScape:Map) says the tiles are
@@ -33,8 +36,8 @@ CC BY-NC-SA, and does not claim any licence for them. The BSD 2-Clause licence o
 source code only. The tiles are credited to the wiki as the place they were taken from and to Jagex as their
 owner. The plugin is free and non-commercial.
 
-What was changed: the tiles are stored in a compact form to keep the jar small, the overview pictures are
-averaged from them, and a few map squares that the wiki's tiles leave black are drawn at build time from the
+What was changed: the tiles are PNG files grouped into packs (zip files without compression) for download, the overview
+pictures are averaged from them, and a few map squares that the wiki's tiles leave black are drawn at build time from the
 game's own map data, read from the local game cache with RuneLite's cache library
 (https://github.com/runelite/runelite, BSD 2-Clause) by the build tools. The picture content is
 otherwise as the wiki serves it.
@@ -87,8 +90,7 @@ minecarts, levers, portals, gliders, balloons, mushtrees, quetzals, spirit trees
 rings that drive the transport hover cards, the teleport tables (spells, jewellery and other items,
 minigame teleports, house jewellery boxes, the quetzal whistle and home teleports) that drive the
 teleport cards, the table of which region of the world each map square belongs to that drives the
-region borders, and the walking data (collision-map.zip) that the walking line of a route is worked out from,
-with the rules for which steps between tiles are possible, ported from its Java source. The agility shortcut
+region borders. The agility shortcut
 table (levels, items and where each shortcut comes out) and the few trip rows of the general transport table
 (travel carts, guides, rafts) are also from Shortest Path.
 

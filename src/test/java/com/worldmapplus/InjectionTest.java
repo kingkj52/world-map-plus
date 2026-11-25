@@ -10,7 +10,6 @@ import com.google.inject.Injector;
 import com.google.inject.Provides;
 import com.worldmapplus.bridge.ExternalOverlays;
 import com.worldmapplus.game.PlayerLocator;
-import com.worldmapplus.game.TrailTracker;
 import com.worldmapplus.ui.HudOverlay;
 import com.worldmapplus.ui.HudState;
 import com.worldmapplus.ui.ViewerOverlay;
@@ -108,7 +107,6 @@ public class InjectionTest
 		assertNotNull(injector.getInstance(HudOverlay.class));
 		assertNotNull(injector.getInstance(HudState.class));
 		assertNotNull(injector.getInstance(ExternalOverlays.class));
-		assertNotNull(injector.getInstance(TrailTracker.class));
 		assertNotNull(injector.getInstance(com.worldmapplus.pins.RouteRunner.class));
 		assertNotNull(injector.getInstance(com.worldmapplus.pins.PanelLauncher.class));
 	}
@@ -145,13 +143,9 @@ public class InjectionTest
 	}
 
 	@Test
-	public void theShareAndWindowPartsCanBeBuilt() throws Exception
+	public void theWindowPartsCanBeBuilt() throws Exception
 	{
 		Injector injector = injector();
-		assertNotNull(injector.getInstance(com.worldmapplus.share.ShareInbox.class));
-		assertSame(injector.getInstance(com.worldmapplus.share.ShareInbox.class),
-			injector.getInstance(com.worldmapplus.share.ShareInbox.class));
-		assertNotNull(injector.getInstance(com.worldmapplus.bridge.ShareChat.class));
 		assertNotNull(injector.getInstance(com.worldmapplus.ui.MapWindows.class));
 	}
 }

@@ -1,5 +1,9 @@
 package com.worldmapplus.map;
 
+import java.util.HashSet;
+import java.util.Set;
+import lombok.*;
+
 /**
  * One map the viewer can show: the surface, or one of the underground and detached areas.
  * <p>
@@ -18,17 +22,23 @@ public final class MapInfo
 	 */
 	public static final int FIRST_EXTRA = 10_000;
 
+	@Getter
 	private int id;
+	@Getter
 	private String name;
+	@Getter
 	private int minX;
+	@Getter
 	private int minY;
+	@Getter
 	private int maxX;
+	@Getter
 	private int maxY;
 	private int cx;
 	private int cy;
 	/** The 64 tile squares that have imagery, each as x << 16 | y. Absent means the whole rectangle counts. */
 	private int[] sq;
-	private transient java.util.Set<Integer> squareSet;
+	private transient Set<Integer> squareSet;
 
 	public MapInfo()
 	{
@@ -46,40 +56,10 @@ public final class MapInfo
 		this.cy = cy;
 	}
 
-	public int getId()
-	{
-		return id;
-	}
-
 	/** True for the standard maps. False for the wiki's extra maps, which only a search or a link opens. */
 	public boolean isStandard()
 	{
 		return id < FIRST_EXTRA;
-	}
-
-	public String getName()
-	{
-		return name;
-	}
-
-	public int getMinX()
-	{
-		return minX;
-	}
-
-	public int getMinY()
-	{
-		return minY;
-	}
-
-	public int getMaxX()
-	{
-		return maxX;
-	}
-
-	public int getMaxY()
-	{
-		return maxY;
 	}
 
 	/** A sensible place to look when this map is opened with nothing else to aim at. */
@@ -108,10 +88,10 @@ public final class MapInfo
 		{
 			return true;
 		}
-		java.util.Set<Integer> squares = squareSet;
+		Set<Integer> squares = squareSet;
 		if (squares == null)
 		{
-			squares = new java.util.HashSet<>();
+			squares = new HashSet<>();
 			for (int key : sq)
 			{
 				squares.add(key);

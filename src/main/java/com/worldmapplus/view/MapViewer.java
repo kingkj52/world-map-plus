@@ -1,8 +1,11 @@
 package com.worldmapplus.view;
 
-import com.worldmapplus.map.MapInfo;
-import java.awt.Rectangle;
-import javax.annotation.Nullable;
+import com.worldmapplus.map.*;
+import com.worldmapplus.theme.*;
+import com.worldmapplus.tiles.*;
+import java.awt.*;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * The state of one open map: which map, where the camera is, how far in it is zoomed, and what
@@ -25,9 +28,13 @@ public final class MapViewer
 	/** How much of a screen's worth the camera may be panned past the map's edge. */
 	private static final double OVERSCROLL = 0.25;
 
+	@Getter
 	private final Camera camera;
+	@Getter
 	private final ZoomModel zoom;
 	private MapInfo map;
+	/** The floor on show: 0 is the ground, 1 to 3 are above it. */
+	@Getter
 	private int floor;
 	private Rectangle bounds = new Rectangle(0, 0, 1, 1);
 
@@ -37,6 +44,8 @@ public final class MapViewer
 	private long lastUpdateMillis = Long.MIN_VALUE;
 
 	private boolean pressed;
+	/** True while a drag is in progress, so a click is not also reported for it. */
+	@Getter
 	private boolean dragging;
 	private int pressX;
 	private int pressY;
@@ -51,37 +60,15 @@ public final class MapViewer
 		this.zoom.setSmoothingSeconds(ZoomModel.DEFAULT_SMOOTHING_SECONDS);
 	}
 
-	public Camera getCamera()
-	{
-		return camera;
-	}
-
-	public ZoomModel getZoom()
-	{
-		return zoom;
-	}
-
 	@Nullable
 	public MapInfo getMap()
 	{
 		return map;
 	}
 
-	/** True while a drag is in progress, so a click is not also reported for it. */
-	public boolean isDragging()
-	{
-		return dragging;
-	}
-
-	/** The floor on show: 0 is the ground, 1 to 3 are above it. */
-	public int getFloor()
-	{
-		return floor;
-	}
-
 	public void setFloor(int floor)
 	{
-		this.floor = Math.max(0, Math.min(com.worldmapplus.tiles.TileSource.MAX_FLOOR, floor));
+		this.floor = Math.max(0, Math.min(TileSource.MAX_FLOOR, floor));
 	}
 
 	/** Switches map and aims the camera, keeping the current zoom inside the new map's limits. */
@@ -109,7 +96,7 @@ public final class MapViewer
 			showMap(newMap, centerX, centerY);
 			return;
 		}
-		camera.glideTo(centerX, centerY, nowMillis, com.worldmapplus.theme.Motion.glideMillis(pixels));
+		camera.glideTo(centerX, centerY, nowMillis, Motion.glideMillis(pixels));
 		anchored = false;
 	}
 
@@ -150,9 +137,9 @@ public final class MapViewer
 	}
 
 	/** Where the current or last press began, so a click can be placed after the release. */
-	public java.awt.Point getPressPoint()
+	public Point getPressPoint()
 	{
-		return new java.awt.Point(pressX, pressY);
+		return new Point(pressX, pressY);
 	}
 
 	/** Returns true if this movement was part of a drag that moved the map. */

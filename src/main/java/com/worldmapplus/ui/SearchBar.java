@@ -1,17 +1,12 @@
 package com.worldmapplus.ui;
 
-import com.worldmapplus.theme.Palette;
-import com.worldmapplus.search.SearchBox;
-import com.worldmapplus.search.SearchEntry;
-import java.awt.AlphaComposite;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
+import com.worldmapplus.search.*;
+import com.worldmapplus.theme.*;
+import java.awt.*;
 import java.util.List;
-import javax.annotation.Nullable;
+import java.util.function.Function;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * Draws the search field and its results at the top of the map, and finds what a click landed on.
@@ -33,10 +28,10 @@ public final class SearchBar
 
 	/** What is missing for a result, as a card would say it, or null; asked only for the rows drawn (round 47). */
 	@Nullable
-	private java.util.function.Function<SearchEntry, String> missing;
+	private Function<SearchEntry, String> missing;
 
 	/** Tells the bar how to find what is missing for a result, or null for nothing (the settings that mark or hide are off). */
-	public void setMissing(@Nullable java.util.function.Function<SearchEntry, String> missing)
+	public void setMissing(@Nullable Function<SearchEntry, String> missing)
 	{
 		this.missing = missing;
 	}
@@ -50,7 +45,10 @@ public final class SearchBar
 		public static final Hit NONE = new Hit(false, -1, -1);
 		public static final Hit FIELD_HIT = new Hit(true, -1, -1);
 
+		@Getter
 		private final boolean field;
+		/** The result row under the point, or -1. */
+		@Getter
 		private final int row;
 		private final double scroll;
 
@@ -82,21 +80,13 @@ public final class SearchBar
 		{
 			return scroll;
 		}
-
-		public boolean isField()
-		{
-			return field;
-		}
-
-		/** The result row under the point, or -1. */
-		public int getRow()
-		{
-			return row;
-		}
 	}
 
 	private Rectangle fieldRect = new Rectangle();
+	@Getter
 	private int visibleRows;
+	/** How many results the map has room for at once, whether or not there are that many. */
+	@Getter
 	private int capacity;
 	private int total;
 	private Rectangle resultsRect = new Rectangle();
@@ -209,17 +199,6 @@ public final class SearchBar
 		return Math.max(0, Math.min(1, (y - resultsRect.y) / (double) Math.max(1, resultsRect.height)));
 	}
 
-	public int getVisibleRows()
-	{
-		return visibleRows;
-	}
-
-	/** How many results the map has room for at once, whether or not there are that many. */
-	public int getCapacity()
-	{
-		return capacity;
-	}
-
 	/** True when there are more results than rows, so the list scrolls. */
 	public boolean scrolls()
 	{
@@ -232,7 +211,7 @@ public final class SearchBar
 		return visibleRows > 0 && shown().contains(x, y);
 	}
 
-	public void paint(Graphics2D g, SearchBox box, @Nullable java.awt.Point mouse, long nowMillis)
+	public void paint(Graphics2D g, SearchBox box, @Nullable Point mouse, long nowMillis)
 	{
 		boolean focused = box.isFocused();
 		Theme.panel(g, fieldRect.x, fieldRect.y, fieldRect.width, fieldRect.height,
@@ -278,8 +257,8 @@ public final class SearchBar
 		Rectangle area = shown();
 		if (area.height > 0)
 		{
-			java.awt.Shape oldClip = g.getClip();
-			java.awt.Composite oldComposite = g.getComposite();
+			Shape oldClip = g.getClip();
+			Composite oldComposite = g.getComposite();
 			g.clipRect(area.x, area.y, area.width, area.height);
 			g.setComposite(AlphaComposite.SrcOver.derive((float) Math.min(1.0, Fade.ease(open) * 1.2)));
 			for (int i = 0; i < visibleRows && box.getScrollTop() + i < results.size(); i++)
@@ -358,7 +337,7 @@ public final class SearchBar
 		}
 	}
 
-	private void paintRow(Graphics2D g, SearchEntry entry, int row, boolean selected, @Nullable java.awt.Point mouse,
+	private void paintRow(Graphics2D g, SearchEntry entry, int row, boolean selected, @Nullable Point mouse,
 		long nowMillis)
 	{
 		Rectangle rect = new Rectangle(resultsRect.x, resultsRect.y + row * ROW_HEIGHT, resultsRect.width, ROW_HEIGHT);

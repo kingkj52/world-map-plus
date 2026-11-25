@@ -272,7 +272,7 @@ public class TileCacheTest
 		assertNull(cache.getOverview(0));
 		assertNotNull(cache.getOverview(0));
 		assertSame(picture, cache.peekOverview(0));
-		assertEquals(1, source.overviewPiecesMade());
+		assertEquals(1, source.overviewReads());
 	}
 
 	@Test
@@ -733,63 +733,36 @@ public class TileCacheTest
 	}
 
 	@Test
-	public void aWholeMapPictureIsMadeInPiecesAndOneTaskAtATime()
+	public void aWholeMapPictureIsReadInOneTaskAndOnlyOnce()
 	{
 		BufferedImage picture = new BufferedImage(8, 8, BufferedImage.TYPE_INT_RGB);
-		FakeTiles source = new FakeTiles().overview(picture).overviewPieces(5);
+		FakeTiles source = new FakeTiles().overview(picture);
 		Deque<Runnable> queue = new ArrayDeque<>();
 		TileCache cache = new TileCache(source, queue::add, 64L << 20);
 		cache.beginFrame();
 		assertNull(cache.getOverview(0));
 		assertTrue(cache.isOverviewPending(0));
 		assertEquals(1, cache.pendingCount());
-		for (int piece = 1; piece <= 5; piece++)
-		{
-			assertEquals(1, queue.size());
-			queue.poll().run();
-			assertEquals(piece, source.overviewPiecesMade());
-			assertEquals("not ready before the last piece", piece == 5, cache.peekOverview(0) != null);
-			assertTrue(queue.size() <= TileCache.MAX_TASKS);
-		}
+		assertEquals(1, queue.size());
+		queue.poll().run();
+		assertNotNull(cache.peekOverview(0));
 		assertFalse(cache.isOverviewPending(0));
 		assertEquals(0, cache.pendingCount());
 		drain(queue);
-		assertEquals("made once", 5, source.overviewPiecesMade());
+		assertEquals("read once", 1, source.overviewReads());
 	}
 
 	@Test
 	public void aPictureThatFailsIsNotTriedAgain()
 	{
-		int[] starts = new int[1];
-		FakeTiles source = new FakeTiles()
-		{
-			@Override
-			public Picture startOverview(int mapId)
-			{
-				starts[0]++;
-				return new Picture()
-				{
-					@Override
-					public boolean step(long nanos)
-					{
-						return true;
-					}
-
-					@Override
-					public BufferedImage image()
-					{
-						return null;
-					}
-				};
-			}
-		};
+		FakeTiles source = new FakeTiles();
 		TileCache cache = new TileCache(source, Runnable::run, 64L << 20);
 		cache.beginFrame();
 		for (int i = 0; i < 5; i++)
 		{
 			assertNull(cache.getOverview(0));
 		}
-		assertEquals(1, starts[0]);
+		assertEquals(1, source.overviewReads());
 		assertEquals(0, cache.pendingCount());
 	}
 
@@ -797,7 +770,7 @@ public class TileCacheTest
 	public void aFewTilesGoBeforeAPictureThatOnlyStandsInForTiles()
 	{
 		BufferedImage picture = new BufferedImage(8, 8, BufferedImage.TYPE_INT_RGB);
-		FakeTiles source = new FakeTiles().overview(picture).overviewPieces(3);
+		FakeTiles source = new FakeTiles().overview(picture);
 		for (int x = 0; x < 10; x++)
 		{
 			source.add(0, x, 0);
@@ -813,7 +786,7 @@ public class TileCacheTest
 		assertEquals("a picture that is only a stand in is not pending work", 10, cache.pendingCount());
 		drain(queue);
 		assertEquals(10, source.loads());
-		assertEquals(3, source.overviewPiecesMade());
+		assertEquals(1, source.overviewReads());
 		assertNotNull(cache.peekOverview(0));
 	}
 
@@ -821,7 +794,7 @@ public class TileCacheTest
 	public void withManyTilesWaitingThePictureComesAfterTheFirstFewTiles()
 	{
 		BufferedImage picture = new BufferedImage(8, 8, BufferedImage.TYPE_INT_RGB);
-		FakeTiles source = new FakeTiles().overview(picture).overviewPieces(4);
+		FakeTiles source = new FakeTiles().overview(picture);
 		for (int x = 0; x < 200; x++)
 		{
 			source.add(0, x, 0);
@@ -840,13 +813,10 @@ public class TileCacheTest
 			queue.poll().run();
 		}
 		assertEquals(tilesFirst, source.loads());
-		assertEquals(0, source.overviewPiecesMade());
-		for (int piece = 1; piece <= 4; piece++)
-		{
-			queue.poll().run();
-			assertEquals(piece, source.overviewPiecesMade());
-			assertEquals("the tiles wait for the picture", tilesFirst, source.loads());
-		}
+		assertEquals(0, source.overviewReads());
+		queue.poll().run();
+		assertEquals(1, source.overviewReads());
+		assertEquals("the tiles wait for the picture", tilesFirst, source.loads());
 		assertNotNull(cache.peekOverview(0));
 		queue.poll().run();
 		assertEquals(tilesFirst + 1, source.loads());
@@ -858,7 +828,7 @@ public class TileCacheTest
 	public void aPictureTheViewNeedsGoesAfterTheFirstTilesToo()
 	{
 		BufferedImage picture = new BufferedImage(8, 8, BufferedImage.TYPE_INT_RGB);
-		FakeTiles source = new FakeTiles().overview(picture).overviewPieces(2);
+		FakeTiles source = new FakeTiles().overview(picture);
 		for (int x = 0; x < 20; x++)
 		{
 			source.add(0, x, 0);
@@ -872,12 +842,12 @@ public class TileCacheTest
 			cache.get(0, x, 0, 0);
 		}
 		// The picture is needed, so after a head start of tiles it is made before the rest.
-		for (int i = 0; i < TileCache.HEAD_START_TILES + 2; i++)
+		for (int i = 0; i < TileCache.HEAD_START_TILES + 1; i++)
 		{
 			queue.poll().run();
 		}
 		assertEquals(TileCache.HEAD_START_TILES, source.loads());
-		assertEquals(2, source.overviewPiecesMade());
+		assertEquals(1, source.overviewReads());
 	}
 
 	// ---- fetching ahead ----
@@ -1109,5 +1079,73 @@ public class TileCacheTest
 		cache.get(0, 5, 5, 0);
 		assertFalse(cache.releaseIfIdle(5_000));
 		assertTrue(cache.heldBytes() > 0);
+	}
+
+	/** A source whose tiles on the right half (x of 6 and more) are still being downloaded until it is told they have come. */
+	private static final class Arriving extends FakeTiles
+	{
+		final List<double[]> asked = new ArrayList<>();
+		volatile boolean arrived;
+
+		@Override
+		public boolean ready(int mapId, int x, int y)
+		{
+			return arrived || x < 6;
+		}
+
+		@Override
+		public void request(int mapId, int x, int y, double distance)
+		{
+			asked.add(new double[] {x, distance});
+		}
+	}
+
+	@Test
+	public void tilesStillBeingDownloadedAreAskedForNearestFirstAndTheRestIsDecodedMeanwhile()
+	{
+		Arriving source = new Arriving();
+		for (int x = 4; x < 9; x++)
+		{
+			source.add(0, x, 0);
+		}
+		Deque<Runnable> queue = new ArrayDeque<>();
+		TileCache cache = new TileCache(source, queue::add, 64L << 20);
+		cache.beginFrame(7.5, 0.5);
+		for (int x = 4; x < 9; x++)
+		{
+			assertNull(cache.get(0, x, 0, 0));
+		}
+		drain(queue);
+		assertNotNull("a tile that is here is decoded", cache.get(0, 4, 0, 0));
+		assertNotNull(cache.get(0, 5, 0, 0));
+		assertNull("a tile on its way is not decoded, nor given up on", cache.get(0, 7, 0, 0));
+		assertTrue(cache.isLoading(0, 7, 0));
+		assertEquals("only the tiles that are here were loaded", 2, source.loads());
+		assertEquals(3, cache.pendingCount());
+		assertFalse("nothing is asked of the source for a tile that is here", source.asked.stream().anyMatch(a -> a[0] < 6));
+		double nearest = Double.MAX_VALUE;
+		for (double[] a : source.asked)
+		{
+			if (a[0] == 7)
+			{
+				nearest = Math.min(nearest, a[1]);
+			}
+		}
+		assertEquals("the distance from the middle of the view is passed on", 0.0, nearest, 1e-9);
+
+		// The tiles come: the next frames load them.
+		source.arrived = true;
+		for (int frame = 0; frame < 3; frame++)
+		{
+			cache.beginFrame(7.5, 0.5);
+			for (int x = 4; x < 9; x++)
+			{
+				cache.get(0, x, 0, 0);
+			}
+			drain(queue);
+		}
+		assertNotNull(cache.get(0, 7, 0, 0));
+		assertEquals(5, source.loads());
+		assertEquals(0, cache.pendingCount());
 	}
 }

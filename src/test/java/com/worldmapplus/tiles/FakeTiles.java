@@ -15,8 +15,7 @@ public class FakeTiles implements TileSource
 	private final java.util.List<int[]> order = java.util.Collections.synchronizedList(new java.util.ArrayList<>());
 	private final AtomicInteger releases = new AtomicInteger();
 	private BufferedImage overview;
-	private int pieces = 1;
-	private final AtomicInteger pieceCount = new AtomicInteger();
+	private final AtomicInteger overviewReads = new AtomicInteger();
 
 	private static long key(int mapId, int x, int y)
 	{
@@ -35,17 +34,10 @@ public class FakeTiles implements TileSource
 		return this;
 	}
 
-	/** Makes the overview in this many pieces, one for each call of the picture's step. */
-	public FakeTiles overviewPieces(int count)
+	/** How many times the overview has been read. */
+	public int overviewReads()
 	{
-		this.pieces = count;
-		return this;
-	}
-
-	/** How many pieces of an overview have been made. */
-	public int overviewPiecesMade()
-	{
-		return pieceCount.get();
+		return overviewReads.get();
 	}
 
 	public int loads()
@@ -104,32 +96,7 @@ public class FakeTiles implements TileSource
 	@Override
 	public BufferedImage overview(int mapId)
 	{
+		overviewReads.incrementAndGet();
 		return overview;
-	}
-
-	@Override
-	public Picture startOverview(int mapId)
-	{
-		if (overview == null)
-		{
-			return null;
-		}
-		return new Picture()
-		{
-			private int left = pieces;
-
-			@Override
-			public boolean step(long nanos)
-			{
-				pieceCount.incrementAndGet();
-				return --left <= 0;
-			}
-
-			@Override
-			public BufferedImage image()
-			{
-				return overview;
-			}
-		};
 	}
 }

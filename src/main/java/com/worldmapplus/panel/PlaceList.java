@@ -1,12 +1,8 @@
 package com.worldmapplus.panel;
 
-import com.worldmapplus.pins.Pin;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.TreeSet;
-import java.util.function.IntFunction;
+import com.worldmapplus.pins.*;
+import java.util.*;
+import java.util.function.*;
 
 /**
  * Chooses and orders the saved places the side panel lists: a text filter, a type filter and a sort.

@@ -11,10 +11,8 @@ import com.worldmapplus.WorldMapPlusConfig;
 import com.worldmapplus.bridge.ExternalOverlays;
 import com.worldmapplus.bridge.MapActions;
 import com.worldmapplus.game.PlayerPosition;
-import com.worldmapplus.game.TrailTracker;
 import com.worldmapplus.input.ChatSearch;
 import com.worldmapplus.input.FakePrompts;
-import com.worldmapplus.layers.NpcLayer;
 import com.worldmapplus.map.MapInfo;
 import com.worldmapplus.pins.PanelLauncher;
 import com.worldmapplus.pins.PinStore;
@@ -59,7 +57,6 @@ public class ChatSearchSurfaceTest
 	private boolean chatOn;
 	private MapSurface surface;
 	private Client client;
-	private NpcLayer quiet;
 	private BufferedImage canvas;
 	private long now = 1_000_000;
 
@@ -98,13 +95,6 @@ public class ChatSearchSurfaceTest
 				}
 				return null;
 			});
-		quiet = new NpcLayer()
-		{
-			@Override
-			public void paint(Graphics2D g, ViewTransform view, MapInfo viewed, PlayerPosition player)
-			{
-			}
-		};
 		surface = newSurface(chat);
 	}
 
@@ -125,7 +115,7 @@ public class ChatSearchSurfaceTest
 		PinStore pins = new PinStore(PinStore.Storage.inMemory(), new Gson());
 		ExternalOverlays external = new ExternalOverlays();
 		RouteStore routes = new RouteStore(PinStore.Storage.inMemory(), new Gson(), pins);
-		SurfaceServices services = new SurfaceServices(quiet, new ViewMemory(null)
+		SurfaceServices services = new SurfaceServices(new ViewMemory(null)
 		{
 			@Override
 			public void save(String slot, int mapId, double x, double y, double ppt)
@@ -137,8 +127,7 @@ public class ChatSearchSurfaceTest
 			{
 				return null;
 			}
-		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), new TrailTracker(), null, null,
-			routes, new PanelLauncher(), null, withChat);
+		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), routes, new PanelLauncher(), withChat);
 		return new MapSurface(client, assets, config, services);
 	}
 
@@ -206,13 +195,13 @@ public class ChatSearchSurfaceTest
 	{
 		chatOn = false;
 		startSearch();
-		for (char c : "bob's brilliant".toCharArray())
+		for (char c : "varrock teleport".toCharArray())
 		{
 			assertTrue("taken for the map's own field", typeDirect(c).isConsumed());
 		}
 		frame();
-		assertEquals("bob's brilliant", surface.searchBox().getText());
-		assertEquals(SearchKind.SHOP, surface.searchBox().getResults().get(0).getKind());
+		assertEquals("varrock teleport", surface.searchBox().getText());
+		assertEquals(SearchKind.TELEPORT, surface.searchBox().getResults().get(0).getKind());
 
 		surface.getInput().keyPressed(new KeyEvent(SOURCE, KeyEvent.KEY_PRESSED, now, 0, KeyEvent.VK_ENTER, '\n'));
 		frames(30);
@@ -280,15 +269,15 @@ public class ChatSearchSurfaceTest
 		chatOn = true;
 		startSearch();
 		typeDirect('b');
-		prompts.type("bob's brilliant");
+		prompts.type("varrock teleport");
 		frame();
-		assertEquals("bob's brilliant", surface.searchBox().getText());
+		assertEquals("varrock teleport", surface.searchBox().getText());
 		assertFalse(surface.searchBox().getResults().isEmpty());
-		assertEquals(SearchKind.SHOP, surface.searchBox().getResults().get(0).getKind());
+		assertEquals(SearchKind.TELEPORT, surface.searchBox().getResults().get(0).getKind());
 
-		prompts.set("bob");
+		prompts.set("varrock");
 		frame();
-		assertEquals("results follow each change", "bob", surface.searchBox().getText());
+		assertEquals("results follow each change", "varrock", surface.searchBox().getText());
 		prompts.set("");
 		frame();
 		assertEquals("", surface.searchBox().getText());
@@ -316,7 +305,7 @@ public class ChatSearchSurfaceTest
 	{
 		chatOn = true;
 		startSearch();
-		prompts.type("bob's brilliant");
+		prompts.type("varrock teleport");
 		frame();
 		prompts.enter();
 		frames(80);

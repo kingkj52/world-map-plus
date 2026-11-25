@@ -30,13 +30,13 @@ public class SoundsTest
 		sounds.cue(Sounds.Cue.CHOOSE);
 		assertEquals(1, played.size());
 		now += 60;
-		sounds.cue(Sounds.Cue.SHARE_COMPLETE);
+		sounds.cue(Sounds.Cue.PIN);
 		assertEquals(2, played.size());
 		assertEquals(SoundEffectID.UI_BOOP, (int) played.get(0));
-		assertEquals(SoundEffectID.GE_ADD_OFFER_DINGALING, (int) played.get(1));
+		assertEquals(SoundEffectID.UI_BOOP, (int) played.get(1));
 		for (Sounds.Cue cue : Sounds.Cue.values())
 		{
-			boolean known = cue.id() == SoundEffectID.UI_BOOP || cue.id() == SoundEffectID.GE_ADD_OFFER_DINGALING;
+			boolean known = cue.id() == SoundEffectID.UI_BOOP;
 			assertEquals(cue.name(), true, known);
 		}
 	}

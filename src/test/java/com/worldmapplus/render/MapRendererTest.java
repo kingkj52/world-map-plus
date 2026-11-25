@@ -385,4 +385,43 @@ public class MapRendererTest
 		g.dispose();
 		assertEquals(rgb(MapRenderer.BACKGROUND), canvas.getRGB(10, 10) & 0xFFFFFF);
 	}
+
+	/** A source that has something to tell the player, as while map pictures are downloading. */
+	private static final class Talking extends FakeTiles
+	{
+		volatile String line;
+
+		@Override
+		public String status()
+		{
+			return line;
+		}
+	}
+
+	@Test
+	public void aStatusLineAppearsInTheCornerOnlyWhileTheSourceHasSomethingToSay()
+	{
+		Talking source = new Talking();
+		source.add(0, 50, 50);
+		ViewTransform view = new ViewTransform(3232, 3232, 4.0, 0, 0, 400, 400);
+		BufferedImage quiet = paint(source, view);
+		source.line = "Downloading map pictures...";
+		BufferedImage talking = paint(source, view);
+		int changed = 0;
+		for (int x = 0; x < 400; x++)
+		{
+			for (int y = 0; y < 400; y++)
+			{
+				if (quiet.getRGB(x, y) != talking.getRGB(x, y))
+				{
+					changed++;
+					assertTrue("the line stays in the lower left corner (" + x + "," + y + ")", x < 200 && y > 360);
+				}
+			}
+		}
+		assertTrue("some pixels carry the line: " + changed, changed > 100);
+		source.line = null;
+		assertEquals("nothing left behind once it is gone", 0, java.util.Arrays.compare(quiet.getRGB(0, 0, 400, 400, null, 0, 400),
+			paint(source, view).getRGB(0, 0, 400, 400, null, 0, 400)));
+	}
 }

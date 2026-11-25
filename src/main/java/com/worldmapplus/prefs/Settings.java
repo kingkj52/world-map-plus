@@ -1,9 +1,8 @@
 package com.worldmapplus.prefs;
 
-import com.worldmapplus.WorldMapPlusConfig;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import net.runelite.client.config.ConfigManager;
+import com.worldmapplus.*;
+import javax.inject.*;
+import net.runelite.client.config.*;
 
 /**
  * Lets the map flip its own on and off settings from its layer panel.

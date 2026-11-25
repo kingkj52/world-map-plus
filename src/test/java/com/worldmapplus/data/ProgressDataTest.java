@@ -8,6 +8,7 @@ import static org.junit.Assert.assertTrue;
 import com.google.gson.Gson;
 import com.worldmapplus.MapAssets;
 import com.worldmapplus.layers.GameIconSet;
+import com.worldmapplus.unlock.Judge;
 import com.worldmapplus.unlock.Need;
 import com.worldmapplus.unlock.Requirement;
 import java.util.ArrayList;
@@ -83,7 +84,7 @@ public class ProgressDataTest
 			if (need != null && need.startsQuest() != null)
 			{
 				assertEquals("only quest icons start quests", "Quest", kindOf(spec));
-				assertNotNull(need.startsQuestId());
+				assertNotNull(Judge.start(need));
 			}
 		}
 	}
@@ -150,7 +151,7 @@ public class ProgressDataTest
 			{
 				continue;
 			}
-			String text = need.alternatives()[0].describe();
+			String text = Judge.ways(need)[0].describe();
 			StringBuilder card = new StringBuilder(spec.getCard().getCard().getTitle());
 			for (com.worldmapplus.layers.HoverCard.Row row : spec.getCard().getCard().getRows())
 			{
@@ -159,7 +160,7 @@ public class ProgressDataTest
 			ardougne |= text.equals("90 Agility") && card.indexOf("Requires: 90 Agility") > 0;
 			champions |= text.equals("32 Quest points") && card.indexOf("Champions' Challenge") >= 0;
 			fairy |= text.equals("Fairytale II - Cure a Queen (started)") && card.indexOf("Fairy ring") == 0;
-			gwd |= need.alternatives().length == 2 && card.indexOf("Requires: 60 Strength or 60 Agility") > 0;
+			gwd |= Judge.ways(need).length == 2 && card.indexOf("Requires: 60 Strength or 60 Agility") > 0;
 		}
 		assertTrue("Ardougne rooftop course", ardougne);
 		assertTrue("Champions' Challenge", champions);
@@ -237,7 +238,7 @@ public class ProgressDataTest
 				continue;
 			}
 			boolean diary = false;
-			for (Requirement way : need.alternatives())
+			for (Requirement way : Judge.ways(need))
 			{
 				diary |= way.diaryCount() > 0;
 			}
@@ -248,7 +249,7 @@ public class ProgressDataTest
 			Need monastery = teleport.wayNeed("Ardougne cloak: Kandarin Monastery");
 			if (monastery != null)
 			{
-				cloak |= monastery.alternatives()[0].describe().equals("Easy Ardougne Diary");
+				cloak |= Judge.ways(monastery)[0].describe().equals("Easy Ardougne Diary");
 			}
 		}
 		System.out.println("progress data: teleport destinations whose every way needs a diary tier " + gated + " of " + destinations);
@@ -263,8 +264,8 @@ public class ProgressDataTest
 		for (GameIconSet.Spec spec : assets.getElements().getGameIcons())
 		{
 			Need need = spec.getNeed();
-			if (need != null && need.hasAlternatives() && need.alternatives().length == 1 && need.alternatives()[0].skillCount() == 1
-				&& need.alternatives()[0].skill(0).getName().equals("Agility") && need.alternatives()[0].level(0) == 50)
+			if (need != null && need.hasAlternatives() && Judge.ways(need).length == 1 && Judge.ways(need)[0].skillCount() == 1
+				&& Judge.ways(need)[0].skill(0).getName().equals("Agility") && Judge.ways(need)[0].level(0) == 50)
 			{
 				found = true;
 			}

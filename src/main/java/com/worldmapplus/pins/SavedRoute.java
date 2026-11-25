@@ -1,8 +1,7 @@
 package com.worldmapplus.pins;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
+import lombok.*;
 
 /**
  * A route the player made out of saved places: an ordered list of stops that Shortest Path is asked to
@@ -13,9 +12,12 @@ import java.util.List;
  */
 public final class SavedRoute
 {
+	@Getter
 	private long id;
 	private String name;
 	private List<Long> stops;
+	/** True when, after the last stop, the route starts again at the first. */
+	@Getter
 	private boolean loop;
 
 	public SavedRoute()
@@ -30,11 +32,6 @@ public final class SavedRoute
 		this.loop = loop;
 	}
 
-	public long getId()
-	{
-		return id;
-	}
-
 	public String getName()
 	{
 		return name == null ? "" : name;
@@ -44,12 +41,6 @@ public final class SavedRoute
 	public List<Long> getStops()
 	{
 		return stops == null ? Collections.emptyList() : Collections.unmodifiableList(stops);
-	}
-
-	/** True when, after the last stop, the route starts again at the first. */
-	public boolean isLoop()
-	{
-		return loop;
 	}
 
 	SavedRoute with(String newName, List<Long> newStops, boolean newLoop)

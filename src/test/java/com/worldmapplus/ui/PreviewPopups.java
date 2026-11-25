@@ -31,7 +31,7 @@ public final class PreviewPopups
 		File out = new File("build/preview");
 		out.mkdirs();
 		ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
-		MapAssets assets = new MapAssets(new Gson(), executor);
+		MapAssets assets = new MapAssets(new Gson(), executor, new com.worldmapplus.tiles.SourceTiles(new Gson()));
 		try
 		{
 			for (Map.Entry<String, Rectangle> size : PopupLayoutTest.sizes().entrySet())

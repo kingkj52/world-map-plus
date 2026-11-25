@@ -1,16 +1,10 @@
 package com.worldmapplus.layers;
 
-import com.worldmapplus.data.MapElements;
-import com.worldmapplus.map.MapInfo;
-import com.worldmapplus.view.ViewTransform;
-import java.awt.AlphaComposite;
-import java.awt.Color;
-import java.awt.Composite;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.util.ArrayList;
+import com.worldmapplus.data.*;
+import com.worldmapplus.map.*;
+import com.worldmapplus.view.*;
+import java.awt.*;
+import java.util.*;
 import java.util.List;
 
 /**

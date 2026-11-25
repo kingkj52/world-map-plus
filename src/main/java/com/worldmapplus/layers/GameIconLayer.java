@@ -1,14 +1,14 @@
 package com.worldmapplus.layers;
 
-import com.worldmapplus.map.MapInfo;
-import com.worldmapplus.unlock.Need;
-import com.worldmapplus.unlock.UnlockView;
-import com.worldmapplus.view.ViewTransform;
-import java.awt.Graphics2D;
-import java.awt.image.BufferedImage;
-import java.util.Arrays;
+import com.worldmapplus.map.*;
+import com.worldmapplus.unlock.*;
+import com.worldmapplus.view.*;
+import java.awt.*;
+import java.awt.image.*;
+import java.util.*;
 import java.util.List;
-import javax.annotation.Nullable;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * Draws the icons of the game's own map list over the tiles, each at a size that follows the zoom ({@link GameIconScale}), and
@@ -27,9 +27,12 @@ import javax.annotation.Nullable;
  * In steady state nothing is allocated: the arrays are reused and grow only when a view holds more icons than any before it, the
  * scaled pictures are cached per picture and size.
  */
+@RequiredArgsConstructor
 public final class GameIconLayer
 {
+	@Getter
 	private final GameIconSet set;
+	@Getter
 	private final GameIconSprites sprites;
 
 	/** Categories (by the number the data gives them) that are switched off. */
@@ -92,22 +95,6 @@ public final class GameIconLayer
 	private int lookGeneration = -1;
 	private int lookUnlocks = -1;
 	private int lookOptions = -1;
-
-	public GameIconLayer(GameIconSet set, GameIconSprites sprites)
-	{
-		this.set = set;
-		this.sprites = sprites;
-	}
-
-	public GameIconSet getSet()
-	{
-		return set;
-	}
-
-	public GameIconSprites getSprites()
-	{
-		return sprites;
-	}
 
 	/**
 	 * Says what the player's progress does to the icons: finished quests hidden, icons that cannot be used yet marked, or those hidden too.
@@ -578,7 +565,7 @@ public final class GameIconLayer
 	/** What the points of interest merged into the icon in a slot add to its card, and the icon's floor, for {@link IconCards}. */
 	public List<IconExtra> extrasAt(int slot)
 	{
-		return slot < 0 || slot >= drawnCount ? java.util.Collections.emptyList() : drawnOn.extras(drawnIndex[slot]);
+		return slot < 0 || slot >= drawnCount ? Collections.emptyList() : drawnOn.extras(drawnIndex[slot]);
 	}
 
 	/** The floor of the icon drawn in a slot of the last layout, or 0. */

@@ -1,12 +1,9 @@
 package com.worldmapplus.layers;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import javax.annotation.Nullable;
+import java.io.*;
+import java.nio.charset.*;
+import java.util.*;
+import javax.annotation.*;
 
 /**
  * The point of interest pictures, all in one jar entry ({@code icons.pack}) instead of one entry each: a jar entry costs a header of
@@ -69,7 +66,7 @@ final class IconPack
 					{
 						throw new IOException(RESOURCE + " is larger than any pack we write");
 					}
-					buffer = java.util.Arrays.copyOf(buffer, (int) Math.min((long) buffer.length * 2, MAX_BYTES + 1L));
+					buffer = Arrays.copyOf(buffer, (int) Math.min((long) buffer.length * 2, MAX_BYTES + 1L));
 				}
 				int n = in.read(buffer, length, buffer.length - length);
 				if (n < 0)
@@ -78,7 +75,7 @@ final class IconPack
 				}
 				length += n;
 			}
-			return parse(java.util.Arrays.copyOf(buffer, length));
+			return parse(Arrays.copyOf(buffer, length));
 		}
 	}
 

@@ -3,7 +3,7 @@ package com.worldmapplus.verify;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.worldmapplus.tiles.BundledTiles;
+import com.worldmapplus.tiles.TileSource;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.Reader;
@@ -178,7 +178,7 @@ final class Reference
 	}
 
 	/** Loads one entry through the real source, the way the plugin does. Null when the source has nothing there. */
-	static BufferedImage load(BundledTiles source, Entry e)
+	static BufferedImage load(TileSource source, Entry e)
 	{
 		return e.isOverview() ? source.overview(e.mapId) : source.load(e.mapId, e.x, e.y);
 	}

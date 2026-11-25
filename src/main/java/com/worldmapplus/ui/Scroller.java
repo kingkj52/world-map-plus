@@ -1,8 +1,6 @@
 package com.worldmapplus.ui;
 
-import java.awt.Color;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
+import java.awt.*;
 
 /**
  * The scroll position of a list that is taller than the room for it, with a thin bar to show and drag it.
@@ -14,7 +12,6 @@ final class Scroller
 {
 	/** Width of the bar. */
 	static final int WIDTH = 8;
-
 
 	private int total;
 	private int view;

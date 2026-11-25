@@ -1,15 +1,13 @@
 package com.worldmapplus.pins;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
-import com.worldmapplus.WorldMapPlusConfig;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import net.runelite.client.config.ConfigManager;
+import com.google.gson.*;
+import com.worldmapplus.*;
+import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.LongConsumer;
+import javax.annotation.*;
+import javax.inject.*;
+import net.runelite.client.config.*;
 
 /**
  * The player's pins, kept in memory and saved to the plugin's settings as one JSON value.
@@ -36,6 +34,25 @@ public class PinStore
 		String read();
 
 		void write(String json);
+
+		/** A store that keeps its value in the plugin's settings under a key. */
+		static Storage settings(ConfigManager configManager, String key)
+		{
+			return new Storage()
+			{
+				@Override
+				public String read()
+				{
+					return configManager.getConfiguration(WorldMapPlusConfig.GROUP, key);
+				}
+
+				@Override
+				public void write(String json)
+				{
+					configManager.setConfiguration(WorldMapPlusConfig.GROUP, key, json);
+				}
+			};
+		}
 
 		/** A store that keeps its value in memory only, for tests and previews. */
 		static Storage inMemory()
@@ -70,25 +87,12 @@ public class PinStore
 
 	/** The saved text as last read or written, so a change made by someone else can be told from our own write. */
 	private String lastJson = "";
-	private final List<java.util.function.LongConsumer> removedListeners = new java.util.concurrent.CopyOnWriteArrayList<>();
+	private final List<LongConsumer> removedListeners = new CopyOnWriteArrayList<>();
 
 	@Inject
 	public PinStore(ConfigManager configManager, Gson gson)
 	{
-		this(new Storage()
-		{
-			@Override
-			public String read()
-			{
-				return configManager.getConfiguration(WorldMapPlusConfig.GROUP, KEY);
-			}
-
-			@Override
-			public void write(String json)
-			{
-				configManager.setConfiguration(WorldMapPlusConfig.GROUP, KEY, json);
-			}
-		}, gson);
+		this(Storage.settings(configManager, KEY), gson);
 	}
 
 	public PinStore(Storage storage, Gson gson)
@@ -145,7 +149,7 @@ public class PinStore
 	}
 
 	/** Calls a listener with the id of every place that is removed, so a route can let go of it. */
-	public void onRemoved(java.util.function.LongConsumer listener)
+	public void onRemoved(LongConsumer listener)
 	{
 		removedListeners.add(listener);
 	}
@@ -205,7 +209,7 @@ public class PinStore
 		if (removed)
 		{
 			changed();
-			for (java.util.function.LongConsumer listener : removedListeners)
+			for (LongConsumer listener : removedListeners)
 			{
 				listener.accept(id);
 			}
@@ -249,7 +253,7 @@ public class PinStore
 
 	static String cleanKind(String kind)
 	{
-		String text = kind == null ? "" : kind.trim().toLowerCase(java.util.Locale.ROOT).replaceAll("[^a-z]", "");
+		String text = kind == null ? "" : kind.trim().toLowerCase(Locale.ROOT).replaceAll("[^a-z]", "");
 		return text.isEmpty() ? "pin" : text.length() > 16 ? text.substring(0, 16) : text;
 	}
 
@@ -339,7 +343,7 @@ public class PinStore
 				return result;
 			}
 			result.nextId = file.nextId;
-			java.util.Set<Long> seen = new java.util.HashSet<>();
+			Set<Long> seen = new HashSet<>();
 			for (Pin pin : file.pins)
 			{
 				if (pin == null || result.pins.size() >= MAX_PINS || pin.getId() <= 0 || !seen.add(pin.getId())

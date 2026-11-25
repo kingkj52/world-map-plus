@@ -11,8 +11,6 @@ import com.worldmapplus.WorldMapPlusConfig;
 import com.worldmapplus.bridge.ExternalOverlays;
 import com.worldmapplus.bridge.MapActions;
 import com.worldmapplus.game.PlayerPosition;
-import com.worldmapplus.game.TrailTracker;
-import com.worldmapplus.layers.NpcLayer;
 import com.worldmapplus.map.MapInfo;
 import com.worldmapplus.pins.PanelLauncher;
 import com.worldmapplus.pins.PinStore;
@@ -84,17 +82,10 @@ public class MotionSurfaceTest
 				Class<?> type = method.getReturnType();
 				return type == boolean.class ? (Object) false : type.isPrimitive() ? (Object) 0 : null;
 			});
-		NpcLayer quiet = new NpcLayer()
-		{
-			@Override
-			public void paint(Graphics2D g, ViewTransform view, MapInfo viewed, PlayerPosition player)
-			{
-			}
-		};
 		PinStore pins = new PinStore(PinStore.Storage.inMemory(), new Gson());
 		ExternalOverlays external = new ExternalOverlays();
 		RouteStore routes = new RouteStore(PinStore.Storage.inMemory(), new Gson(), pins);
-		SurfaceServices services = new SurfaceServices(quiet, new ViewMemory(null)
+		SurfaceServices services = new SurfaceServices(new ViewMemory(null)
 		{
 			@Override
 			public void save(String slot, int mapId, double x, double y, double ppt)
@@ -106,8 +97,7 @@ public class MotionSurfaceTest
 			{
 				return null;
 			}
-		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), new TrailTracker(), null, null,
-			routes, new PanelLauncher(), null, null);
+		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), routes, new PanelLauncher());
 		return new MapSurface(client, assets, new WorldMapPlusConfig()
 		{
 			@Override

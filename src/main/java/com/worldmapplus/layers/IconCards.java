@@ -1,12 +1,6 @@
 package com.worldmapplus.layers;
 
-import com.worldmapplus.wiki.WikiTitles;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 
 /**
  * The card shown for one of the game's icons: the icon's own card, the floor it is on, and what the plugin's points of interest
@@ -127,7 +121,7 @@ public final class IconCards
 			card.title(only.getName());
 			card.subtitle(detail.isEmpty() ? base.getTitle() : detail);
 			// The card is now about the point, so the wiki page is the point's, when it has one.
-			card.wiki(WikiTitles.forPointLayer(only.getLayer(), only.getName(), only.getDetail()));
+			card.wiki("layer " + only.getLayer(), only.getName(), only.getDetail());
 			String where = base.getSubtitle();
 			if (where != null && !where.isEmpty())
 			{

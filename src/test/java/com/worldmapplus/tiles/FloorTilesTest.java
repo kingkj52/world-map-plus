@@ -6,18 +6,20 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.gson.Gson;
 import java.awt.image.BufferedImage;
+import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 /** The floors above the ground, from the real bundled tiles. */
 public class FloorTilesTest
 {
-	private static BundledTiles tiles;
+	private static SourceTiles tiles;
 
 	@BeforeClass
 	public static void load()
 	{
-		tiles = BundledTiles.load(new Gson());
+		Assume.assumeTrue(PngTiles.available());
+		tiles = new SourceTiles(new Gson());
 	}
 
 	@Test

@@ -1,41 +1,21 @@
 package com.worldmapplus;
 
-import com.google.gson.Gson;
-import com.worldmapplus.data.HotspotLoader;
-import com.worldmapplus.data.MapElements;
-import com.worldmapplus.data.PlaceLoader;
-import com.worldmapplus.data.ShortcutLoader;
-import com.worldmapplus.layers.LabelLayer;
-import com.worldmapplus.walk.WalkPlanner;
-import com.worldmapplus.data.PoiLoader;
-import com.worldmapplus.data.SpawnLoader;
-import com.worldmapplus.layers.DoorwayGraph;
-import com.worldmapplus.layers.GameIconLayer;
-import com.worldmapplus.layers.GameIconSet;
-import com.worldmapplus.layers.GameIconSprites;
-import com.worldmapplus.layers.Hotspot;
-import com.worldmapplus.layers.HotspotIndex;
-import com.worldmapplus.layers.PoiCategory;
-import com.worldmapplus.layers.PoiIcons;
-import com.worldmapplus.layers.PoiLayer;
-import com.worldmapplus.layers.RegionLines;
-import com.worldmapplus.map.MapCatalog;
-import com.worldmapplus.map.MapInfo;
-import com.worldmapplus.render.MapRenderer;
-import com.worldmapplus.search.Gazetteer;
-import com.worldmapplus.search.SearchEntry;
-import com.worldmapplus.search.SearchIndex;
-import com.worldmapplus.search.SearchSources;
-import com.worldmapplus.tiles.BundledTiles;
-import com.worldmapplus.tiles.TileCache;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ScheduledExecutorService;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.google.gson.*;
+import com.worldmapplus.data.*;
+import com.worldmapplus.layers.*;
+import com.worldmapplus.map.*;
+import com.worldmapplus.render.*;
+import com.worldmapplus.search.*;
+import com.worldmapplus.tiles.*;
+import com.worldmapplus.unlock.*;
+import java.util.*;
+import java.util.concurrent.*;
+import javax.annotation.Nullable;
+import javax.inject.*;
+import lombok.*;
+import net.runelite.client.util.Filepath;
+import okhttp3.OkHttpClient;
+import org.slf4j.*;
 
 /**
  * Everything the viewer draws from, built from what is bundled in the plugin jar.
@@ -64,68 +44,75 @@ public class MapAssets
 
 	private final Gson gson;
 	private final ScheduledExecutorService executor;
+	@Nullable
+	private final OkHttpClient http;
+	@Nullable
+	private final WorldMapPlusConfig config;
+	/** Tiles to use in place of the downloaded ones: tests and previews only. */
+	@Nullable
+	private final TileSource fixedTiles;
+
+	/** The folder map packs are kept in, set by the plugin before the data is read. Null keeps them in memory only. */
+	@Nullable
+	private volatile Filepath cacheFolder;
 
 	/** The loaded data, or null until the first use. Written once, under the lock, after everything in it is built. */
 	private volatile Data data;
 
-	/** The drop tables, read on first use (never at start) on the shared executor. */
-	private final com.worldmapplus.drops.DropLoader drops;
-
-	/** Item prices from RuneLite's item manager. Set by the plugin while it runs; none in tests and previews. */
-	private volatile com.worldmapplus.drops.PriceSource prices = com.worldmapplus.drops.PriceSource.NONE;
-
 	/** What the player has done, for the icons to follow. Set by the plugin while it runs; null in tests and previews. */
-	private volatile com.worldmapplus.unlock.UnlockView unlocks;
+	@Getter
+	private volatile UnlockView unlocks;
 
 	@Inject
+	public MapAssets(Gson gson, ScheduledExecutorService executor, OkHttpClient http, WorldMapPlusConfig config)
+	{
+		this(gson, executor, http, config, null);
+	}
+
+	/** Assets that never download: only the overview pictures show, as on a first run without a connection. */
 	public MapAssets(Gson gson, ScheduledExecutorService executor)
+	{
+		this(gson, executor, null, null, null);
+	}
+
+	/** Assets that draw the given tiles, for tests. */
+	public MapAssets(Gson gson, ScheduledExecutorService executor, TileSource tiles)
+	{
+		this(gson, executor, null, null, tiles);
+	}
+
+	private MapAssets(Gson gson, ScheduledExecutorService executor, OkHttpClient http, WorldMapPlusConfig config, TileSource tiles)
 	{
 		this.gson = gson;
 		this.executor = executor;
-		this.drops = new com.worldmapplus.drops.DropLoader(executor);
+		this.http = http;
+		this.config = config;
+		this.fixedTiles = tiles;
 	}
 
-	/** The drop tables' loader. Asking it for the tables starts the one read; nothing is read before that. */
-	public com.worldmapplus.drops.DropLoader getDrops()
+	/** Tells where downloaded map pictures are kept. Must be called before the data is first read to have any effect. */
+	public void setCacheFolder(Filepath folder)
 	{
-		return drops;
+		this.cacheFolder = folder;
 	}
 
-	/** Gives the drop tabs item prices to show, or takes them away with null. */
-	public void setPrices(com.worldmapplus.drops.PriceSource source)
+	private TileSource tileSource(TileIndex index)
 	{
-		this.prices = source == null ? com.worldmapplus.drops.PriceSource.NONE : source;
-	}
-
-	/** Item prices, never null: with none set every price is unknown. */
-	public com.worldmapplus.drops.PriceSource getPrices()
-	{
-		return prices;
+		if (fixedTiles != null)
+		{
+			return fixedTiles;
+		}
+		if (http == null || config == null)
+		{
+			return PackedTiles.overviewsOnly(index, gson, executor);
+		}
+		return PackedTiles.create(index, gson, executor, http, cacheFolder, config::downloadMaps);
 	}
 
 	/** Gives the icons the player's progress to follow, or takes it away with null. */
-	public void setUnlocks(com.worldmapplus.unlock.UnlockView view)
+	public void setUnlocks(UnlockView view)
 	{
 		this.unlocks = view;
-	}
-
-	/** The player's progress, or null when there is none to follow. */
-	public com.worldmapplus.unlock.UnlockView getUnlocks()
-	{
-		return unlocks;
-	}
-
-	/** The most heap the JVM will use, or 0 when it does not say. */
-	private static long heapLimit()
-	{
-		try
-		{
-			return java.lang.management.ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax();
-		}
-		catch (RuntimeException e)
-		{
-			return 0;
-		}
 	}
 
 	/** The memory the decoded tiles may use: an eighth of the heap, between 24 and 96 MB. */
@@ -150,26 +137,23 @@ public class MapAssets
 		private final List<PoiCategory> poiCategories;
 		private final PoiLayer poiLayer;
 		private final PoiIcons poiIcons = new PoiIcons();
-		private final java.util.Set<String> poiIconNames = new java.util.LinkedHashSet<>();
+		private final Set<String> poiIconNames = new LinkedHashSet<>();
 		private final RegionLines regions;
 		private final int floors;
 		private final Gazetteer gazetteer;
 		private final MapElements elements;
 		private final LabelLayer labels;
-		private final WalkPlanner walkPlanner;
-		private final List<Hotspot> teleports = new java.util.ArrayList<>();
+		private final List<Hotspot> teleports = new ArrayList<>();
 		private final List<SearchEntry> searchEntries;
 		private final GameIconSet gameIcons;
-		private final com.worldmapplus.search.KindIndex kinds;
 		/** Made when the map first draws the game's icons itself. */
 		private volatile GameIconLayer gameIconLayer;
 
-		Data(Gson gson, ScheduledExecutorService executor)
+		Data(Gson gson, ScheduledExecutorService executor, TileSource source, TileIndex index)
 		{
 			this.catalog = MapCatalog.load(gson);
-			BundledTiles bundled = BundledTiles.load(gson);
-			this.floors = bundled.highestFloor(MapInfo.SURFACE);
-			this.tiles = new TileCache(bundled, executor, tileBudget(heapLimit()));
+			this.floors = index.highestFloor(MapInfo.SURFACE);
+			this.tiles = new TileCache(source, executor, tileBudget(0));
 			this.renderer = new MapRenderer(tiles);
 			List<Hotspot> loaded = HotspotLoader.load(gson, catalog);
 			PoiLoader.Result pois = PoiLoader.load(gson, catalog);
@@ -177,22 +161,17 @@ public class MapAssets
 			loaded.addAll(ShortcutLoader.load(gson, catalog));
 			this.poiCategories = pois.getCategories();
 			List<SearchEntry> entries = SearchSources.build(catalog, loaded);
-			entries.addAll(SpawnLoader.load(catalog));
 			this.searchEntries = entries;
 			// The game's own icon names, for the icons the tiles show where no richer card exists.
-			this.elements = MapElements.load(gson, catalog, loaded, entries);
+			this.elements = MapElements.load(gson, catalog, loaded, PlaceLoader.quests(gson, catalog));
 			// A result for something an icon stands for says what is missing for it, as the icon's card does.
 			SearchSources.attachIconNeeds(entries, elements.getGameIcons());
 			// A card that covers an icon and was given the wiki's requirement for it is used in place of the one it was made from.
 			loaded.replaceAll(elements::replacementOf);
 			entries.addAll(PlaceLoader.build(gson, catalog, elements));
-			// Every place of each kind, and each kind per town (kinds.json, from tools/build_kinds.py).
-			this.kinds = com.worldmapplus.search.KindIndex.load(gson, catalog);
-			entries.addAll(kinds.entries(catalog));
 			this.labels = new LabelLayer(elements);
 			this.gameIcons = new GameIconSet(elements.getGameIcons());
-			this.walkPlanner = new WalkPlanner(executor);
-			List<Hotspot> indexed = new java.util.ArrayList<>(loaded);
+			List<Hotspot> indexed = new ArrayList<>(loaded);
 			indexed.addAll(elements.getIcons());
 			this.hotspots = new HotspotIndex(indexed);
 			this.doorways = new DoorwayGraph(loaded);
@@ -211,7 +190,7 @@ public class MapAssets
 			this.poiLayer = new PoiLayer(hotspots, poiIcons, byId);
 			this.searchIndex = new SearchIndex(searchEntries);
 			this.regions = RegionLines.load(gson);
-			this.gazetteer = new Gazetteer(catalog, regions, HotspotLoader.shopPlaces(gson, catalog));
+			this.gazetteer = new Gazetteer(catalog, regions, PlaceLoader.shopPlaces(gson, catalog));
 			gazetteer.addLabels(elements);
 			for (Hotspot hotspot : loaded)
 			{
@@ -235,7 +214,8 @@ public class MapAssets
 				if (loaded == null)
 				{
 					long start = System.nanoTime();
-					loaded = new Data(gson, executor);
+					TileIndex index = TileIndex.load(gson);
+						loaded = new Data(gson, executor, tileSource(index), index);
 					data = loaded;
 					log.debug("World Map Plus read its bundled data in {} ms", (System.nanoTime() - start) / 1_000_000L);
 				}
@@ -273,12 +253,6 @@ public class MapAssets
 		});
 	}
 
-	/** Finds the walking between the jumps of a route, for drawing the exact way. */
-	public WalkPlanner getWalkPlanner()
-	{
-		return data().walkPlanner;
-	}
-
 	/** The game's own text labels, such as area names. */
 	public LabelLayer getLabels()
 	{
@@ -312,13 +286,6 @@ public class MapAssets
 			}
 		}
 		return layer;
-	}
-
-
-	/** Every place of each kind, merged per town. */
-	public com.worldmapplus.search.KindIndex getKinds()
-	{
-		return data().kinds;
 	}
 
 	/** The game's own labels and icon names. */
@@ -416,9 +383,9 @@ public class MapAssets
 	public void releaseIfIdle()
 	{
 		Data loaded = data;
-		if (loaded != null && loaded.tiles.releaseIfIdle(IDLE_RELEASE_MILLIS))
+		if (loaded != null)
 		{
-			loaded.walkPlanner.release();
+			loaded.tiles.releaseIfIdle(IDLE_RELEASE_MILLIS);
 		}
 	}
 
@@ -428,8 +395,7 @@ public class MapAssets
 		Data loaded = data;
 		if (loaded != null)
 		{
-			loaded.tiles.clear();
-			loaded.walkPlanner.release();
+			loaded.tiles.close();
 		}
 	}
 }

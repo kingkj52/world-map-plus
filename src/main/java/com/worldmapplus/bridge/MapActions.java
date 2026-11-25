@@ -1,18 +1,19 @@
 package com.worldmapplus.bridge;
 
-import java.awt.Toolkit;
-import java.awt.datatransfer.StringSelection;
-import java.util.HashMap;
-import java.util.Map;
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.coords.WorldPoint;
-import net.runelite.client.eventbus.EventBus;
-import net.runelite.client.events.PluginMessage;
-import net.runelite.client.plugins.Plugin;
-import net.runelite.client.plugins.PluginManager;
+import java.awt.*;
+import java.awt.datatransfer.*;
+import java.util.*;
+import java.util.List;
+import java.util.concurrent.atomic.*;
+import java.util.function.Consumer;
+import javax.annotation.*;
+import javax.inject.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
+import net.runelite.api.coords.*;
+import net.runelite.client.eventbus.*;
+import net.runelite.client.events.*;
+import net.runelite.client.plugins.*;
 
 /**
  * The things the map can do for the player outside itself.
@@ -45,7 +46,8 @@ public class MapActions
 	private final PluginManager plugins;
 	private volatile WorldPoint routeTarget;
 	/** Every target of the route, the first being {@link #routeTarget}. Shortest Path goes to whichever is nearest. */
-	private volatile java.util.List<WorldPoint> routeTargets = java.util.Collections.emptyList();
+	@Getter
+	private volatile List<WorldPoint> routeTargets = Collections.emptyList();
 	/** Where the route was set to start from by hand, or null for from where the player stands. */
 	private volatile WorldPoint routeStart;
 	/** How many targets a route may have. */
@@ -54,14 +56,14 @@ public class MapActions
 	public static final int ARRIVED_TILES = 3;
 
 	/** Runs a task a little later. The plugin sets it to the client thread's queue. Tests leave it immediate. */
-	private volatile java.util.function.Consumer<Runnable> later = Runnable::run;
+	private volatile Consumer<Runnable> later = Runnable::run;
 
 	/** False once the plugin has stopped, so a request put off earlier is not sent after that. */
 	private volatile boolean active = true;
 
 	/** Goes up on every Shortest Path message, so a task put off earlier can tell it has been overtaken. */
-	private final java.util.concurrent.atomic.AtomicInteger generation = new java.util.concurrent.atomic.AtomicInteger();
-	private final java.util.concurrent.atomic.AtomicInteger othersRequests = new java.util.concurrent.atomic.AtomicInteger();
+	private final AtomicInteger generation = new AtomicInteger();
+	private final AtomicInteger othersRequests = new AtomicInteger();
 
 	@Inject
 	public MapActions(EventBus eventBus, ExternalOverlays external, PluginManager plugins)
@@ -104,7 +106,7 @@ public class MapActions
 		{
 			return Status.UNKNOWN;
 		}
-		return send(null, java.util.Collections.singletonList(target));
+		return send(null, Collections.singletonList(target));
 	}
 
 	/**
@@ -117,18 +119,18 @@ public class MapActions
 		{
 			return Status.UNKNOWN;
 		}
-		return send(routeStart, java.util.Collections.singletonList(target));
+		return send(routeStart, Collections.singletonList(target));
 	}
 
 	/** Adds a target to the route, as "Set Target 2" does. Does nothing when there is no route yet. */
 	public Status addTarget(WorldPoint target)
 	{
-		java.util.List<WorldPoint> now = routeTargets;
+		List<WorldPoint> now = routeTargets;
 		if (target == null || now.isEmpty() || now.size() >= MAX_TARGETS || now.contains(target))
 		{
 			return Status.UNKNOWN;
 		}
-		java.util.List<WorldPoint> more = new java.util.ArrayList<>(now);
+		List<WorldPoint> more = new ArrayList<>(now);
 		more.add(target);
 		return send(routeStart, more);
 	}
@@ -140,7 +142,7 @@ public class MapActions
 	 */
 	public Status setStart(WorldPoint start)
 	{
-		java.util.List<WorldPoint> now = routeTargets;
+		List<WorldPoint> now = routeTargets;
 		if (start == null || now.isEmpty())
 		{
 			return Status.UNKNOWN;
@@ -148,7 +150,7 @@ public class MapActions
 		return send(start, now);
 	}
 
-	private Status send(@Nullable WorldPoint start, java.util.List<WorldPoint> targets)
+	private Status send(@Nullable WorldPoint start, List<WorldPoint> targets)
 	{
 		Status status = shortestPathStatus();
 		if (status == Status.MISSING || status == Status.DISABLED)
@@ -157,7 +159,7 @@ public class MapActions
 		}
 		Map<String, Object> data = new HashMap<>();
 		data.put("start", start);
-		data.put("target", targets.size() == 1 ? targets.get(0) : new java.util.LinkedHashSet<>(targets));
+		data.put("target", targets.size() == 1 ? targets.get(0) : new LinkedHashSet<>(targets));
 		data.put(OURS, Boolean.TRUE);
 		// Shortest Path takes a temporary override of its own settings with a request, which it drops
 		// again on "clear". It makes that plugin send the transports of the route, which is how the
@@ -175,10 +177,10 @@ public class MapActions
 	 * followed. One that starts at a chosen tile keeps the jumps Shortest Path first sent for it, since that plugin
 	 * goes back to starting from the player when they walk away from the route.
 	 */
-	private void setRoute(@Nullable WorldPoint start, java.util.List<WorldPoint> targets)
+	private void setRoute(@Nullable WorldPoint start, List<WorldPoint> targets)
 	{
 		routeStart = start;
-		routeTargets = java.util.Collections.unmodifiableList(new java.util.ArrayList<>(targets));
+		routeTargets = Collections.unmodifiableList(new ArrayList<>(targets));
 		routeTarget = targets.isEmpty() ? null : targets.get(0);
 		if (start == null)
 		{
@@ -214,7 +216,7 @@ public class MapActions
 	}
 
 	/** Lets the plugin choose how the second request is delivered. See {@link #onPluginMessage}. */
-	public void setLater(java.util.function.Consumer<Runnable> later)
+	public void setLater(Consumer<Runnable> later)
 	{
 		this.later = later == null ? Runnable::run : later;
 	}
@@ -259,7 +261,7 @@ public class MapActions
 		{
 			return;
 		}
-		java.util.List<WorldPoint> targets = targetsOf(data.get("target"));
+		List<WorldPoint> targets = targetsOf(data.get("target"));
 		WorldPoint start = startOf(data.get("start"));
 		if (targets.isEmpty())
 		{
@@ -322,9 +324,9 @@ public class MapActions
 			}
 			return new WorldPoint(packed & 0x7FFF, (packed >> 15) & 0x7FFF, (packed >> 30) & 0x3);
 		}
-		if (value instanceof java.util.Collection)
+		if (value instanceof Collection)
 		{
-			for (Object each : (java.util.Collection<?>) value)
+			for (Object each : (Collection<?>) value)
 			{
 				WorldPoint found = targetOf(each);
 				if (found != null)
@@ -337,22 +339,22 @@ public class MapActions
 	}
 
 	/** Every tile a request aims at, in order, without repeats. */
-	static java.util.List<WorldPoint> targetsOf(@Nullable Object value)
+	static List<WorldPoint> targetsOf(@Nullable Object value)
 	{
-		java.util.List<WorldPoint> found = new java.util.ArrayList<>();
+		List<WorldPoint> found = new ArrayList<>();
 		collect(value, found);
 		return found;
 	}
 
-	private static void collect(@Nullable Object value, java.util.List<WorldPoint> found)
+	private static void collect(@Nullable Object value, List<WorldPoint> found)
 	{
 		if (found.size() >= MAX_TARGETS)
 		{
 			return;
 		}
-		if (value instanceof java.util.Collection)
+		if (value instanceof Collection)
 		{
-			for (Object each : (java.util.Collection<?>) value)
+			for (Object each : (Collection<?>) value)
 			{
 				collect(each, found);
 			}
@@ -369,20 +371,14 @@ public class MapActions
 	@Nullable
 	static WorldPoint startOf(@Nullable Object value)
 	{
-		return value instanceof java.util.Collection ? null : targetOf(value);
+		return value instanceof Collection ? null : targetOf(value);
 	}
 
 	private void forgetRoute()
 	{
 		routeTarget = null;
-		routeTargets = java.util.Collections.emptyList();
+		routeTargets = Collections.emptyList();
 		routeStart = null;
-	}
-
-	/** Every target of the route, or an empty list when there is none. */
-	public java.util.List<WorldPoint> getRouteTargets()
-	{
-		return routeTargets;
 	}
 
 	/** The tile the route was set to start from by hand, or null when it starts from the player. */

@@ -7,7 +7,7 @@ import static org.junit.Assert.assertTrue;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.worldmapplus.tiles.BundledTiles;
+import com.worldmapplus.tiles.ReleaseTiles;
 import com.worldmapplus.tiles.PngTiles;
 import com.worldmapplus.tiles.TileSource;
 import java.awt.Graphics2D;
@@ -18,12 +18,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.junit.Assume;
 import org.junit.Test;
 
 /**
  * About 40 tiles that stand for every kind of terrain (src/test/resources/golden), kept as pictures next to their
  * expected hashes. Each is decoded the way the plugin decodes a PNG, then compared pixel for pixel with what
- * BundledTiles serves for the same square, whatever the format behind it. The pictures were copied from the
+ * the plugin's read path serves for the same square, whatever the format behind it. The pictures were copied from the
  * shipped PNGs, so they stay valid after the tiles move to another format. To regenerate, see docs/VERIFY.md.
  */
 public class GoldenTilesTest
@@ -61,7 +62,8 @@ public class GoldenTilesTest
 	@Test
 	public void goldenTilesAreServedPixelForPixel() throws Exception
 	{
-		BundledTiles source = BundledTiles.load(Reference.GSON);
+		Assume.assumeTrue("no release: run python tools/make_map_release.py", ReleaseTiles.available());
+		ReleaseTiles source = ReleaseTiles.open(Reference.GSON);
 		JsonObject tiles;
 		try (InputStream in = GoldenTilesTest.class.getResourceAsStream("/golden/golden.json"))
 		{

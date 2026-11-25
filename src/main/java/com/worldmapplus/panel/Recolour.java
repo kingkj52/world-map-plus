@@ -1,15 +1,11 @@
 package com.worldmapplus.panel;
 
-import com.worldmapplus.theme.Palette;
-import com.worldmapplus.theme.Role;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import javax.swing.JScrollPane;
-import javax.swing.border.Border;
-import javax.swing.border.LineBorder;
-import javax.swing.text.JTextComponent;
-import net.runelite.client.ui.components.IconTextField;
+import com.worldmapplus.theme.*;
+import java.awt.*;
+import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.text.*;
+import net.runelite.client.ui.components.*;
 
 /**
  * Moves a built panel from one theme to another: every colour that is a palette colour of the old theme becomes the same
@@ -73,7 +69,7 @@ final class Recolour
 			Border border = ((JScrollPane) c).getBorder();
 			if (border instanceof LineBorder)
 			{
-				((JScrollPane) c).setBorder(javax.swing.BorderFactory.createLineBorder(map(((LineBorder) border).getLineColor())));
+				((JScrollPane) c).setBorder(BorderFactory.createLineBorder(map(((LineBorder) border).getLineColor())));
 			}
 		}
 		if (c instanceof Container)

@@ -1,7 +1,7 @@
 package com.worldmapplus.ui;
 
-import com.worldmapplus.WorldMapPlusConfig;
-import java.awt.Rectangle;
+import com.worldmapplus.*;
+import java.awt.*;
 
 /**
  * Works out where the floating map goes inside the game view.

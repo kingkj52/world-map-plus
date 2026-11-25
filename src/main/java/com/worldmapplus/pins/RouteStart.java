@@ -1,6 +1,7 @@
 package com.worldmapplus.pins;
 
-import com.worldmapplus.bridge.MapActions;
+import com.worldmapplus.bridge.*;
+import lombok.*;
 
 /**
  * Starting a saved route, the one way both the side panel's Start button and a route chosen in the search do it (round 48): Shortest
@@ -22,7 +23,7 @@ public final class RouteStart
 		}
 		if (shortestPath == MapActions.Status.DISABLED)
 		{
-			return new Result(false, "Shortest Path is turned off. Switch it on in the plugin list to get routes.");
+			return new Result(false, "Shortest Path is turned off. Switch it on to get routes.");
 		}
 		boolean any = false;
 		for (long stop : route.getStops())
@@ -38,6 +39,7 @@ public final class RouteStart
 	}
 
 	/** Whether a route started, and what to tell the player. */
+	@Getter
 	public static final class Result
 	{
 		private final boolean started;
@@ -47,16 +49,6 @@ public final class RouteStart
 		{
 			this.started = started;
 			this.message = message;
-		}
-
-		public boolean isStarted()
-		{
-			return started;
-		}
-
-		public String getMessage()
-		{
-			return message;
 		}
 	}
 }

@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import com.worldmapplus.map.MapCatalog;
 import com.worldmapplus.map.MapInfo;
 import com.worldmapplus.render.MapRenderer;
-import com.worldmapplus.tiles.BundledTiles;
+import com.worldmapplus.tiles.SourceTiles;
 import com.worldmapplus.tiles.TileCache;
 import com.worldmapplus.view.ViewTransform;
 import java.awt.Graphics2D;
@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * Renders fixed 1280 x 720 frames of the map through the real MapRenderer, TileCache and BundledTiles, and records a
+ * Renders fixed 1280 x 720 frames of the map through the real MapRenderer and TileCache over the PNG sources, and records a
  * hash and a coarse thumbnail of each frame, how long a frame takes, how long a first view takes until every tile it
  * needs is decoded, and the heap afterwards. The hashes are compared with tools/verify/frames.json by
  * RenderRegressionTest. Test scope only: it reads and writes files, and the plugin never sees it.
@@ -173,7 +173,7 @@ public final class RenderBench
 	{
 		Gson gson = new Gson();
 		MapCatalog catalog = MapCatalog.load(gson);
-		BundledTiles source = BundledTiles.load(gson);
+		SourceTiles source = new SourceTiles(gson);
 		// RuneLite's shared executor is in effect one thread for this plugin, so the loads run on one thread here.
 		ExecutorService executor = Executors.newSingleThreadExecutor(r ->
 		{

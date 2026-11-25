@@ -1,22 +1,42 @@
 package com.worldmapplus.unlock;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.annotation.Nullable;
+import java.util.*;
+import java.util.regex.*;
+import javax.annotation.*;
 
 /**
- * Makes {@link Need}s from the bundled data, one reader for each shape the data has. Each reads a field that says a level or a quest and
- * nothing else: no text is guessed at, and what a reader does not recognise gives no need, so the icon counts as open to everybody.
+ * Makes {@link Need}s from the bundled data, one reader for each shape the data has. Each reads fields that say a level or a quest and
+ * keeps their words as they are: what they mean is for the Helper to work out, and what it does not understand is never held against
+ * the player.
  */
 public final class Needs
 {
 	private static final Pattern POINT_LEVEL = Pattern.compile("^(?:Mooring, )?([A-Za-z]+) level (\\d{1,3})$");
 
+	/** A way that asks for nothing. */
+	public static final List<List<String>> NO_WAY = way(null, null, null);
+
 	private Needs()
 	{
+	}
+
+	/** One way of using something: its levels, its quests and what the wiki words otherwise (any may be null). */
+	public static List<List<String>> way(@Nullable List<String> skills, @Nullable List<String> quests, @Nullable List<String> requires)
+	{
+		List<List<String>> way = new ArrayList<>(3);
+		for (List<String> texts : Arrays.asList(skills, quests, requires))
+		{
+			List<String> kept = new ArrayList<>();
+			for (String text : texts == null ? Collections.<String>emptyList() : texts)
+			{
+				if (text != null && !text.trim().isEmpty())
+				{
+					kept.add(text.trim());
+				}
+			}
+			way.add(Collections.unmodifiableList(kept));
+		}
+		return Collections.unmodifiableList(way);
 	}
 
 	/** A need from the {@code skills} and {@code quests} fields of one way of using something, or null when it asks nothing. */
@@ -30,13 +50,13 @@ public final class Needs
 	@Nullable
 	public static Need ofWay(@Nullable List<String> skills, @Nullable List<String> quests, @Nullable List<String> requires)
 	{
-		return Need.anyOf(Collections.singletonList(Requirement.of(skills, quests, requires)));
+		return Need.anyOf(Collections.singletonList(way(skills, quests, requires)));
 	}
 
 	/** A need from several ways of using one icon, each given by its {@code skills} and {@code quests} fields. */
 	public static final class Ways
 	{
-		private final List<Requirement> ways = new ArrayList<>();
+		private final List<List<List<String>>> ways = new ArrayList<>();
 
 		/** Adds one way. */
 		public Ways add(@Nullable List<String> skills, @Nullable List<String> quests)
@@ -47,7 +67,7 @@ public final class Needs
 		/** Adds one way, with its needs in the wiki's words. */
 		public Ways add(@Nullable List<String> skills, @Nullable List<String> quests, @Nullable List<String> requires)
 		{
-			ways.add(Requirement.of(skills, quests, requires));
+			ways.add(way(skills, quests, requires));
 			return this;
 		}
 
@@ -79,21 +99,17 @@ public final class Needs
 
 	/**
 	 * What a point of interest merged into an icon says about the level it asks for, in the fixed words the data uses ({@code Woodcutting
-	 * level 62}, {@code Mooring, Sailing level 46}). Only the layers whose points carry such a level are read. Returns an empty
-	 * requirement for any other layer or any other text.
+	 * level 62}, {@code Mooring, Sailing level 46}). Only the layers whose points carry such a level are read. Returns {@link #NO_WAY}
+	 * for any other layer or any other text.
 	 */
-	public static Requirement fromPoint(@Nullable String layer, @Nullable String detail)
+	public static List<List<String>> fromPoint(@Nullable String layer, @Nullable String detail)
 	{
 		if (detail == null || layer == null || !("tree".equals(layer) || "salvage".equals(layer) || "port".equals(layer)))
 		{
-			return Requirement.NONE;
+			return NO_WAY;
 		}
 		Matcher m = POINT_LEVEL.matcher(detail.trim());
-		if (!m.matches())
-		{
-			return Requirement.NONE;
-		}
-		return Requirement.of(Collections.singletonList(m.group(2) + " " + m.group(1)), null);
+		return m.matches() ? way(Collections.singletonList(m.group(2) + " " + m.group(1)), null, null) : NO_WAY;
 	}
 
 	/**
@@ -101,7 +117,7 @@ public final class Needs
 	 * use any one of them. A single point that says nothing about a level means the icon is open to everybody.
 	 */
 	@Nullable
-	public static Need fromPoints(List<Requirement> perPoint)
+	public static Need fromPoints(List<List<List<String>>> perPoint)
 	{
 		return Need.anyOf(perPoint);
 	}

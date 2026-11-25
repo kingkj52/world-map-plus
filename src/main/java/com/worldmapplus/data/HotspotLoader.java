@@ -1,28 +1,16 @@
 package com.worldmapplus.data;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
-import com.worldmapplus.layers.FloorNames;
-import com.worldmapplus.layers.Hotspot;
-import com.worldmapplus.layers.HoverCard;
-import com.worldmapplus.map.MapCatalog;
-import com.worldmapplus.map.MapInfo;
-import com.worldmapplus.unlock.Need;
-import com.worldmapplus.unlock.Needs;
-import com.worldmapplus.wiki.WikiTitles;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import javax.annotation.Nullable;
-import lombok.extern.slf4j.Slf4j;
+import com.google.gson.*;
+import com.worldmapplus.layers.*;
+import com.worldmapplus.map.*;
+import com.worldmapplus.search.*;
+import com.worldmapplus.unlock.*;
+import java.io.*;
+import java.nio.charset.*;
+import java.util.*;
+import javax.annotation.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
 
 /**
  * Turns the bundled reference data into hotspots: the places the mouse can point at to get a card.
@@ -35,14 +23,13 @@ public final class HotspotLoader
 {
 	private static final String ENTRANCES = "/com/worldmapplus/entrances.json";
 	private static final String TRANSPORTS = "/com/worldmapplus/transports.json";
-	private static final String SHOPS = "/com/worldmapplus/shops.json";
 	private static final String TELEPORTS = "/com/worldmapplus/teleports.json";
 
 	/** Pixel radius of a doorway or a transport marker. */
 	private static final int RADIUS = 11;
 
 	/** Rows a card shows before the rest wait for Shift. */
-	static final int MAX_ROWS = 14;
+	public static final int MAX_ROWS = 14;
 
 	/** Lines a transport draws to its destinations while hovered, so a big network does not become a web. */
 	static final int MAX_LINKS = 20;
@@ -52,32 +39,6 @@ public final class HotspotLoader
 
 	private HotspotLoader()
 	{
-	}
-
-	/**
-	 * The places the shop data names, one per shop that says where it is, for working out what is in
-	 * Varrock or the Farming Guild.
-	 */
-	public static List<com.worldmapplus.search.Gazetteer.Place> shopPlaces(Gson gson, MapCatalog catalog)
-	{
-		List<com.worldmapplus.search.Gazetteer.Place> places = new ArrayList<>();
-		ShopFile shops = read(gson, SHOPS, ShopFile.class);
-		if (shops == null || shops.shops == null)
-		{
-			return places;
-		}
-		for (Shop shop : shops.shops)
-		{
-			if (shop != null && shop.where != null && !shop.where.isEmpty())
-			{
-				MapInfo map = catalog.mapFor(shop.x, shop.y);
-				if (map != null)
-				{
-					places.add(new com.worldmapplus.search.Gazetteer.Place(shop.where, map.getId(), shop.x, shop.y));
-				}
-			}
-		}
-		return places;
 	}
 
 	/** Loads everything bundled. Anything missing or damaged is skipped with a log line. */
@@ -98,11 +59,6 @@ public final class HotspotLoader
 		if (teleports != null)
 		{
 			hotspots.addAll(teleports(teleports, catalog));
-		}
-		ShopFile shops = read(gson, SHOPS, ShopFile.class);
-		if (shops != null)
-		{
-			hotspots.addAll(shops(shops, catalog));
 		}
 		return hotspots;
 	}
@@ -298,14 +254,14 @@ public final class HotspotLoader
 		String place = stop.routes.get(0).place;
 		for (Route route : stop.routes)
 		{
-			if (!java.util.Objects.equals(place, route.place))
+			if (!Objects.equals(place, route.place))
 			{
 				place = null;
 				break;
 			}
 		}
 		String title = place == null || place.isEmpty() ? kind : kind + ": " + place;
-		HoverCard.Builder card = HoverCard.builder(title).subtitle("Goes to").wiki(WikiTitles.forTransport(kind));
+		HoverCard.Builder card = HoverCard.builder(title).subtitle("Goes to").wiki("transport", kind);
 		List<Hotspot.Link> links = new ArrayList<>();
 		// One row for each place it goes to. A place with several ways of getting there, such as for coins or free, has them
 		// all on its row.
@@ -385,7 +341,7 @@ public final class HotspotLoader
 				continue;
 			}
 			String title = node.name == null || node.name.isEmpty() ? kind : kind + ": " + node.name;
-			HoverCard.Builder card = HoverCard.builder(title).wiki(WikiTitles.forTransport(kind));
+			HoverCard.Builder card = HoverCard.builder(title).wiki("transport", kind);
 
 			List<String> others = new ArrayList<>();
 			for (Node other : network.nodes)
@@ -567,7 +523,7 @@ public final class HotspotLoader
 	static List<String> needWords(@Nullable List<String> quests, @Nullable List<String> requires)
 	{
 		List<String> words = new ArrayList<>();
-		for (List<String> list : java.util.Arrays.asList(quests, requires))
+		for (List<String> list : Arrays.asList(quests, requires))
 		{
 			if (list == null)
 			{
@@ -608,145 +564,15 @@ public final class HotspotLoader
 	}
 
 	// ------------------------------------------------------------------
-	// Shops
-	// ------------------------------------------------------------------
-
-	/** Item rows a shop card shows before the rest wait for the expanded view. */
-	static final int MAX_SHOP_ROWS = 14;
-
-	public static List<Hotspot> shops(Reader reader, Gson gson, MapCatalog catalog)
-	{
-		ShopFile file = gson.fromJson(reader, ShopFile.class);
-		return file == null ? new ArrayList<>() : shops(file, catalog);
-	}
-
-	static List<Hotspot> shops(ShopFile file, MapCatalog catalog)
-	{
-		List<Hotspot> result = new ArrayList<>();
-		if (file.shops == null)
-		{
-			return result;
-		}
-		for (Shop shop : file.shops)
-		{
-			if (shop == null || shop.name == null || shop.items == null || shop.items.isEmpty())
-			{
-				continue;
-			}
-			MapInfo map = catalog.mapFor(shop.x, shop.y);
-			if (map == null)
-			{
-				continue;
-			}
-			result.add(new Hotspot(map.getId(), shop.x + 0.5, shop.y + 0.5, RADIUS, shopCard(shop),
-				null, new ArrayList<>(), Hotspot.Kind.SHOP));
-		}
-		return result;
-	}
-
-	static HoverCard shopCard(Shop shop)
-	{
-		HoverCard.Builder card = HoverCard.builder(shop.name).wiki(WikiTitles.forShop(shop.name));
-		StringBuilder subtitle = new StringBuilder();
-		if (shop.owner != null && !shop.owner.isEmpty())
-		{
-			subtitle.append("Run by ").append(shop.owner);
-		}
-		if (shop.where != null && !shop.where.isEmpty())
-		{
-			subtitle.append(subtitle.length() > 0 ? ", " : "").append(shop.where);
-		}
-		if (subtitle.length() > 0)
-		{
-			card.subtitle(subtitle.toString());
-		}
-
-		int index = 0;
-		for (ShopItem item : shop.items)
-		{
-			String value = priceText(item);
-			if (index++ < MAX_SHOP_ROWS)
-			{
-				card.row(item.item, value);
-			}
-			else
-			{
-				card.overflowRow(item.item, value);
-			}
-		}
-
-		Integer change = commonChange(shop.items);
-		if (change != null && change != 0)
-		{
-			card.hint("Each item bought moves the price about " + change + "%");
-		}
-		return card.build();
-	}
-
-	/** Price and starting stock, such as {@code 16 coins, 10 in stock}. */
-	static String priceText(ShopItem item)
-	{
-		StringBuilder text = new StringBuilder();
-		if (item.price != null)
-		{
-			String currency = item.currency == null || item.currency.isEmpty() ? "coins" : item.currency.toLowerCase();
-			if (item.price == 1 && "coins".equals(currency))
-			{
-				currency = "coin";
-			}
-			text.append(String.format(java.util.Locale.ROOT, "%,d %s", item.price, currency));
-		}
-		else
-		{
-			text.append("not sold");
-		}
-		if (item.stock != null)
-		{
-			text.append(", ").append(item.stock).append(" in stock");
-		}
-		return text.toString();
-	}
-
-	/** The price change per item that most of a shop's items share, or null if there is none. */
-	@Nullable
-	static Integer commonChange(List<ShopItem> items)
-	{
-		java.util.Map<Integer, Integer> counts = new java.util.HashMap<>();
-		for (ShopItem item : items)
-		{
-			if (item.change != null)
-			{
-				counts.merge(item.change, 1, Integer::sum);
-			}
-		}
-		Integer best = null;
-		int bestCount = 0;
-		for (java.util.Map.Entry<Integer, Integer> entry : counts.entrySet())
-		{
-			if (entry.getValue() > bestCount)
-			{
-				best = entry.getKey();
-				bestCount = entry.getValue();
-			}
-		}
-		return best;
-	}
-
-	// ------------------------------------------------------------------
 	// Resource shapes, bound by Gson from concrete classes
 	// ------------------------------------------------------------------
 
+	@RequiredArgsConstructor
 	private static final class Stop
 	{
 		private final int x;
 		private final int y;
 		private final List<Route> routes = new ArrayList<>();
-
-		Stop(int x, int y)
-		{
-			this.x = x;
-			this.y = y;
-		}
 	}
 
 	static final class TeleportFile
@@ -772,44 +598,13 @@ public final class HotspotLoader
 	}
 
 	/** Where one or more teleports land. */
+	@RequiredArgsConstructor
 	static final class Destination
 	{
 		final int x;
 		final int y;
 		final boolean snapped;
 		final List<Teleport> methods = new ArrayList<>();
-
-		Destination(int x, int y, boolean snapped)
-		{
-			this.x = x;
-			this.y = y;
-			this.snapped = snapped;
-		}
-	}
-
-	static final class ShopFile
-	{
-		List<Shop> shops;
-	}
-
-	static final class Shop
-	{
-		String name;
-		String owner;
-		String where;
-		String specialty;
-		int x;
-		int y;
-		List<ShopItem> items;
-	}
-
-	static final class ShopItem
-	{
-		String item;
-		Long stock;
-		Long price;
-		Integer change;
-		String currency;
 	}
 
 	static final class EntranceFile

@@ -1,11 +1,8 @@
 package com.worldmapplus.panel;
 
-import com.worldmapplus.pins.SavedRoute;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.function.LongFunction;
+import com.worldmapplus.pins.*;
+import java.util.*;
+import java.util.function.*;
 
 /**
  * Chooses and orders the saved routes the side panel lists: a text filter, a loops-only filter and a

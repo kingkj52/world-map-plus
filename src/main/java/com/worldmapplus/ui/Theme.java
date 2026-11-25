@@ -1,12 +1,7 @@
 package com.worldmapplus.ui;
 
-import com.worldmapplus.theme.Palette;
-import com.worldmapplus.theme.Palettes;
-import com.worldmapplus.theme.Role;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.Stroke;
+import com.worldmapplus.theme.*;
+import java.awt.*;
 
 /**
  * The look shared by everything the map draws over the imagery: one set of colours and fonts, and one way of

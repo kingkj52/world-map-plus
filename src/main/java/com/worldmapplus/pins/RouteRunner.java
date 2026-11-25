@@ -1,10 +1,8 @@
 package com.worldmapplus.pins;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.annotation.Nullable;
-import javax.inject.Inject;
-import javax.inject.Singleton;
+import java.util.*;
+import javax.annotation.*;
+import javax.inject.*;
 
 /**
  * Walks a saved route, one stop after another, by asking Shortest Path for each leg in turn.

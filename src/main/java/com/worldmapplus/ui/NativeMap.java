@@ -1,6 +1,7 @@
 package com.worldmapplus.ui;
 
-import javax.annotation.Nullable;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * The game's own world map, which is still open underneath this plugin's map. Other plugins draw on that map, and
@@ -16,32 +17,12 @@ public interface NativeMap
 	void moveTo(int x, int y);
 
 	/** The game's map: the tile at its centre and its zoom in pixels per tile. */
+	@Getter
+	@RequiredArgsConstructor
 	final class View
 	{
 		private final int x;
 		private final int y;
 		private final double zoom;
-
-		public View(int x, int y, double zoom)
-		{
-			this.x = x;
-			this.y = y;
-			this.zoom = zoom;
-		}
-
-		public int getX()
-		{
-			return x;
-		}
-
-		public int getY()
-		{
-			return y;
-		}
-
-		public double getZoom()
-		{
-			return zoom;
-		}
 	}
 }

@@ -1,26 +1,14 @@
 package com.worldmapplus.data;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonParseException;
-import com.worldmapplus.map.MapCatalog;
-import com.worldmapplus.map.MapInfo;
-import com.worldmapplus.search.SearchEntry;
-import com.worldmapplus.search.SearchKind;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import lombok.extern.slf4j.Slf4j;
+import com.google.gson.*;
+import com.worldmapplus.map.*;
+import com.worldmapplus.search.*;
+import com.worldmapplus.unlock.*;
+import java.io.*;
+import java.nio.charset.*;
+import java.util.*;
+import lombok.*;
+import lombok.extern.slf4j.*;
 
 /**
  * The named places of the world, for searching with {@code type:place}: the game's own map labels, every place the
@@ -39,7 +27,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public final class PlaceLoader
 {
-	private static final String SHOPS = "/com/worldmapplus/shops.json";
+	/**
+	 * What the shop and spawn data say of places, as {where, x, y} rows, and where quests start as {name, x, y} rows (tools/build_place_names.py
+	 * makes the file; the data itself is the Helper's since round 62E).
+	 */
+	private static final String PLACE_NAMES = "/com/worldmapplus/place-names.json";
 
 	/** Tiles within which the places of one name are taken to be the same place. */
 	private static final int SAME_PLACE_TILES = 140;
@@ -98,6 +90,7 @@ public final class PlaceLoader
 	}
 
 	/** One spot a place name was found at. */
+	@RequiredArgsConstructor
 	private static final class Found
 	{
 		final String name;
@@ -107,17 +100,6 @@ public final class PlaceLoader
 		final double x;
 		final double y;
 		final boolean label;
-
-		Found(String name, String parent, String detail, int mapId, double x, double y, boolean label)
-		{
-			this.name = name;
-			this.parent = parent;
-			this.detail = detail;
-			this.mapId = mapId;
-			this.x = x;
-			this.y = y;
-			this.label = label;
-		}
 	}
 
 	/** A place: every spot its name was found at, near each other. */
@@ -199,30 +181,70 @@ public final class PlaceLoader
 		return !word.isEmpty();
 	}
 
+	private static final class PlaceFile
+	{
+		Object[][] shops;
+		Object[][] spawns;
+		Object[][] quests;
+	}
+
+	/** The places the shops name, for working out what is in Varrock or the Farming Guild. */
+	public static List<Gazetteer.Place> shopPlaces(Gson gson, MapCatalog catalog)
+	{
+		List<Gazetteer.Place> places = new ArrayList<>();
+		PlaceFile file = read(gson, PLACE_NAMES, PlaceFile.class);
+		for (Object[] row : rows(file == null ? null : file.shops, catalog))
+		{
+			places.add(new Gazetteer.Place((String) row[0], (Integer) row[1], (Integer) row[2], (Integer) row[3]));
+		}
+		return places;
+	}
+
+	/** The quest starts as entries, which name the game's quest icons and are not searched here (the Helper searches them). */
+	public static List<SearchEntry> quests(Gson gson, MapCatalog catalog)
+	{
+		List<SearchEntry> entries = new ArrayList<>();
+		PlaceFile file = read(gson, PLACE_NAMES, PlaceFile.class);
+		for (Object[] row : rows(file == null ? null : file.quests, catalog))
+		{
+			SearchEntry entry = new SearchEntry(SearchKind.QUEST, (String) row[0], "Quest start", (Integer) row[1], (Integer) row[2] + 0.5,
+				(Integer) row[3] + 0.5);
+			entry.setNeed(Need.startOf((String) row[0]));
+			entries.add(entry);
+		}
+		return entries;
+	}
+
+	/** Each row that is whole and on a map, as {text, the map's id, x, y}. */
+	private static List<Object[]> rows(Object[][] raw, MapCatalog catalog)
+	{
+		List<Object[]> rows = new ArrayList<>();
+		for (Object[] row : raw == null ? new Object[0][] : raw)
+		{
+			if (row != null && row.length == 3 && row[0] instanceof String && row[1] instanceof Number && row[2] instanceof Number)
+			{
+				int x = ((Number) row[1]).intValue();
+				int y = ((Number) row[2]).intValue();
+				MapInfo map = catalog.mapFor(x, y);
+				if (map != null)
+				{
+					rows.add(new Object[] {row[0], map.getId(), x, y});
+				}
+			}
+		}
+		return rows;
+	}
+
 	/** Builds the entries from the bundled data and the game's labels. */
 	public static List<SearchEntry> build(Gson gson, MapCatalog catalog, MapElements elements)
 	{
 		List<Found> found = new ArrayList<>();
-		SpawnLoader.SpawnFile spawns = SpawnFormat.bundled();
-		if (spawns != null)
+		PlaceFile names = read(gson, PLACE_NAMES, PlaceFile.class);
+		for (Object[][] list : new Object[][][] {names == null ? null : names.spawns, names == null ? null : names.shops})
 		{
-			groups(found, spawns.monsters, catalog);
-			groups(found, spawns.npcs, catalog);
-			groups(found, spawns.items, catalog);
-		}
-		HotspotLoader.ShopFile shops = read(gson, SHOPS, HotspotLoader.ShopFile.class);
-		if (shops != null && shops.shops != null)
-		{
-			for (HotspotLoader.Shop shop : shops.shops)
+			for (Object[] row : rows(list, catalog))
 			{
-				if (shop != null && shop.where != null)
-				{
-					MapInfo map = catalog.mapFor(shop.x, shop.y);
-					if (map != null)
-					{
-						add(found, shop.where, map.getId(), shop.x + 0.5, shop.y + 0.5);
-					}
-				}
+				add(found, (String) row[0], (Integer) row[1], (Integer) row[2] + 0.5, (Integer) row[3] + 0.5);
 			}
 		}
 		for (MapInfo map : catalog.getMaps())
@@ -242,37 +264,6 @@ public final class PlaceLoader
 		pubs(found, catalog, elements);
 		services(found, catalog, elements);
 		return cluster(found);
-	}
-
-	private static void groups(List<Found> found, List<SpawnLoader.Named> named, MapCatalog catalog)
-	{
-		if (named == null)
-		{
-			return;
-		}
-		for (SpawnLoader.Named creature : named)
-		{
-			if (creature == null || creature.groups == null)
-			{
-				continue;
-			}
-			for (SpawnLoader.Group group : creature.groups)
-			{
-				if (group == null || group.where == null || group.pts == null)
-				{
-					continue;
-				}
-				// A few of a group's tiles say where the place is. The rest would only repeat it.
-				for (int i = 0; i + 1 < group.pts.length && i < 16; i += 2)
-				{
-					MapInfo map = catalog.mapFor(group.pts[i], group.pts[i + 1]);
-					if (map != null)
-					{
-						add(found, group.where, map.getId(), group.pts[i] + 0.5, group.pts[i + 1] + 0.5);
-					}
-				}
-			}
-		}
 	}
 
 	private static void add(List<Found> found, String where, int mapId, double x, double y)
@@ -524,7 +515,7 @@ public final class PlaceLoader
 			for (Place place : kept)
 			{
 				entries.add(new SearchEntry(SearchKind.PLACE, place.name, place.detail, place.mapId, place.x, place.y,
-					Collections.emptyList(), -1, LOCATION));
+					Collections.emptyList(), LOCATION));
 			}
 		}
 		return entries;

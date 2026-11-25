@@ -1,8 +1,6 @@
 package com.worldmapplus.layers;
 
-import java.util.Arrays;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Which point of interest layers are on, kept in the settings as one comma separated list of ids.

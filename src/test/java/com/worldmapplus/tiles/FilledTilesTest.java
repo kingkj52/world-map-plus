@@ -12,10 +12,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
- * Checks the map imagery that ships in the jar, read through the chunk files as the plugin reads it: every square a map
+ * Checks the map imagery that ships in the jar, read from the PNG sources: every square a map
  * lists is in the tile index (TileManifestTest decodes every one of them), and the places the wiki's imagery left black
  * (tools/fill_tiles.py draws them from the game cache) have something in them.
  */
@@ -23,7 +25,13 @@ public class FilledTilesTest
 {
 	private static final String ROOT = "/com/worldmapplus/";
 
-	private static final BundledTiles TILES = BundledTiles.load(new Gson());
+	private static final SourceTiles TILES = new SourceTiles(new Gson());
+
+	@Before
+	public void sourcesPresent()
+	{
+		Assume.assumeTrue(PngTiles.available());
+	}
 
 	private static BufferedImage tile(int mapId, int x, int y) throws IOException
 	{

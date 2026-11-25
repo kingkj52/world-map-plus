@@ -1,6 +1,8 @@
 package com.worldmapplus.layers;
 
-import javax.annotation.Nullable;
+import java.util.Objects;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * What one of the plugin's own points of interest adds to the card of the game's icon it was merged into: a rare tree's species, the
@@ -11,9 +13,12 @@ import javax.annotation.Nullable;
 public final class IconExtra
 {
 	private final String layer;
+	@Getter
 	private final String name;
 	private final String detail;
+	@Getter
 	private final int tileX;
+	@Getter
 	private final int tileY;
 
 	/**
@@ -39,30 +44,15 @@ public final class IconExtra
 		return layer;
 	}
 
-	public String getName()
-	{
-		return name;
-	}
-
 	@Nullable
 	public String getDetail()
 	{
 		return detail;
 	}
 
-	public int getTileX()
-	{
-		return tileX;
-	}
-
-	public int getTileY()
-	{
-		return tileY;
-	}
-
 	/** True when two say the same thing for the same layer, as the several booths of one bank do. */
 	boolean sameAs(IconExtra other)
 	{
-		return java.util.Objects.equals(layer, other.layer) && name.equals(other.name) && java.util.Objects.equals(detail, other.detail);
+		return Objects.equals(layer, other.layer) && name.equals(other.name) && Objects.equals(detail, other.detail);
 	}
 }

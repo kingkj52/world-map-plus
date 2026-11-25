@@ -1,56 +1,27 @@
 package com.worldmapplus.panel;
 
-import com.worldmapplus.bridge.ExternalOverlays;
-import com.worldmapplus.bridge.MapActions;
-import com.worldmapplus.pins.Pin;
-import com.worldmapplus.pins.PinStore;
-import com.worldmapplus.pins.RouteNavigator;
-import com.worldmapplus.pins.RouteRunner;
-import com.worldmapplus.pins.RouteStore;
-import com.worldmapplus.pins.SavedRoute;
-import com.worldmapplus.share.PasteReader;
-import com.worldmapplus.share.Share;
-import com.worldmapplus.share.ShareBuilder;
-import com.worldmapplus.share.ShareCodec;
-import com.worldmapplus.share.ShareException;
-import com.worldmapplus.share.ShareImport;
-import com.worldmapplus.share.ShareInbox;
-import com.worldmapplus.typing.TypingGuide;
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Container;
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
+import com.worldmapplus.bridge.*;
+import com.worldmapplus.pins.*;
+import com.worldmapplus.theme.*;
+import java.awt.*;
+import java.awt.event.*;
+import java.awt.image.*;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
-import java.util.function.BooleanSupplier;
-import java.util.function.IntFunction;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
+import java.util.function.*;
+import javax.annotation.*;
+import javax.swing.*;
 import javax.swing.Timer;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import net.runelite.client.callback.ClientThread;
-import net.runelite.client.ui.PluginPanel;
-import net.runelite.client.ui.components.IconTextField;
+import javax.swing.event.*;
+import net.runelite.client.callback.*;
+import net.runelite.client.ui.*;
+import net.runelite.client.ui.components.*;
 
 /**
  * The side panel: the player's saved places and routes, with a filter, a type filter and a sort for each,
- * the way Inventory Setups lists its setups, the shares other players sent, and the box that shows a share's
- * messages for the player to type (with the typing guide).
+ * the way Inventory Setups lists its setups. The Share and Import buttons are this panel's, and what they do belongs to the
+ * World Map Plus Helper plugin, which puts its own sections (the share box, Shared with you, the import box) at the top of this
+ * panel through the plugin API.
  * <p>
  * Everything here is the plugin's own list. Go asks Shortest Path for a route, Show brings the map to the
  * place, and routes are walked leg by leg by {@link RouteRunner}. The panel has no controls that act in the
@@ -73,21 +44,26 @@ public class PlacesPanel extends PluginPanel
 	private final ExternalOverlays external;
 	private final ClientThread clientThread;
 	private final IntFunction<String> areaName;
-	private final ShareInbox inbox;
-	private final ShareImport importer;
-	private final JPanel inboxBody = column();
-	private int shownInbox = -1;
 
-	/** The newest saved place and shared set already listed, so one that appears later can glow for a moment. */
+	/** The newest saved place already listed, so one that appears later can glow for a moment. */
 	private long newestPin = -1;
 	private long flashAfterPin = -1;
-	private long newestOffer = -1;
-	private long flashAfterOffer = -1;
 
 	private final JLabel status = new JLabel();
 	private final JPanel placesBody = column();
 	private final JPanel routesBody = column();
 	private final PanelTheme.Segments tabs = new PanelTheme.Segments("Places", "Routes");
+	private final CardLayout pages = new ShownPageLayout();
+	private final JPanel display = PanelTheme.clear(pages);
+
+	/** What other plugins put in the side panel: sections at the foot of each page, and pages of their own (see {@link Partners}). */
+	private final Partners partners;
+	private final JPanel topExtra = column();
+	private final JPanel placesExtra = column();
+	private final JPanel routesExtra = column();
+	private final List<JPanel> partnerPages = new ArrayList<>();
+	private final List<String> pageNames = new ArrayList<>(Arrays.asList("places", "routes"));
+	private int shownPartners = -1;
 
 	private final IconTextField placeFilter = searchField("Filter by name, type or area");
 	private final JComboBox<String> typeBox = new JComboBox<>();
@@ -95,40 +71,6 @@ public class PlacesPanel extends PluginPanel
 	private final PanelTheme.Pill makeRoute = PanelTheme.pill("New route from ticked places");
 	private final PanelTheme.Pill sharePlaces = PanelTheme.pill("Share ticked");
 	private final PanelTheme.Pill importCode = PanelTheme.pill("Import a code");
-	/** The import box (round 52): a text box to paste codes into, Import, Import clipboard, and what came of it. */
-	private final JPanel importBody = column();
-	private final javax.swing.JTextArea importText = new HintArea(
-		"Paste a code here, from Discord or anywhere. With or without !wmp; the parts of a long code in any order.");
-	private final JLabel importStatus = new JLabel();
-	private final PanelTheme.Pill importNow = PanelTheme.primary("Import");
-	private final PanelTheme.Pill importClipboard = PanelTheme.pill("Import clipboard");
-	private final PanelTheme.Pill importClose = PanelTheme.pill("Close");
-	private ShareInbox.Pasted lastImport;
-	private final JPanel shareBody = column();
-
-	/** The share whose messages are shown for the player to type, or null. */
-	private Share sharing;
-
-	/** The messages of the share being shown, and what shows each one's state and progress, for updates in place. */
-	private List<String> sharingMessages = new ArrayList<>();
-	private final List<JLabel> messageStates = new ArrayList<>();
-	private final List<CodeView> messageCodes = new ArrayList<>();
-	private JLabel guideLine;
-	private boolean guideShownActive;
-
-	/** The client property of a message's state label that holds the message's length. */
-	private static final String LENGTH = "wmpLength";
-
-	/** The typing guide, and whether its setting is on. Without one the share box has no guide controls. */
-	private TypingGuide guide;
-	private BooleanSupplier guideEnabled = () -> false;
-	private int shownGuide = -1;
-	private final TypingGuide.View guideView = new TypingGuide.View();
-	private final byte[] messageMarks = new byte[TypingGuide.MAX_MESSAGE];
-
-	/** Shows a share on the map, and asks Shortest Path for the way to its first point. Set by the plugin. */
-	private java.util.function.Consumer<Share> shareViewer = s -> { };
-	private java.util.function.Consumer<Share> shareGoer = s -> { };
 
 	private final IconTextField routeFilter = searchField("Filter by route name or by the name of a stop");
 	private final JComboBox<RouteList.Sort> routeSort = new JComboBox<>(RouteList.Sort.values());
@@ -139,40 +81,27 @@ public class PlacesPanel extends PluginPanel
 	static final int FOLDED_STOPS = 3;
 
 	/** The routes whose whole stop list is shown, by id, while the panel is open. */
-	private final Set<Long> unfolded = new java.util.HashSet<>();
+	private final Set<Long> unfolded = new HashSet<>();
 
 	/** The places ticked for a new route, in the order they were ticked. */
 	private final Set<Long> ticked = new LinkedHashSet<>();
 
-	/** Works out the fastest order of a route, or null when there is none (tests, previews). */
-	private com.worldmapplus.pins.RouteOrderer orderer;
-
-	/** The last new order given to a route, so it can be undone while the route still has it. */
-	private com.worldmapplus.pins.RouteOrderer.Result lastOrder;
-
 	private final Timer refresher;
 	private int shownPins = -1;
 	private int shownRoutes = -1;
+	private int shownOrder = -1;
 	private boolean updating;
 
 	public PlacesPanel(PinStore pins, RouteStore routes, RouteRunner runner, MapActions actions,
 		ExternalOverlays external, ClientThread clientThread, IntFunction<String> areaName)
 	{
-		this(pins, routes, runner, actions, external, clientThread, areaName, new ShareInbox(), null);
-	}
-
-	public PlacesPanel(PinStore pins, RouteStore routes, RouteRunner runner, MapActions actions,
-		ExternalOverlays external, ClientThread clientThread, IntFunction<String> areaName, ShareInbox inbox,
-		ShareImport importer)
-	{
 		super(true);
-		this.inbox = inbox;
-		this.importer = importer;
 		this.pins = pins;
 		this.routes = routes;
 		this.runner = runner;
 		this.actions = actions;
 		this.external = external;
+		this.partners = external.partners();
 		this.clientThread = clientThread;
 		this.areaName = areaName;
 
@@ -187,18 +116,18 @@ public class PlacesPanel extends PluginPanel
 		JPanel places = PanelTheme.clear(new BorderLayout(0, PanelTheme.GAP));
 		places.add(placeControls(), BorderLayout.NORTH);
 		places.add(placesBody, BorderLayout.CENTER);
+		places.add(placesExtra, BorderLayout.SOUTH);
 
 		JPanel routePage = PanelTheme.clear(new BorderLayout(0, PanelTheme.GAP));
 		routePage.add(routeControls(), BorderLayout.NORTH);
 		routePage.add(routesBody, BorderLayout.CENTER);
+		routePage.add(routesExtra, BorderLayout.SOUTH);
 
-		CardLayout pages = new ShownPageLayout();
-		JPanel display = PanelTheme.clear(pages);
 		display.add(places, "places");
 		display.add(routePage, "routes");
 		tabs.onChoose(i ->
 		{
-			pages.show(display, i == 0 ? "places" : "routes");
+			pages.show(display, pageNames.get(i));
 			// The page area is as tall as the page shown, so the panel lays itself out again.
 			revalidate();
 			repaint();
@@ -208,10 +137,7 @@ public class PlacesPanel extends PluginPanel
 		header.add(brand());
 		header.add(gap(PanelTheme.GAP));
 		header.add(status);
-		header.add(shareBody);
-		header.add(importBody);
-		header.add(inboxBody);
-		buildImport();
+		header.add(topExtra);
 		header.add(tabs);
 		add(header, BorderLayout.NORTH);
 		add(display, BorderLayout.CENTER);
@@ -220,10 +146,89 @@ public class PlacesPanel extends PluginPanel
 		refresher = new Timer((int) REFRESH_MILLIS, e -> refreshIfChanged());
 		refresher.setRepeats(true);
 		rebuildAll();
+		rebuildPartners();
+	}
+
+	/**
+	 * Puts the sections other plugins registered at the foot of the Places and Routes pages, or on a page of their own for any
+	 * other tab name. Interface thread only. A section that fails while it is drawn is reported, and gone at the next look.
+	 */
+	private void rebuildPartners()
+	{
+		shownPartners = partners.version();
+		topExtra.removeAll();
+		placesExtra.removeAll();
+		routesExtra.removeAll();
+		Map<String, JPanel> named = new LinkedHashMap<>();
+		for (Partners.Slot slot : partners.slots(Partners.Kind.SECTION))
+		{
+			if (slot.isOff())
+			{
+				continue;
+			}
+			JPanel box = new JPanel(new BorderLayout(0, 2))
+			{
+				@Override
+				protected void paintChildren(Graphics g)
+				{
+					try
+					{
+						super.paintChildren(g);
+					}
+					catch (RuntimeException e)
+					{
+						partners.fail(slot, e);
+					}
+				}
+			};
+			box.setOpaque(false);
+			box.setAlignmentX(Component.LEFT_ALIGNMENT);
+			String tab = slot.tab;
+			boolean top = Partners.TOP.equalsIgnoreCase(tab);
+			if (!top)
+			{
+				box.add(PanelTheme.header(slot.title, -1), BorderLayout.NORTH);
+			}
+			box.add(slot.component(), BorderLayout.CENTER);
+			JPanel into = top ? topExtra : "places".equalsIgnoreCase(tab) ? placesExtra : "routes".equalsIgnoreCase(tab) ? routesExtra
+				: named.computeIfAbsent(tab, t -> column());
+			into.add(box);
+			if (!top)
+			{
+				into.add(gap(PanelTheme.GAP));
+			}
+		}
+		// An empty column takes no room, so a panel with no partner is laid out exactly as before.
+		topExtra.setVisible(topExtra.getComponentCount() > 0);
+		placesExtra.setVisible(placesExtra.getComponentCount() > 0);
+		routesExtra.setVisible(routesExtra.getComponentCount() > 0);
+		partnerPages.forEach(display::remove);
+		partnerPages.clear();
+		pageNames.subList(2, pageNames.size()).clear();
+		for (Map.Entry<String, JPanel> page : named.entrySet())
+		{
+			display.add(page.getValue(), page.getKey());
+			partnerPages.add(page.getValue());
+			pageNames.add(page.getKey());
+		}
+		tabs.setNames(pageNames.stream().map(n -> n.equals("places") ? "Places" : n.equals("routes") ? "Routes" : n).toArray(String[]::new));
+		tabs.choose(tabs.chosen());
+	}
+
+	/** Makes a button send an action to the plugins that handle it, with the payload made when it is pressed, or say what is missing. */
+	void bindAction(AbstractButton button, String action, Supplier<Map<String, Object>> payload)
+	{
+		button.addActionListener(e ->
+		{
+			if (!partners.act(action, payload))
+			{
+				setStatus(Partners.INSTALL);
+			}
+		});
 	}
 
 	/** The toolbar icon. */
-	public static java.awt.image.BufferedImage icon()
+	public static BufferedImage icon()
 	{
 		return PanelIcon.create();
 	}
@@ -243,7 +248,7 @@ public class PlacesPanel extends PluginPanel
 		{
 			synchronized (parent.getTreeLock())
 			{
-				java.awt.Insets insets = parent.getInsets();
+				Insets insets = parent.getInsets();
 				for (Component page : parent.getComponents())
 				{
 					if (page.isVisible())
@@ -271,7 +276,7 @@ public class PlacesPanel extends PluginPanel
 	private static JComponent brand()
 	{
 		JLabel title = PanelTheme.label("World Map Plus", PanelTheme.TITLE, PanelTheme.ACCENT);
-		title.setIcon(new javax.swing.ImageIcon(PanelIcon.create()));
+		title.setIcon(new ImageIcon(PanelIcon.create()));
 		title.setIconTextGap(6);
 		JLabel sub = PanelTheme.label("Places, routes and shares", PanelTheme.SMALL, PanelTheme.TEXT_FAINT);
 		JPanel box = PanelTheme.clear(new BorderLayout(0, 1));
@@ -301,8 +306,8 @@ public class PlacesPanel extends PluginPanel
 		makeRoute.setToolTipText("Make a route of the ticked places, in the order they were ticked");
 		box.add(fill(makeRoute));
 		box.add(gap(5));
-		sharePlaces.setToolTipText("Make a !wmp code for the ticked places (one place makes a pin code) to type into chat");
-		importCode.setToolTipText("Paste a code someone sent you outside the game. Codes that arrive in chat are found without this");
+		sharePlaces.setToolTipText("Make a !wmp code for the ticked places to type into chat");
+		importCode.setToolTipText("Paste a code sent outside the game. Codes in chat are found without this");
 		JPanel shareRow = PanelTheme.clear(new GridLayout(1, 2, 5, 0));
 		shareRow.add(sharePlaces);
 		shareRow.add(importCode);
@@ -387,7 +392,7 @@ public class PlacesPanel extends PluginPanel
 			@Override
 			public void mouseExited(MouseEvent e)
 			{
-				java.awt.Point inRow = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), row);
+				Point inRow = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), row);
 				if (!row.contains(inRow))
 				{
 					row.hover(false);
@@ -443,11 +448,8 @@ public class PlacesPanel extends PluginPanel
 		routeSort.addActionListener(e -> rebuildAll());
 		loopsOnly.addActionListener(e -> rebuildAll());
 		makeRoute.addActionListener(e -> routeFromTicked());
-		sharePlaces.addActionListener(e -> shareTicked());
-		importCode.addActionListener(e -> showImport(!importBody.isVisible()));
-		importNow.addActionListener(e -> importTyped());
-		importClipboard.addActionListener(e -> importPasted());
-		importClose.addActionListener(e -> showImport(false));
+		bindAction(sharePlaces, Partners.ACTION_SHARE_PLACES, () -> partners.payload(new ArrayList<>(ticked), Collections.emptyList()));
+		bindAction(importCode, Partners.ACTION_IMPORT, HashMap::new);
 		newRoute.addActionListener(e -> RouteEditor.show(this, pins, routes, null, new ArrayList<>()));
 	}
 
@@ -507,17 +509,17 @@ public class PlacesPanel extends PluginPanel
 		{
 			setStatus(problem);
 		}
-		if (inbox.getVersion() != shownInbox)
+		if (partners.version() != shownPartners)
 		{
-			rebuildInbox();
+			rebuildPartners();
 		}
-		if (pins.getVersion() != shownPins || routes.getVersion() != shownRoutes)
+		if (partners.takeNotice())
+		{
+			setStatus(Partners.INSTALL);
+		}
+		if (pins.getVersion() != shownPins || routes.getVersion() != shownRoutes || partners.orderVersion() != shownOrder)
 		{
 			rebuildAll();
-		}
-		if (guide != null && guide.version() != shownGuide)
-		{
-			showGuideProgress();
 		}
 	}
 
@@ -549,6 +551,7 @@ public class PlacesPanel extends PluginPanel
 		{
 			shownPins = pins.getVersion();
 			shownRoutes = routes.getVersion();
+			shownOrder = partners.orderVersion();
 			List<Pin> all = pins.all();
 			ticked.removeIf(id -> pins.get(id) == null);
 			rebuildTypeBox(all);
@@ -557,7 +560,6 @@ public class PlacesPanel extends PluginPanel
 			updateTickedButtons();
 			tabs.setCount(0, all.size());
 			tabs.setCount(1, routes.all().size());
-			rebuildInbox();
 		}
 		finally
 		{
@@ -613,7 +615,7 @@ public class PlacesPanel extends PluginPanel
 		if (shown.isEmpty())
 		{
 			placesBody.add(note(all.isEmpty()
-				? "Nothing saved yet. Right-click the map and choose Add pin here, or Save place on a shop, a person or a search result."
+				? "Nothing saved yet. Right-click the map and choose Add pin here, or Save place on a card or result."
 				: "No saved place matches."));
 		}
 		for (Pin pin : shown)
@@ -652,7 +654,7 @@ public class PlacesPanel extends PluginPanel
 
 	private static Component gap(int height)
 	{
-		return javax.swing.Box.createRigidArea(new Dimension(0, height));
+		return Box.createRigidArea(new Dimension(0, height));
 	}
 
 	/** A short message in a quiet card, for an empty list. */
@@ -766,28 +768,20 @@ public class PlacesPanel extends PluginPanel
 		buttons.add(edit);
 		JButton share = small("Share");
 		share.setToolTipText("Make a !wmp code for this route's stops, in order, to type into chat");
-		share.addActionListener(e -> showCode(ShareBuilder.ofRoute(route, pins, this::autoMap)));
+		bindAction(share, Partners.ACTION_SHARE_ROUTE, () -> partners.payload(route.getStops(), Collections.singletonList(route.getId())));
 		buttons.add(share);
-		if (orderer != null && count >= 3)
+		if (count >= 3)
 		{
 			JButton fastest = small("Order");
 			fastest.setToolTipText("Put the stops in the fastest order");
-			fastest.addActionListener(e -> askOrder(route));
+			bindAction(fastest, Partners.ACTION_ORDER, () -> partners.payload(route.getStops(), Collections.singletonList(route.getId())));
 			buttons.add(fastest);
 		}
-		com.worldmapplus.pins.RouteOrderer.Result undoable = lastOrder;
-		if (undoable != null && undoable.getRouteId() == route.getId() && route.getStops().equals(undoable.getAfter()))
+		if (partners.undoable(route.getId(), route.getStops()))
 		{
 			JButton undo = small("Undo order");
 			undo.setToolTipText("Put the stops back in the order they had before");
-			undo.addActionListener(e ->
-			{
-				if (orderer.undo(undoable))
-				{
-					lastOrder = null;
-					setStatus("The stops of " + route.getName() + " are back in their old order.");
-				}
-			});
+			bindAction(undo, Partners.ACTION_UNDO_ORDER, () -> partners.payload(Collections.emptyList(), Collections.singletonList(route.getId())));
 			buttons.add(undo);
 		}
 		JButton delete = small("Delete");
@@ -829,7 +823,7 @@ public class PlacesPanel extends PluginPanel
 		int shown = open ? stops.size() : FOLDED_STOPS;
 		JPanel list = column();
 		list.setBorder(PanelTheme.pad(1, 0, 1, 0));
-		java.awt.FontMetrics metrics = list.getFontMetrics(PanelTheme.SMALL_BOLD);
+		FontMetrics metrics = list.getFontMetrics(PanelTheme.SMALL_BOLD);
 		int numberWidth = metrics.stringWidth(String.valueOf(stops.size())) + 4;
 		for (int i = 0; i < shown; i++)
 		{
@@ -841,7 +835,7 @@ public class PlacesPanel extends PluginPanel
 			JLabel toggle = PanelTheme.label(text, PanelTheme.SMALL_BOLD, PanelTheme.ACCENT_DEEP);
 			toggle.setBorder(PanelTheme.pad(2, numberWidth + 6, 0, 0));
 			toggle.setToolTipText(open ? "Show only the first " + FOLDED_STOPS + " stops" : "Show every stop of this route");
-			toggle.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.HAND_CURSOR));
+			toggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 			toggle.addMouseListener(new MouseAdapter()
 			{
 				@Override
@@ -872,7 +866,7 @@ public class PlacesPanel extends PluginPanel
 	{
 		Pin pin = pins.get(stop);
 		JLabel index = PanelTheme.label(String.valueOf(number), PanelTheme.SMALL_BOLD, PanelTheme.ACCENT_DEEP);
-		index.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+		index.setHorizontalAlignment(SwingConstants.RIGHT);
 		index.setPreferredSize(new Dimension(numberWidth, index.getPreferredSize().height));
 		String text = pin == null ? "A place that is no longer saved" : pin.getName();
 		JLabel name = PanelTheme.label(text, PanelTheme.SMALL, pin == null ? PanelTheme.TEXT_FAINT : PanelTheme.TEXT_DIM);
@@ -900,7 +894,7 @@ public class PlacesPanel extends PluginPanel
 			@Override
 			public void mouseExited(MouseEvent e)
 			{
-				java.awt.Point inRow = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), row);
+				Point inRow = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), row);
 				if (!row.contains(inRow))
 				{
 					routes.setHighlighted(0);
@@ -913,9 +907,9 @@ public class PlacesPanel extends PluginPanel
 	private static void attach(Component component, MouseAdapter listener)
 	{
 		component.addMouseListener(listener);
-		if (component instanceof java.awt.Container)
+		if (component instanceof Container)
 		{
-			for (Component child : ((java.awt.Container) component).getComponents())
+			for (Component child : ((Container) component).getComponents())
 			{
 				attach(child, listener);
 			}
@@ -925,6 +919,12 @@ public class PlacesPanel extends PluginPanel
 	// ------------------------------------------------------------------
 	// What the buttons do
 	// ------------------------------------------------------------------
+
+	/** Shows a line on the status line at the top, as a partner plugin asks. Interface thread. */
+	public void showStatus(String text)
+	{
+		setStatus(text);
+	}
 
 	private void setStatus(String text)
 	{
@@ -944,7 +944,7 @@ public class PlacesPanel extends PluginPanel
 		}
 		if (state == MapActions.Status.DISABLED)
 		{
-			setStatus("Shortest Path is turned off. Switch it on in the plugin list to get routes.");
+			setStatus("Shortest Path is turned off. Switch it on to get routes.");
 			return false;
 		}
 		return true;
@@ -974,7 +974,7 @@ public class PlacesPanel extends PluginPanel
 			return;
 		}
 		// The same start as a route chosen in the map's search (round 48).
-		setStatus(com.worldmapplus.pins.RouteStart.start(route, routes, pins, actions.shortestPathStatus()).getMessage());
+		setStatus(RouteStart.start(route, routes, pins, actions.shortestPathStatus()).getMessage());
 	}
 
 	/** Starts a saved route as its Start button does, for a route chosen in the map's search. Swing thread. */
@@ -997,60 +997,6 @@ public class PlacesPanel extends PluginPanel
 		}
 	}
 
-	/** Lets the plugin hand over what works out the fastest order of a route. Without it the panel offers no Order button. */
-	public void setOrderer(@javax.annotation.Nullable com.worldmapplus.pins.RouteOrderer orderer)
-	{
-		this.orderer = orderer;
-		shownRoutes = -1;
-	}
-
-	/** Asks how to order a route (keep the first stop, round trip or not), then starts the work on the shared executor. */
-	private void askOrder(SavedRoute route)
-	{
-		if (orderer == null)
-		{
-			return;
-		}
-		JCheckBox keepFirst = new JCheckBox("Keep the first stop first", true);
-		JCheckBox roundTrip = new JCheckBox("Round trip: come back to the first stop", route.isLoop());
-		JPanel choices = new JPanel(new GridLayout(2, 1));
-		choices.add(keepFirst);
-		choices.add(roundTrip);
-		int answer = JOptionPane.showConfirmDialog(this, choices, "Fastest order for " + route.getName(), JOptionPane.OK_CANCEL_OPTION);
-		if (answer != JOptionPane.OK_OPTION)
-		{
-			return;
-		}
-		boolean started = orderer.order(route.getId(), keepFirst.isSelected(), roundTrip.isSelected(),
-			result -> SwingUtilities.invokeLater(() -> ordered(route.getName(), result)));
-		setStatus(started ? "Working out the fastest order for " + route.getName() + "..."
-			: "An order is already being worked out. Try again in a moment.");
-	}
-
-	private void ordered(String name, com.worldmapplus.pins.RouteOrderer.Result result)
-	{
-		if (result.getProblem() != null)
-		{
-			setStatus(result.getProblem());
-			return;
-		}
-		long before = Math.round(result.getLengthBefore());
-		long after = Math.round(result.getLengthAfter());
-		if (!result.isBetter())
-		{
-			setStatus(name + " is already in the fastest order, about " + before + " tiles.");
-			return;
-		}
-		if (!orderer.apply(result))
-		{
-			setStatus(name + " changed while its order was worked out, so it was left as it is.");
-			return;
-		}
-		lastOrder = result;
-		shownRoutes = -1;
-		setStatus("New order for " + name + ": about " + after + " tiles, was " + before + ". Undo order puts it back.");
-	}
-
 	private void routeFromTicked()
 	{
 		List<Long> stops = new ArrayList<>(ticked);
@@ -1063,454 +1009,20 @@ public class PlacesPanel extends PluginPanel
 		rebuildAll();
 	}
 
-	/** Shares the ticked places: one place as a pin code, more as a set of places. */
-	private void shareTicked()
-	{
-		if (ticked.isEmpty())
-		{
-			return;
-		}
-		showCode(ShareBuilder.ofIds(new ArrayList<>(ticked), pins, this::autoMap));
-	}
-
-	/** The map this version shows a tile on, so a place's own map is only put in a code when it is another one. */
-	private int autoMap(int x, int y)
-	{
-		return importer == null ? com.worldmapplus.map.MapInfo.SURFACE : importer.autoMap(x, y);
-	}
-
-	/** Lets the plugin say how a share is shown on the map and how the way to it is asked for. */
-	public void setShareHandlers(java.util.function.Consumer<Share> viewer, java.util.function.Consumer<Share> goer)
-	{
-		shareViewer = viewer == null ? s -> { } : viewer;
-		shareGoer = goer == null ? s -> { } : goer;
-	}
-
-	/** Lets the plugin hand over the typing guide and its setting. Without them the share box offers no guide. */
-	public void setTypingGuide(@javax.annotation.Nullable TypingGuide guide, @javax.annotation.Nullable BooleanSupplier enabled)
-	{
-		this.guide = guide;
-		this.guideEnabled = enabled == null ? () -> false : enabled;
-		shownGuide = -1;
-	}
-
-	private boolean guideOn()
-	{
-		return guide != null && guideEnabled.getAsBoolean();
-	}
-
-	/** Makes the messages of a share and shows them, each with its length and a Copy button, and starts the typing guide. */
-	private void showCode(Share share)
-	{
-		List<String> messages;
-		try
-		{
-			messages = ShareCodec.messages(share);
-		}
-		catch (ShareException e)
-		{
-			sharing = null;
-			setStatus(e.getMessage());
-			rebuildShare();
-			return;
-		}
-		sharing = share;
-		if (guideOn())
-		{
-			guide.start(messages, 0);
-			setStatus("The typing guide shows the code on the chat's typing line. Type it and press Enter.");
-		}
-		else
-		{
-			setStatus("Type the code into the game's chat yourself and send it. Players with World Map Plus can open it.");
-		}
-		rebuildShare();
-	}
-
-	/** What a share holds, point by point, so the sender can check it before typing it. */
-	static String summary(Share share)
-	{
-		StringBuilder text = new StringBuilder();
-		List<com.worldmapplus.share.SharePoint> points = share.getPoints();
-		if (share.getKind() == Share.Kind.PIN)
-		{
-			com.worldmapplus.share.SharePoint p = points.get(0);
-			return "Pin at " + p.describe() + " (region " + p.regionId() + ", local " + p.localX() + ", " + p.localY() + ")";
-		}
-		text.append(share.getKind() == Share.Kind.ROUTE ? points.size() + " stops in this order" + (share.loops() ? ", then back to 1" : "")
-			: points.size() + " places").append(": ");
-		for (int i = 0; i < points.size(); i++)
-		{
-			text.append(i == 0 ? "" : "; ").append(i + 1).append(". ").append(points.get(i).describe());
-		}
-		return text.toString();
-	}
-
-	/** The summary cut to its first few points, for the share box; the whole of it is the tooltip. */
-	static String shortSummary(Share share)
-	{
-		List<com.worldmapplus.share.SharePoint> points = share.getPoints();
-		if (share.getKind() == Share.Kind.PIN || points.size() <= 4)
-		{
-			return summary(share);
-		}
-		StringBuilder text = new StringBuilder();
-		for (int i = 0; i < 3; i++)
-		{
-			text.append(i == 0 ? "" : "; ").append(i + 1).append(". ").append(points.get(i).describe());
-		}
-		return text.append("; and ").append(points.size() - 3).append(" more").toString();
-	}
-
-	/** The share box: what is shared, each message as a grouped code with its state, Copy and Type it, and the guide's controls. */
-	private void rebuildShare()
-	{
-		shareBody.removeAll();
-		messageStates.clear();
-		messageCodes.clear();
-		guideLine = null;
-		sharingMessages = new ArrayList<>();
-		if (sharing != null)
-		{
-			try
-			{
-				sharingMessages = ShareCodec.messages(sharing);
-			}
-			catch (ShareException e)
-			{
-				sharing = null;
-			}
-		}
-		if (sharing != null)
-		{
-			List<String> messages = sharingMessages;
-			shareBody.add(PanelTheme.header("Share", messages.size() > 1 ? messages.size() : -1));
-			shareBody.add(gap(2));
-			PanelTheme.Card card = new PanelTheme.Card(null, PanelTheme.CARD, PanelTheme.ACCENT);
-			card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-			String describe = sharing.describe();
-			JLabel title = PanelTheme.label(Character.toUpperCase(describe.charAt(0)) + describe.substring(1), PanelTheme.BODY_BOLD,
-				PanelTheme.TEXT);
-			card.add(fill(title));
-			JLabel check = PanelTheme.wrapped(shortSummary(sharing), PanelTheme.SMALL, PanelTheme.TEXT_DIM, TEXT_WIDTH);
-			check.setToolTipText(summary(sharing));
-			card.add(fill(check));
-			card.add(gap(6));
-			boolean guided = guideOn();
-			guideShownActive = guided && guide.isActive();
-			if (guided)
-			{
-				card.add(fill(guideControls(messages)));
-				card.add(gap(6));
-			}
-			for (int i = 0; i < messages.size(); i++)
-			{
-				card.add(messageBlock(messages, i, guided));
-				card.add(gap(i == messages.size() - 1 ? 4 : 8));
-			}
-			card.add(fill(PanelTheme.wrapped(messages.size() > 1
-				? "Type each message into the chat and press Enter, one after the other. They join in any order."
-				: "Type the message into the chat and press Enter. RuneLite plugins cannot type in chat for you.",
-				PanelTheme.SMALL, PanelTheme.TEXT_FAINT, TEXT_WIDTH)));
-			card.add(gap(6));
-			card.add(fill(outsideCopies(messages)));
-			card.add(gap(6));
-			JButton close = small("Close");
-			close.setToolTipText("Close this box, and stop the typing guide if it runs");
-			close.addActionListener(e ->
-			{
-				if (guide != null && guide.isActive() && guide.messages().equals(lowerCase(sharingMessages)))
-				{
-					guide.stop();
-				}
-				sharing = null;
-				rebuildShare();
-			});
-			JPanel closeRow = PanelTheme.clear(new BorderLayout());
-			closeRow.add(close, BorderLayout.EAST);
-			card.add(fill(closeRow));
-			shareBody.add(card);
-			shareBody.add(gap(8));
-			showGuideProgress();
-		}
-		revalidate();
-		repaint();
-	}
-
-	/**
-	 * Copies for outside the game, where no chat length applies: the whole code as one, which Import a code reads as it
-	 * is, and for a code in parts all its messages, one a line, for someone who types them into chat one by one.
-	 */
-	private JComponent outsideCopies(List<String> messages)
-	{
-		JButton whole = small("Copy whole code");
-		whole.setToolTipText("Copy the whole code as one, to paste in Discord or anywhere. Import a code reads it");
-		whole.addActionListener(e ->
-		{
-			String code = wholeCode();
-			setStatus(code == null ? "There is no code to copy." : ShareDialog.copy(code)
-				? "Copied the whole code, " + code.length() + " characters. Import a code in the side panel reads it."
-				: "The clipboard cannot be used on this computer.");
-		});
-		if (messages.size() < 2)
-		{
-			return buttonGrid(1, whole);
-		}
-		JButton all = small("Copy all parts");
-		all.setToolTipText("Copy every message, one a line, each with " + ShareCodec.COMMAND + ", to type into chat one by one");
-		all.addActionListener(e -> setStatus(ShareDialog.copy(allParts(messages))
-			?"Copied all " + messages.size() + " parts, one a line." : "The clipboard cannot be used on this computer."));
-		return buttonGrid(2, whole, all);
-	}
-
-	/** Every message of a share, one a line, as Copy all parts copies them. */
-	static String allParts(List<String> messages)
-	{
-		return String.join("\n", messages);
-	}
-
-	/** The share being shown as one code with the command, however long, or null. */
-	String wholeCode()
-	{
-		try
-		{
-			return sharing == null ? null : ShareCodec.COMMAND + " " + ShareCodec.encode(sharing);
-		}
-		catch (ShareException e)
-		{
-			return null;
-		}
-	}
-
-	private static List<String> lowerCase(List<String> messages)
-	{
-		List<String> lower = new ArrayList<>();
-		for (String message : messages)
-		{
-			lower.add(message.toLowerCase(java.util.Locale.ROOT));
-		}
-		return lower;
-	}
-
-	/** The guide's line and its Start, Back, Skip and Stop buttons. */
-	private JComponent guideControls(List<String> messages)
-	{
-		JPanel box = PanelTheme.clear(new BorderLayout(0, 4));
-		guideLine = PanelTheme.label(" ", PanelTheme.SMALL_BOLD, PanelTheme.ACCENT);
-		box.add(guideLine, BorderLayout.NORTH);
-		if (guide.isActive())
-		{
-			JButton back = small("Back");
-			back.setToolTipText("Go back to the message before");
-			back.addActionListener(e -> guide.back());
-			JButton skip = small("Skip");
-			skip.setToolTipText("Go on to the next message without marking this one");
-			skip.addActionListener(e -> guide.skip());
-			JButton stop = small("Stop");
-			stop.setToolTipText("Take the guide off the chat line");
-			stop.addActionListener(e ->
-			{
-				guide.stop();
-				rebuildShare();
-			});
-			box.add(messages.size() > 1 ? buttonGrid(3, back, skip, stop) : buttonGrid(3, stop), BorderLayout.SOUTH);
-		}
-		else
-		{
-			JButton start = PanelTheme.primary(messages.size() > 1 ? "Start typing guide at message 1" : "Start typing guide");
-			start.setToolTipText("Show the code as see-through letters on the chat's typing line");
-			start.addActionListener(e ->
-			{
-				guide.start(messages, 0);
-				rebuildShare();
-			});
-			box.add(start, BorderLayout.SOUTH);
-		}
-		return box;
-	}
-
-	/** One message: its number, length and state, the grouped code, and its Type it and Copy buttons. */
-	private JComponent messageBlock(List<String> messages, int index, boolean guided)
-	{
-		String message = messages.get(index);
-		JPanel block = column();
-		JPanel head = PanelTheme.clear(new BorderLayout(4, 0));
-		head.add(PanelTheme.label(messages.size() > 1 ? "Message " + (index + 1) + " of " + messages.size() : "Message",
-			PanelTheme.SMALL_BOLD, PanelTheme.TEXT_DIM), BorderLayout.WEST);
-		JLabel state = PanelTheme.label("", PanelTheme.SMALL, PanelTheme.TEXT_FAINT);
-		state.putClientProperty(LENGTH, message.length());
-		head.add(state, BorderLayout.EAST);
-		block.add(fill(head));
-		block.add(gap(3));
-		CodeView code = new CodeView(message);
-		block.add(code);
-		block.add(gap(4));
-		JButton copy = small("Copy");
-		copy.setToolTipText("Copy this message exactly, for use outside the game");
-		copy.addActionListener(e -> setStatus(ShareDialog.copy(message) ? "Copied." : "The clipboard cannot be used on this computer."));
-		if (guided)
-		{
-			JButton type = small("Type it");
-			type.setToolTipText("Put the typing guide on this message");
-			type.addActionListener(e ->
-			{
-				if (!guide.isActive() || !guide.messages().equals(lowerCase(messages)))
-				{
-					guide.start(messages, index);
-				}
-				else
-				{
-					guide.jumpTo(index);
-				}
-				rebuildShare();
-			});
-			block.add(fill(buttonGrid(2, type, copy)));
-		}
-		else
-		{
-			JPanel row = PanelTheme.clear(new BorderLayout());
-			row.add(copy, BorderLayout.EAST);
-			block.add(fill(row));
-		}
-		messageStates.add(state);
-		messageCodes.add(code);
-		return block;
-	}
-
-	/** Brings the share box's message states, the guide's line and the typed letters up to date, in place. */
-	private void showGuideProgress()
-	{
-		if (guide == null)
-		{
-			return;
-		}
-		shownGuide = guide.version();
-		boolean ours = guide.messages().equals(lowerCase(sharingMessages));
-		boolean active = guide.isActive() && ours;
-		if (sharing != null && guideOn() && guide.isActive() != guideShownActive)
-		{
-			// The guide started or stopped (perhaps from its card): the controls change, so the box is made again.
-			guideShownActive = guide.isActive();
-			rebuildShare();
-			return;
-		}
-		guide.fill(guideView);
-		for (int i = 0; i < messageStates.size(); i++)
-		{
-			TypingGuide.State state = ours ? guide.state(i) : TypingGuide.State.NOT_TYPED;
-			boolean here = active && guide.current() == i;
-			if (here && state == TypingGuide.State.NOT_TYPED)
-			{
-				state = TypingGuide.State.TYPING;
-			}
-			JLabel label = messageStates.get(i);
-			label.setText(label.getClientProperty(LENGTH) + " chars, " + (state == TypingGuide.State.NOT_TYPED ? "not typed" : state));
-			label.setForeground(state == TypingGuide.State.DONE ? PanelTheme.GOOD : here ? PanelTheme.ACCENT : PanelTheme.TEXT_FAINT);
-			int count = 0;
-			if (here)
-			{
-				count = Math.max(0, Math.min(guideView.messageLength, guideView.typedLength - guideView.channel));
-				for (int j = 0; j < count; j++)
-				{
-					messageMarks[j] = guideView.marks[j + guideView.channel];
-				}
-			}
-			messageCodes.get(i).setProgress(here, messageMarks, count);
-		}
-		if (guideLine != null)
-		{
-			String text;
-			if (active)
-			{
-				text = (guide.count() > 1 ? "Guide on message " + (guide.current() + 1) + " of " + guide.count() : "Guide on the chat line")
-					+ ": " + hintWords(guide.hint());
-			}
-			else if (ours && guide.isFinished())
-			{
-				text = guide.count() > 1 ? "All " + guide.count() + " messages typed." : "Typed and sent.";
-			}
-			else
-			{
-				text = "The guide puts the code on the chat line.";
-			}
-			guideLine.setText(text);
-			guideLine.setForeground(active && guide.hint() == TypingGuide.Hint.TYPO ? PanelTheme.BAD
-				: ours && guide.isFinished() ? PanelTheme.GOOD : PanelTheme.ACCENT);
-		}
-	}
-
-	private static String hintWords(TypingGuide.Hint hint)
-	{
-		switch (hint)
-		{
-			case TYPO:
-				return "typo";
-			case TOO_LONG:
-				return "too long";
-			case MATCH:
-				return "matches, press Enter";
-			case GOING:
-				return "right so far";
-			default:
-				return "type it";
-		}
-	}
-
-	/** The message shown while a share is open: its messages, for tests. */
-	List<String> shownMessages()
-	{
-		try
-		{
-			return sharing == null ? new ArrayList<>() : ShareCodec.messages(sharing);
-		}
-		catch (ShareException e)
-		{
-			return new ArrayList<>();
-		}
-	}
-
 	/** Shows the Routes page, for tests and pictures. */
 	void selectRoutes()
 	{
 		tabs.choose(1);
 	}
 
-	/** Opens the share box for a share as the Share buttons do, for tests and pictures. */
-	void openShare(Share share)
-	{
-		showCode(share);
-	}
-
-	/** The code views of the share box, for tests. */
-	List<CodeView> shownCodes()
-	{
-		return new ArrayList<>(messageCodes);
-	}
-
-	/** The states shown for the messages, for tests. */
-	List<String> shownStates()
-	{
-		List<String> states = new ArrayList<>();
-		for (JLabel label : messageStates)
-		{
-			states.add(label.getText());
-		}
-		return states;
-	}
-
 	/**
 	 * Moves the panel from one theme to another: colours already on built pieces are mapped role by role, and the lists
 	 * are built again in the new colours. The theme must already be in use ({@code Look.use}). Interface thread only.
 	 */
-	public void restyle(com.worldmapplus.theme.Palette from, com.worldmapplus.theme.Palette to)
+	public void restyle(Palette from, Palette to)
 	{
 		Recolour.apply(this, from, to);
 		rebuildAll();
-		if (sharing != null)
-		{
-			rebuildShare();
-			shownGuide = -1;
-		}
 		revalidate();
 		repaint();
 	}
@@ -1521,327 +1033,6 @@ public class PlacesPanel extends PluginPanel
 		refreshIfChanged();
 	}
 
-	/** Reads codes from the clipboard into Shared with you. The same reading as for codes in chat. */
-	private void importPasted()
-	{
-		String text = ShareDialog.read();
-		if (text == null || text.trim().isEmpty())
-		{
-			showImportResult("The clipboard has no text. Copy a code first.", PanelTheme.BAD);
-			return;
-		}
-		importFrom(text);
-	}
-
-	/** Reads the codes typed or pasted into the import box. The box is emptied when everything in it was read. */
-	private void importTyped()
-	{
-		if (importFrom(importText.getText()))
-		{
-			importText.setText("");
-		}
-	}
-
-	/** Reads codes into Shared with you, nothing saved, and says what came of it. True when nothing failed to read. */
-	private boolean importFrom(String text)
-	{
-		ShareInbox.Pasted result = inbox.importPasted(text, System.currentTimeMillis());
-		lastImport = result;
-		showImportResult(result.getMessage(), result.hasProblem() ? PanelTheme.BAD : result.getAdded() > 0 ? PanelTheme.GOOD
-			: PanelTheme.ACCENT);
-		rebuildInbox();
-		return !result.hasProblem();
-	}
-
-	private void showImportResult(String text, Color colour)
-	{
-		importStatus.setText("<html><body style='width:" + TEXT_WIDTH + "px'>" + PanelTheme.escape(text) + "</body></html>");
-		importStatus.setForeground(colour);
-		importStatus.setVisible(true);
-		showImport(true);
-	}
-
-	/** Opens or closes the import box. */
-	private void showImport(boolean open)
-	{
-		if (importBody.isVisible() == open)
-		{
-			return;
-		}
-		importBody.setVisible(open);
-		revalidate();
-		repaint();
-		if (open)
-		{
-			importText.requestFocusInWindow();
-		}
-	}
-
-	/** Makes the import box once; it is shown and hidden from then on. */
-	private void buildImport()
-	{
-		importText.setDocument(new CappedDocument(PasteReader.MAX_CHARS));
-		importText.setLineWrap(true);
-		importText.setRows(4);
-		importText.setFont(PanelTheme.SMALL);
-		importText.setForeground(PanelTheme.TEXT);
-		importText.setBackground(PanelTheme.FIELD);
-		importText.setCaretColor(PanelTheme.ACCENT);
-		importText.setBorder(PanelTheme.pad(4, 5, 4, 5));
-		importText.setToolTipText("Codes are found among other words: a whole code, a long code in one piece, or its parts");
-		javax.swing.JScrollPane scroll = new javax.swing.JScrollPane(importText, javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-			javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-		scroll.setBorder(javax.swing.BorderFactory.createLineBorder(PanelTheme.EDGE));
-		scroll.setPreferredSize(new Dimension(0, 70));
-		importStatus.setFont(PanelTheme.SMALL);
-		importStatus.setVisible(false);
-		importNow.setToolTipText("Read the codes in the box into Shared with you. Nothing is saved until you press Save");
-		importClipboard.setToolTipText("Read the codes on the clipboard into Shared with you");
-		importClose.setToolTipText("Close the import box");
-		PanelTheme.Card card = new PanelTheme.Card(null, PanelTheme.CARD, PanelTheme.ACCENT);
-		card.setLayout(new BoxLayout(card, BoxLayout.Y_AXIS));
-		JPanel title = PanelTheme.clear(new BorderLayout(4, 0));
-		title.add(PanelTheme.label("Import a code", PanelTheme.BODY_BOLD, PanelTheme.TEXT), BorderLayout.WEST);
-		title.add(importClose, BorderLayout.EAST);
-		card.add(fill(title));
-		card.add(gap(5));
-		card.add(fill(scroll));
-		card.add(gap(6));
-		card.add(fill(buttonGrid(2, importNow, importClipboard)));
-		// The status line changes height with its text, so its holder is not held to the height it had when made.
-		JPanel said = PanelTheme.clear(new BorderLayout());
-		said.setBorder(PanelTheme.pad(5, 0, 0, 0));
-		said.add(importStatus, BorderLayout.CENTER);
-		said.setAlignmentX(Component.LEFT_ALIGNMENT);
-		card.add(said);
-		importBody.add(PanelTheme.header("Import", -1));
-		importBody.add(gap(2));
-		importBody.add(card);
-		importBody.add(gap(8));
-		importBody.setVisible(false);
-	}
-
-	/** A text box that shows a faint hint while it is empty. */
-	static final class HintArea extends javax.swing.JTextArea
-	{
-		private final String hint;
-
-		HintArea(String hint)
-		{
-			this.hint = hint;
-		}
-
-		@Override
-		protected void paintComponent(java.awt.Graphics g)
-		{
-			super.paintComponent(g);
-			if (getDocument().getLength() > 0)
-			{
-				return;
-			}
-			java.awt.Graphics2D g2 = (java.awt.Graphics2D) g.create();
-			PanelTheme.smooth(g2);
-			g2.setFont(PanelTheme.SMALL);
-			g2.setColor(PanelTheme.TEXT_FAINT);
-			java.awt.FontMetrics metrics = g2.getFontMetrics();
-			java.awt.Insets insets = getInsets();
-			int width = Math.max(40, getWidth() - insets.left - insets.right);
-			int y = insets.top + metrics.getAscent();
-			StringBuilder line = new StringBuilder();
-			for (String word : hint.split(" "))
-			{
-				String next = line.length() == 0 ? word : line + " " + word;
-				if (metrics.stringWidth(next) > width && line.length() > 0)
-				{
-					g2.drawString(line.toString(), insets.left, y);
-					y += metrics.getHeight();
-					line = new StringBuilder(word);
-				}
-				else
-				{
-					line = new StringBuilder(next);
-				}
-			}
-			g2.drawString(line.toString(), insets.left, y);
-			g2.dispose();
-		}
-	}
-
-	/** A document that holds at most a set number of characters, so a huge paste is cut at once. */
-	static final class CappedDocument extends javax.swing.text.PlainDocument
-	{
-		private final int max;
-
-		CappedDocument(int max)
-		{
-			this.max = max;
-		}
-
-		@Override
-		public void insertString(int offset, String text, javax.swing.text.AttributeSet attributes)
-			throws javax.swing.text.BadLocationException
-		{
-			if (text == null)
-			{
-				return;
-			}
-			int room = max - getLength();
-			if (room > 0)
-			{
-				super.insertString(offset, text.length() > room ? text.substring(0, room) : text, attributes);
-			}
-		}
-	}
-
-	/** Puts text in the import box and presses Import, for tests. */
-	ShareInbox.Pasted importForTest(String text)
-	{
-		importText.setText(text);
-		importTyped();
-		return lastImport;
-	}
-
-	/** The import box's text and its status line, for tests. */
-	String importBoxText()
-	{
-		return importText.getText();
-	}
-
-	String importStatusText()
-	{
-		return importStatus.getText();
-	}
-
-	/** Opens the import box, for tests and pictures. */
-	void openImport()
-	{
-		showImport(true);
-	}
-
-	/** Called when the player chose Open in World Map Plus on a chat line: the share is listed and marked. */
-	public void showOpenedShare()
-	{
-		rebuildInbox();
-		for (ShareInbox.Offer offer : inbox.offers())
-		{
-			if (offer.getId() == inbox.getOpened())
-			{
-				setStatus("Opened the shared " + offer.getShare().describe() + ". It is marked on the map. Save keeps it.");
-			}
-		}
-	}
-
-	/** The shares other players sent, each with Show, Go, Save and Dismiss. */
-	private void rebuildInbox()
-	{
-		shownInbox = inbox.getVersion();
-		inboxBody.removeAll();
-		List<ShareInbox.Offer> offers = inbox.offers();
-		flashAfterOffer = newestOffer;
-		for (ShareInbox.Offer each : offers)
-		{
-			newestOffer = Math.max(newestOffer, each.getId());
-		}
-		if (!offers.isEmpty())
-		{
-			inboxBody.add(PanelTheme.header("Shared with you", offers.size()));
-			inboxBody.add(gap(2));
-		}
-		for (int i = offers.size() - 1; i >= 0; i--)
-		{
-			inboxBody.add(offerRow(offers.get(i)));
-			inboxBody.add(gap(5));
-		}
-		if (!offers.isEmpty())
-		{
-			inboxBody.add(gap(4));
-		}
-		revalidate();
-		inboxBody.repaint();
-	}
-
-	private JPanel offerRow(ShareInbox.Offer offer)
-	{
-		boolean opened = offer.getId() == inbox.getOpened();
-		FadeRow row = newRow(opened ? PanelTheme.CARD_ACTIVE : PanelTheme.CARD, PanelTheme.ACCENT,
-			opened || flashAfterOffer >= 0 && offer.getId() > flashAfterOffer);
-		Share share = offer.getShare();
-		String describe = share.describe();
-		JLabel title = PanelTheme.label(Character.toUpperCase(describe.charAt(0)) + describe.substring(1), PanelTheme.BODY_BOLD,
-			PanelTheme.TEXT);
-		title.setToolTipText(summary(share));
-		JLabel where = PanelTheme.label(share.getKind() == Share.Kind.PIN ? "Region " + share.getPoints().get(0).regionId()
-			: "Starts at " + share.getPoints().get(0).describe(), PanelTheme.SMALL, PanelTheme.TEXT_DIM);
-		JButton show = small("Show");
-		show.setToolTipText("Mark it on the map and centre the map there. Nothing is saved");
-		show.addActionListener(e ->
-		{
-			shareViewer.accept(share);
-			setStatus("The shared " + describe + " is marked on the map.");
-		});
-		JButton go = small("Go");
-		go.setToolTipText(share.getKind() == Share.Kind.ROUTE ? "Ask Shortest Path for the way to the first stop, with your own settings"
-			: "Ask Shortest Path for the way there, with your own settings");
-		go.addActionListener(e ->
-		{
-			if (shortestPathReady())
-			{
-				shareGoer.accept(share);
-				setStatus("Asked Shortest Path for the way to " + share.getPoints().get(0).describe() + ".");
-			}
-		});
-		JButton take = PanelTheme.primary("Save");
-		take.setToolTipText(share.getKind() == Share.Kind.ROUTE ? "Save it as a route, stops in the same order. Places you have are used again"
-			: "Save it to your places with your usual look. Places you have are not saved twice");
-		take.addActionListener(e -> saveOffer(offer));
-		JButton dismiss = small("Dismiss");
-		dismiss.addActionListener(e ->
-		{
-			inbox.remove(offer.getId());
-			external.clearShare();
-			rebuildInbox();
-		});
-		JPanel top = PanelTheme.clear(new BorderLayout(0, 1));
-		top.add(title, BorderLayout.NORTH);
-		top.add(where, BorderLayout.SOUTH);
-		row.add(top, BorderLayout.NORTH);
-		row.add(buttonGrid(4, show, go, take, dismiss), BorderLayout.SOUTH);
-		lightOnHover(row);
-		return row;
-	}
-
-	private void saveOffer(ShareInbox.Offer offer)
-	{
-		if (importer == null)
-		{
-			setStatus("Saving is not available here.");
-			return;
-		}
-		Share share = offer.getShare();
-		String message;
-		if (share.getKind() == Share.Kind.ROUTE)
-		{
-			Object name = JOptionPane.showInputDialog(this, "Name of the route", "Save shared route", JOptionPane.PLAIN_MESSAGE,
-				null, null, "Shared route");
-			if (name == null)
-			{
-				return;
-			}
-			message = importer.saveRoute(share, name.toString());
-		}
-		else
-		{
-			message = importer.savePlaces(share);
-		}
-		setStatus(message);
-		if (message.startsWith("Saved"))
-		{
-			inbox.remove(offer.getId());
-			external.clearShare();
-		}
-		rebuildInbox();
-	}
-
 	/** Sizes a pin can be, as percentages of the usual one. */
 	private static final int[] SIZES = {70, 100, 140, 180};
 	private static final String[] SIZE_NAMES = {"Small", "Normal", "Large", "Larger"};
@@ -1849,14 +1040,14 @@ public class PlacesPanel extends PluginPanel
 	/** The window for changing a saved place: its name, colour and size, and whether it shows on the map. */
 	private void rename(Pin pin)
 	{
-		javax.swing.JTextField name = new javax.swing.JTextField(pin.getName(), 18);
+		JTextField name = new JTextField(pin.getName(), 18);
 		int[] colour = {pin.getColor()};
 		JButton pick = new JButton(colour[0] == 0 ? "Usual colour" : "Colour");
 		pick.setBackground(colour[0] == 0 ? DEFAULT_PIN : new Color(colour[0]));
 		pick.setOpaque(true);
 		pick.addActionListener(e ->
 		{
-			Color chosen = javax.swing.JColorChooser.showDialog(this, "Pin colour",
+			Color chosen = JColorChooser.showDialog(this, "Pin colour",
 				colour[0] == 0 ? DEFAULT_PIN : new Color(colour[0]));
 			if (chosen != null)
 			{

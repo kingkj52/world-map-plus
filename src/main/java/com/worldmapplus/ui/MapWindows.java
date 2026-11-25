@@ -1,44 +1,25 @@
 package com.worldmapplus.ui;
 
-import com.worldmapplus.MapAssets;
-import com.worldmapplus.WorldMapPlusConfig;
-import com.worldmapplus.bridge.ExternalOverlays;
-import com.worldmapplus.bridge.MapActions;
-import com.worldmapplus.game.PlayerLocator;
-import com.worldmapplus.game.TrailTracker;
-import com.worldmapplus.layers.NpcLayer;
-import com.worldmapplus.map.MapInfo;
-import com.worldmapplus.panel.PlacesPanel;
-import com.worldmapplus.pins.PanelLauncher;
-import com.worldmapplus.pins.PinStore;
-import com.worldmapplus.pins.RouteStore;
-import com.worldmapplus.prefs.Settings;
-import com.worldmapplus.prefs.ViewMemory;
-import com.worldmapplus.view.ViewTransform;
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
+import com.worldmapplus.*;
+import com.worldmapplus.bridge.*;
+import com.worldmapplus.game.*;
+import com.worldmapplus.layers.*;
+import com.worldmapplus.map.*;
+import com.worldmapplus.panel.*;
+import com.worldmapplus.pins.*;
+import com.worldmapplus.prefs.*;
+import com.worldmapplus.view.*;
+import java.awt.*;
 import java.awt.Point;
-import java.awt.Rectangle;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
-import java.util.ArrayList;
+import java.awt.event.*;
+import java.util.*;
 import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
+import javax.inject.*;
+import javax.swing.*;
 import javax.swing.Timer;
-import lombok.extern.slf4j.Slf4j;
-import net.runelite.api.Client;
-import net.runelite.client.callback.ClientThread;
+import lombok.extern.slf4j.*;
+import net.runelite.api.*;
+import net.runelite.client.callback.*;
 
 /**
  * Extra maps in windows of their own, opened by a middle click on a map link, a search result or a step of a route.
@@ -85,17 +66,8 @@ public class MapWindows
 		this.locator = locator;
 		this.clientThread = clientThread;
 		// What a window is given: the shared saved places and routes, and nothing that has to be read from the game.
-		this.services = new SurfaceServices(new QuietNpcLayer(), new NoMemory(), pins, external, actions, settings,
-			new TrailTracker(), null, null, routes, launcher);
-	}
-
-	/** An NPC layer that draws nothing, since NPCs are read from the client thread. */
-	private static final class QuietNpcLayer extends NpcLayer
-	{
-		@Override
-		public void paint(Graphics2D g, ViewTransform view, MapInfo viewed, com.worldmapplus.game.PlayerPosition player)
-		{
-		}
+		this.services = new SurfaceServices(new NoMemory(), pins, external, actions, settings,
+			routes, launcher);
 	}
 
 	/** A view memory that remembers nothing, so a window leaves the saved view of the main map alone. */

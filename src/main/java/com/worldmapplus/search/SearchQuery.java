@@ -1,12 +1,8 @@
 package com.worldmapplus.search;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
-import javax.annotation.Nullable;
+import java.util.*;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * What was typed in the search bar, split into plain words and filters.
@@ -20,7 +16,6 @@ import javax.annotation.Nullable;
  *   dist:40             only results within that many tiles of the player
  *   type:shop           only results of a kind: place shop npc monster item quest transport teleport
  *                       doorway point music tile pin route; or an item kind such as melee_weapon   (also kind:)
- *   cost:500            only items that cost that much or less. Also cost:&lt;500, cost:&gt;100, cost:100-500
  *   map:keldagrim       only results on a map with that in its name
  * </pre>
  * A value with spaces goes in quotes. Anything that is not one of these keys stays a plain word, so a
@@ -32,16 +27,19 @@ public final class SearchQuery
 	public static final int NEARBY_TILES = 80;
 
 	/** The keys that name an area. The way to write one is region:"kebos lowlands". */
-	private static final Set<String> AREA_KEYS = new LinkedHashSet<>(java.util.Arrays.asList(
+	private static final Set<String> AREA_KEYS = new LinkedHashSet<>(Arrays.asList(
 		"region", "in", "area", "at", "where", "place"));
 
-	private static final Set<String> KEYS = new LinkedHashSet<>(java.util.Arrays.asList(
-		"name", "region", "in", "area", "at", "where", "place", "loc", "near", "dist", "type", "kind", "cost", "price",
-		"map", "sort", "free"));
+	private static final Set<String> KEYS = new LinkedHashSet<>(Arrays.asList(
+		"name", "region", "in", "area", "at", "where", "place", "loc", "near", "dist", "type", "kind", "map", "sort"));
 
 	/** The kinds of result that type: knows, for completing what is typed. */
 	public static final String[] RESULT_KINDS = {"place", "shop", "npc", "monster", "item", "quest", "transport",
 		"teleport", "entrance", "point", "music", "tile", "pin", "route"};
+
+	/** The kinds of item that type: knows (the Helper judges them), for completing what is typed. */
+	public static final String[] ITEM_KINDS = {"melee_weapon", "ranged_weapon", "magic_weapon", "ammo", "armour", "food", "potion", "tool", "rune",
+		"seed", "ore", "bar", "log", "jewellery"};
 
 	/** How results are put in order. */
 	public enum Sort
@@ -50,25 +48,36 @@ public final class SearchQuery
 		RELEVANCE,
 		/** Nearest the player first. */
 		DISTANCE,
-		/** Cheapest first. Results with no price come last. */
-		COST,
 		/** A to Z. */
 		NAME
 	}
 
+	/** The plain words, normalised, that each have to match a result's name or detail. */
+	@Getter
 	private final List<String> words = new ArrayList<>();
+	/** Words that must be in the name. */
+	@Getter
 	private final List<String> nameWords = new ArrayList<>();
+	@Getter
 	private final List<String> regions = new ArrayList<>();
+	@Getter
 	private final List<String> kinds = new ArrayList<>();
+	@Getter
 	private final List<String> maps = new ArrayList<>();
+	/** Each group of kinds is one type: filter, of which a result needs to be any one kind. */
+	@Getter
 	private final List<List<String>> kindGroups = new ArrayList<>();
+	@Getter
 	private final List<String> excludedRegions = new ArrayList<>();
+	@Getter
 	private final List<String> excludedMaps = new ArrayList<>();
+	@Getter
 	private final List<String> excludedKinds = new ArrayList<>();
+	@Getter
 	private Sort sort = Sort.RELEVANCE;
+	/** Tiles from the player a result may be, or -1 for no limit. */
+	@Getter
 	private int maxDistance = -1;
-	private long minCost = -1;
-	private long maxCost = -1;
 	private boolean badFilter;
 
 	private SearchQuery()
@@ -165,17 +174,6 @@ public final class SearchQuery
 			case "kind":
 				addKinds(value, not);
 				break;
-			case "free":
-				if (normalized.equals("yes") || normalized.equals("true") || normalized.equals("1"))
-				{
-					minCost = 0;
-					maxCost = 0;
-				}
-				else
-				{
-					badFilter = true;
-				}
-				break;
 			case "sort":
 				sort = sortOf(normalized);
 				if (sort == null)
@@ -184,59 +182,10 @@ public final class SearchQuery
 					badFilter = true;
 				}
 				break;
-			case "cost":
-			case "price":
-				parseCost(value.trim());
-				break;
 			default:
 				break;
 		}
 	}
-
-	private void parseCost(String value)
-	{
-		try
-		{
-			String v = value.replace(",", "").replace(" ", "").toLowerCase(Locale.ROOT);
-			if (v.startsWith("<="))
-			{
-				maxCost = number(v.substring(2));
-			}
-			else if (v.startsWith(">="))
-			{
-				minCost = number(v.substring(2));
-			}
-			else if (v.startsWith("<"))
-			{
-				maxCost = number(v.substring(1)) - 1;
-				if (maxCost < 0)
-				{
-					throw new NumberFormatException("nothing costs less than nothing");
-				}
-			}
-			else if (v.startsWith(">"))
-			{
-				minCost = number(v.substring(1)) + 1;
-			}
-			else if (v.contains("-"))
-			{
-				String[] parts = v.split("-", 2);
-				minCost = number(parts[0]);
-				maxCost = number(parts[1]);
-			}
-			else
-			{
-				maxCost = number(v);
-			}
-		}
-		catch (NumberFormatException e)
-		{
-			badFilter = true;
-		}
-	}
-
-	/** Largest number a filter accepts, far beyond any price in the game. */
-	private static final double MAX_NUMBER = 1e12;
 
 	/** Puts a space inside a camel case word, so kebosLowlands reads as kebos lowlands. */
 	static String splitCamel(String value)
@@ -291,11 +240,6 @@ public final class SearchQuery
 			case "nearest":
 			case "closest":
 				return Sort.DISTANCE;
-			case "cost":
-			case "price":
-			case "cheap":
-			case "cheapest":
-				return Sort.COST;
 			case "name":
 			case "alpha":
 			case "alphabetical":
@@ -307,34 +251,6 @@ public final class SearchQuery
 			default:
 				return null;
 		}
-	}
-
-	/** A whole number that may end in k or m, as 10k or 2.5m. */
-	static long number(String text)
-	{
-		String t = text.trim();
-		double scale = 1;
-		if (t.endsWith("k"))
-		{
-			scale = 1_000;
-			t = t.substring(0, t.length() - 1);
-		}
-		else if (t.endsWith("m"))
-		{
-			scale = 1_000_000;
-			t = t.substring(0, t.length() - 1);
-		}
-		// Plain digits with an optional fraction only. Double.parseDouble would also accept NaN, Infinity and 1e3.
-		if (!t.matches("[0-9]+(\\.[0-9]+)?"))
-		{
-			throw new NumberFormatException("not a plain number: " + text);
-		}
-		double value = Double.parseDouble(t) * scale;
-		if (value > MAX_NUMBER)
-		{
-			throw new NumberFormatException("too large: " + text);
-		}
-		return Math.round(value);
 	}
 
 	private static void addWords(String text, List<String> into)
@@ -390,54 +306,6 @@ public final class SearchQuery
 		return v.replace("\"", "");
 	}
 
-	/** The plain words, normalised, that each have to match a result's name or detail. */
-	public List<String> getWords()
-	{
-		return words;
-	}
-
-	/** Words that must be in the name. */
-	public List<String> getNameWords()
-	{
-		return nameWords;
-	}
-
-	public List<String> getRegions()
-	{
-		return regions;
-	}
-
-	public List<String> getKinds()
-	{
-		return kinds;
-	}
-
-	public List<String> getMaps()
-	{
-		return maps;
-	}
-
-	/** Each group of kinds is one type: filter, of which a result needs to be any one kind. */
-	public List<List<String>> getKindGroups()
-	{
-		return kindGroups;
-	}
-
-	public List<String> getExcludedRegions()
-	{
-		return excludedRegions;
-	}
-
-	public List<String> getExcludedMaps()
-	{
-		return excludedMaps;
-	}
-
-	public List<String> getExcludedKinds()
-	{
-		return excludedKinds;
-	}
-
 	/** True when a type: filter names places, which is what brings the many named locations into the results. */
 	public boolean asksForPlaces()
 	{
@@ -454,44 +322,24 @@ public final class SearchQuery
 		return false;
 	}
 
-	public Sort getSort()
-	{
-		return sort;
-	}
-
-	/** Tiles from the player a result may be, or -1 for no limit. */
-	public int getMaxDistance()
-	{
-		return maxDistance;
-	}
-
-	public long getMinCost()
-	{
-		return minCost;
-	}
-
-	public long getMaxCost()
-	{
-		return maxCost;
-	}
-
 	/** True when a filter was written that could not be read, such as {@code cost:cheap}. */
 	public boolean hasBadFilter()
 	{
 		return badFilter;
 	}
 
-	public boolean hasCost()
-	{
-		return minCost >= 0 || maxCost >= 0;
-	}
-
 	/** True when anything other than plain words was typed. */
 	public boolean hasFilters()
 	{
 		return !nameWords.isEmpty() || !regions.isEmpty() || !kinds.isEmpty() || !maps.isEmpty() || maxDistance >= 0
-			|| hasCost() || badFilter || !excludedRegions.isEmpty() || !excludedMaps.isEmpty()
+			|| badFilter || !excludedRegions.isEmpty() || !excludedMaps.isEmpty()
 			|| !excludedKinds.isEmpty() || sort != Sort.RELEVANCE;
+	}
+
+	/** True when the text names a place or a map to be in or out of. */
+	public boolean hasPlaceFilter()
+	{
+		return !regions.isEmpty() || !maps.isEmpty() || !excludedRegions.isEmpty() || !excludedMaps.isEmpty();
 	}
 
 	/** True when there is something to look for at all. */

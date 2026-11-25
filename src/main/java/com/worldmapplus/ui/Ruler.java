@@ -1,6 +1,8 @@
 package com.worldmapplus.ui;
 
-import javax.annotation.Nullable;
+import java.util.Locale;
+import javax.annotation.*;
+import lombok.*;
 
 /**
  * A measuring tool: pick a start tile, move the pointer, read the distance.
@@ -8,32 +10,13 @@ import javax.annotation.Nullable;
  * Reports both the walking distance, the larger of the two axis differences because the game moves
  * diagonally, and the straight line distance.
  */
+@Getter
 public final class Ruler
 {
 	private boolean active;
 	private int mapId;
 	private double startX;
 	private double startY;
-
-	public boolean isActive()
-	{
-		return active;
-	}
-
-	public int getMapId()
-	{
-		return mapId;
-	}
-
-	public double getStartX()
-	{
-		return startX;
-	}
-
-	public double getStartY()
-	{
-		return startY;
-	}
 
 	public void start(int mapId, double x, double y)
 	{
@@ -68,6 +51,6 @@ public final class Ruler
 		{
 			return null;
 		}
-		return walkingTiles(x, y) + " tiles  (" + String.format(java.util.Locale.ROOT, "%.1f", straightTiles(x, y)) + " straight)";
+		return walkingTiles(x, y) + " tiles  (" + String.format(Locale.ROOT, "%.1f", straightTiles(x, y)) + " straight)";
 	}
 }

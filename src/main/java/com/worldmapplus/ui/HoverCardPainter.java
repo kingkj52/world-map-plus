@@ -1,21 +1,15 @@
 package com.worldmapplus.ui;
 
-import com.worldmapplus.theme.Palette;
-import com.worldmapplus.layers.HoverCard;
-import com.worldmapplus.map.MapCatalog;
-import com.worldmapplus.map.MapInfo;
-import com.worldmapplus.render.MapRenderer;
-import com.worldmapplus.wiki.WikiLinks;
-import javax.annotation.Nullable;
-import com.worldmapplus.view.ViewTransform;
-import java.awt.BasicStroke;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics2D;
-import java.awt.Rectangle;
-import java.util.ArrayList;
+import com.worldmapplus.layers.*;
+import com.worldmapplus.map.*;
+import com.worldmapplus.render.*;
+import com.worldmapplus.theme.*;
+import com.worldmapplus.view.*;
+import java.awt.*;
+import java.awt.image.*;
+import java.util.*;
 import java.util.List;
+import javax.annotation.*;
 
 /**
  * Draws a {@link HoverCard} in a box next to the mouse.
@@ -33,16 +27,10 @@ public final class HoverCardPainter
 	static final int MAX_TEXT_WIDTH = 340;
 	private static final int ROW_GAP = 16;
 
-	/** The small Wiki button in the corner of a card about something that has a wiki page. */
+	/** The small button in the corner of a card, put there by a partner plugin (the Wiki button is the Helper's). */
 	static final int BUTTON_WIDTH = 38;
 	static final int BUTTON_HEIGHT = 16;
 	private static final int BUTTON_GAP = 10;
-	static final String BUTTON_TEXT = "Wiki";
-	/** The button of a card with no page of its own, which opens the wiki's search page for its name. */
-	static final String SEARCH_BUTTON_TEXT = "Search wiki";
-	static final int SEARCH_BUTTON_WIDTH = 72;
-
-
 
 	private final MapCatalog catalog;
 	private final MapRenderer renderer;
@@ -58,27 +46,15 @@ public final class HoverCardPainter
 		this.renderer = renderer;
 	}
 
-	/** True when a card gets a Wiki button: it names a page and the name makes a clean address, or a name to search for. */
+	/** True when a partner put a button on the card. */
 	static boolean hasButton(HoverCard card)
 	{
-		return hasPage(card) || isSearch(card);
-	}
-
-	/** True when the card's button opens a page of its own. */
-	static boolean hasPage(HoverCard card)
-	{
-		return card.getWiki() != null && WikiLinks.url(card.getWiki()) != null;
-	}
-
-	/** True when the card's button opens the wiki's search page for its name, because it has no page that is certain to exist. */
-	static boolean isSearch(HoverCard card)
-	{
-		return !hasPage(card) && card.getWikiSearch() != null && WikiLinks.searchUrl(card.getWikiSearch()) != null;
+		return card.getButtonLabel() != null;
 	}
 
 	private static int buttonWidth(HoverCard card)
 	{
-		return isSearch(card) ? SEARCH_BUTTON_WIDTH : BUTTON_WIDTH;
+		return Math.max(BUTTON_WIDTH, 6 * card.getButtonLabel().length() + 6);
 	}
 
 	/** The box the card drawn last was in. */
@@ -134,7 +110,7 @@ public final class HoverCardPainter
 	}
 
 	/** The size the card needs, in pixels. */
-	static java.awt.Dimension measure(Graphics2D g, HoverCard card, boolean expanded)
+	static Dimension measure(Graphics2D g, HoverCard card, boolean expanded)
 	{
 		return measure(g, card, card.visibleRows(expanded), card.hasPreview());
 	}
@@ -165,7 +141,7 @@ public final class HoverCardPainter
 		return shown;
 	}
 
-	private static java.awt.Dimension measure(Graphics2D g, HoverCard card, List<HoverCard.Row> rows, boolean preview)
+	private static Dimension measure(Graphics2D g, HoverCard card, List<HoverCard.Row> rows, boolean preview)
 	{
 		g.setFont(Palette.TITLE);
 		int width = g.getFontMetrics().stringWidth(card.getTitle()) + (hasButton(card) ? buttonWidth(card) + BUTTON_GAP : 0);
@@ -202,13 +178,13 @@ public final class HoverCardPainter
 			height += g.getFontMetrics().getHeight() + 2;
 		}
 		int limit = columns.size() > 1 ? Integer.MAX_VALUE : MAX_TEXT_WIDTH;
-		return new java.awt.Dimension(Math.min(width, limit) + PADDING * 2, height + PADDING * 2);
+		return new Dimension(Math.min(width, limit) + PADDING * 2, height + PADDING * 2);
 	}
 
 	/** Where the card's top left goes so it stays inside {@code limit}, beside the pointer. */
-	static java.awt.Point place(java.awt.Dimension size, int mouseX, int mouseY, Rectangle limit)
+	static Point place(Dimension size, int mouseX, int mouseY, Rectangle limit)
 	{
-		return new java.awt.Point(placeAxis(size.width, mouseX, limit.x, limit.width),
+		return new Point(placeAxis(size.width, mouseX, limit.x, limit.width),
 			placeAxis(size.height, mouseY, limit.y, limit.height));
 	}
 
@@ -228,7 +204,7 @@ public final class HoverCardPainter
 	{
 		boolean preview;
 		List<HoverCard.Row> rows;
-		java.awt.Dimension size;
+		Dimension size;
 	}
 
 	/**
@@ -239,14 +215,14 @@ public final class HoverCardPainter
 	{
 		Fitted fitted = new Fitted();
 		fitted.preview = card.hasPreview();
-		java.awt.Dimension size = measure(g, card, card.visibleRows(expanded), fitted.preview);
+		Dimension size = measure(g, card, card.visibleRows(expanded), fitted.preview);
 		if (size.height > limit.height && fitted.preview)
 		{
 			fitted.preview = false;
 		}
 		fitted.rows = fitRows(g, card, expanded, fitted.preview, limit.height);
 		size = measure(g, card, fitted.rows, fitted.preview);
-		fitted.size = new java.awt.Dimension(Math.min(size.width, limit.width), Math.min(size.height, limit.height));
+		fitted.size = new Dimension(Math.min(size.width, limit.width), Math.min(size.height, limit.height));
 		return fitted;
 	}
 
@@ -254,7 +230,7 @@ public final class HoverCardPainter
 	static Rectangle boundsOf(Graphics2D g, HoverCard card, boolean expanded, int mouseX, int mouseY, Rectangle limit)
 	{
 		Fitted fitted = fit(g, card, expanded, limit);
-		java.awt.Point at = place(fitted.size, mouseX, mouseY, limit);
+		Point at = place(fitted.size, mouseX, mouseY, limit);
 		return new Rectangle(at.x, at.y, fitted.size.width, fitted.size.height);
 	}
 
@@ -268,11 +244,11 @@ public final class HoverCardPainter
 	 * ({@link #lastBounds()}, {@link #lastButton()}) for whoever wants to take a click on them.
 	 */
 	public void paint(Graphics2D g, HoverCard card, int mouseX, int mouseY, Rectangle limit, boolean expanded,
-		@Nullable java.awt.Point pointer)
+		@Nullable Point pointer)
 	{
 		Layout layout = layoutFor(g, card, expanded, limit);
 		boolean preview = layout.preview;
-		java.awt.Dimension size = layout.size;
+		Dimension size = layout.size;
 		int boxX = placeAxis(size.width, mouseX, limit.x, limit.width);
 		int boxY = placeAxis(size.height, mouseY, limit.y, limit.height);
 		lastBounds.setBounds(boxX, boxY, size.width, size.height);
@@ -286,7 +262,7 @@ public final class HoverCardPainter
 		Theme.panel(g, boxX, boxY, size.width, size.height);
 		// Clipping to the box is only done where something could run past it: a card as big as its room, several columns, or a value
 		// wider than its column. Cutting a clip out of a complex clip makes garbage every frame.
-		java.awt.Shape outside = null;
+		Shape outside = null;
 		if (layout.clip)
 		{
 			outside = g.getClip();
@@ -302,7 +278,7 @@ public final class HoverCardPainter
 		g.drawString(layout.titleText, x, y + title.getAscent());
 		if (button)
 		{
-			paintButton(g, lastButton, pointer != null && lastButton.contains(pointer), isSearch(card) ? SEARCH_BUTTON_TEXT : BUTTON_TEXT);
+			paintButton(g, lastButton, pointer != null && lastButton.contains(pointer), card.getButtonLabel());
 		}
 		y += title.getHeight();
 
@@ -372,7 +348,7 @@ public final class HoverCardPainter
 		int limitHeight;
 		boolean preview;
 		boolean clip;
-		java.awt.Dimension size;
+		Dimension size;
 		List<List<HoverCard.Row>> columns;
 		int[] columnWidths;
 		String titleText;
@@ -489,7 +465,7 @@ public final class HoverCardPainter
 		int width;
 		int height;
 		boolean smooth;
-		java.awt.image.BufferedImage image;
+		BufferedImage image;
 
 		boolean is(HoverCard card, Rectangle frame, boolean smoothNow)
 		{
@@ -519,8 +495,8 @@ public final class HoverCardPainter
 	/** True when the picture can be drawn as one image: nothing see-through or scaled about the way it is drawn. */
 	private static boolean plainTarget(Graphics2D g)
 	{
-		java.awt.Composite composite = g.getComposite();
-		return composite instanceof java.awt.AlphaComposite && ((java.awt.AlphaComposite) composite).getAlpha() == 1f
+		Composite composite = g.getComposite();
+		return composite instanceof AlphaComposite && ((AlphaComposite) composite).getAlpha() == 1f
 			&& g.getDeviceConfiguration().getDefaultTransform().equals(g.getTransform());
 	}
 
@@ -592,8 +568,8 @@ public final class HoverCardPainter
 		{
 			return;
 		}
-		java.awt.image.BufferedImage image = new java.awt.image.BufferedImage(frame.width, frame.height,
-			java.awt.image.BufferedImage.TYPE_INT_RGB);
+		BufferedImage image = new BufferedImage(frame.width, frame.height,
+			BufferedImage.TYPE_INT_RGB);
 		Graphics2D own = image.createGraphics();
 		try
 		{
