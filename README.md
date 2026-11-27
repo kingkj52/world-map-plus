@@ -2,7 +2,8 @@
 
 World Map Plus takes over the in-game world map and gives you a better one. You can zoom out to see the whole world or
 in until a single tile is 32 pixels wide, search for almost anything, hover over icons to see what they do, plan routes,
-save places and keep a see-through map on screen while you play.
+save places and keep a see-through map on screen while you play, and even share pins and routes with your clan in-game or
+the community out of it!
 
 Everything the map shows comes with the plugin except the detailed map pictures, which are downloaded the first time you look at
 an area (see "Map pictures" below). No other connections are made.
@@ -76,8 +77,7 @@ Hover over an icon, a doorway, a shop or a transport point and a card tells you 
   shops, quests, some kinds of transport and some well known places such as agility courses and minigames. After you
   point at an icon, its card stays put for a moment, so you can move the pointer onto the card and press the button. The
   page opens in your own web browser. The plugin never connects to anything itself, and it only ever opens pages of the
-  Old School RuneScape Wiki. Where a name might not be a page, the button says **Search wiki** and opens the wiki's own search page.
-  **Wiki buttons** in the settings turns the buttons and the menu entries off.
+  Old School RuneScape Wiki. **Wiki buttons** in the settings turns the buttons and the menu entries off.
 
 ## Search
 
@@ -331,12 +331,6 @@ the lines fall in the right place. In this mode hold `Ctrl` and right-click to o
 - Floors above the ground are only available on the surface. Dungeons and other maps have a single floor, and show all their icons on it.
 - Not every NPC has a known spawn, and some quests do not have a start position yet.
 - When getting data from the wiki, a hard limit of only a couple queries/minute over the course of many hours to lighten the load as much as possible.
-
-## Pictures in this README
-
-Some pictures were taken before the latest changes. `share1.png`, `share2.png` and `shareTypo.png` show the older typing guide
-drawn over the chat line (the guide is now a strip just above it). `hover.png`, `search.gif`, `route.gif` and `layers.gif` show
-the map name and tile in the top left corner, which the map no longer draws.
 
 ## Credits
 
