@@ -15,7 +15,6 @@ import com.worldmapplus.map.MapCatalog;
 import com.worldmapplus.map.MapInfo;
 import com.worldmapplus.render.MapRenderer;
 import com.worldmapplus.ui.HudOverlay;
-import com.worldmapplus.ui.MapWindows;
 import com.worldmapplus.ui.ViewerOverlay;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -95,7 +94,6 @@ public class LazyAssetsTest
 		assertNotNull(injector.getInstance(WorldMapPlusPlugin.class));
 		assertNotNull(injector.getInstance(ViewerOverlay.class));
 		assertNotNull(injector.getInstance(HudOverlay.class));
-		assertNotNull(injector.getInstance(MapWindows.class));
 		assertNotNull(injector.getInstance(com.worldmapplus.input.ChatSearch.class));
 		MapAssets assets = injector.getInstance(MapAssets.class);
 		assertFalse("nothing is parsed while the plugin is only built", assets.isLoaded());
@@ -220,7 +218,7 @@ public class LazyAssetsTest
 		assertTrue("start asks for the load to be run on the executor", start.contains("assets.preload();"));
 		assertNull("start must not touch a getter that loads the data", firstGetter(start));
 		String tick = source.substring(source.indexOf("public void onGameTick"), source.indexOf("public void onGameStateChanged"));
-		assertFalse("a game tick does not read the maps", tick.contains("getCatalog") || tick.contains("getSearch"));
+		assertNull("a game tick does not wait for the data", firstGetter(tick));
 	}
 
 	/** The first call on the assets that would read the data, or null. A method reference is not a call. */
@@ -232,7 +230,7 @@ public class LazyAssetsTest
 			String name = m.group(2);
 			boolean reference = m.group(1).equals("::");
 			if (!reference && !name.equals("preload") && !name.equals("isLoaded") && !name.equals("release")
-				&& !name.equals("setUnlocks") && !name.equals("setPrices") && !name.equals("setCacheFolder"))
+				&& !name.equals("setUnlocks") && !name.equals("setPrices") && !name.equals("setCacheFolder") && !name.equals("releaseIfIdle"))
 			{
 				return name;
 			}

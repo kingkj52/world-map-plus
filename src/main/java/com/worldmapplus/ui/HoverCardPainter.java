@@ -1,10 +1,14 @@
 package com.worldmapplus.ui;
 
+import static com.worldmapplus.theme.Palette.colour;
+
 import com.worldmapplus.layers.*;
+import com.worldmapplus.layers.HoverCard.Row;
 import com.worldmapplus.map.*;
 import com.worldmapplus.render.*;
 import com.worldmapplus.theme.*;
 import com.worldmapplus.view.*;
+import com.worldmapplus.wiki.*;
 import java.awt.*;
 import java.awt.image.*;
 import java.util.*;
@@ -27,10 +31,14 @@ public final class HoverCardPainter
 	static final int MAX_TEXT_WIDTH = 340;
 	private static final int ROW_GAP = 16;
 
-	/** The small button in the corner of a card, put there by a partner plugin (the Wiki button is the Helper's). */
+	/** The small Wiki button in the corner of a card about something that has a wiki page. */
 	static final int BUTTON_WIDTH = 38;
 	static final int BUTTON_HEIGHT = 16;
 	private static final int BUTTON_GAP = 10;
+	static final String BUTTON_TEXT = "Wiki";
+	/** The button of a card with no page of its own, which opens the wiki's search page for its name. */
+	static final String SEARCH_BUTTON_TEXT = "Search wiki";
+	static final int SEARCH_BUTTON_WIDTH = 72;
 
 	private final MapCatalog catalog;
 	private final MapRenderer renderer;
@@ -46,15 +54,27 @@ public final class HoverCardPainter
 		this.renderer = renderer;
 	}
 
-	/** True when a partner put a button on the card. */
+	/** True when a card gets a Wiki button: it names a page and the name makes a clean address, or a name to search for. */
 	static boolean hasButton(HoverCard card)
 	{
-		return card.getButtonLabel() != null;
+		return hasPage(card) || isSearch(card);
+	}
+
+	/** True when the card's button opens a page of its own. */
+	static boolean hasPage(HoverCard card)
+	{
+		return card.getWiki() != null && WikiLinks.url(card.getWiki()) != null;
+	}
+
+	/** True when the card's button opens the wiki's search page for its name, because it has no page that is certain to exist. */
+	static boolean isSearch(HoverCard card)
+	{
+		return !hasPage(card) && card.getWikiSearch() != null && WikiLinks.searchUrl(card.getWikiSearch()) != null;
 	}
 
 	private static int buttonWidth(HoverCard card)
 	{
-		return Math.max(BUTTON_WIDTH, 6 * card.getButtonLabel().length() + 6);
+		return isSearch(card) ? SEARCH_BUTTON_WIDTH : BUTTON_WIDTH;
 	}
 
 	/** The box the card drawn last was in. */
@@ -75,9 +95,9 @@ public final class HoverCardPainter
 	private static final int COLUMN_GAP = 22;
 
 	/** Splits rows into columns of at most {@link #MAX_COLUMN_ROWS}, as evenly as possible. */
-	static List<List<HoverCard.Row>> columns(List<HoverCard.Row> rows)
+	static List<List<Row>> columns(List<Row> rows)
 	{
-		List<List<HoverCard.Row>> columns = new ArrayList<>();
+		List<List<Row>> columns = new ArrayList<>();
 		if (rows.isEmpty())
 		{
 			return columns;
@@ -99,10 +119,10 @@ public final class HoverCardPainter
 		return columns;
 	}
 
-	private static int columnWidth(FontMetrics body, List<HoverCard.Row> column)
+	private static int columnWidth(FontMetrics body, List<Row> column)
 	{
 		int width = 0;
-		for (HoverCard.Row row : column)
+		for (Row row : column)
 		{
 			width = Math.max(width, body.stringWidth(row.getLabel()) + ROW_GAP + body.stringWidth(row.getValue()));
 		}
@@ -119,9 +139,9 @@ public final class HoverCardPainter
 	 * The rows to draw so that the card is no taller than {@code maxHeight}: all of them when they fit, otherwise as many as
 	 * do with a last line saying how many were left out. The picture is the first thing given up.
 	 */
-	static List<HoverCard.Row> fitRows(Graphics2D g, HoverCard card, boolean expanded, boolean preview, int maxHeight)
+	static List<Row> fitRows(Graphics2D g, HoverCard card, boolean expanded, boolean preview, int maxHeight)
 	{
-		List<HoverCard.Row> rows = card.visibleRows(expanded);
+		List<Row> rows = card.visibleRows(expanded);
 		int keep = rows.size();
 		while (keep > 1 && measure(g, card, rows(rows, keep), preview).height > maxHeight)
 		{
@@ -130,18 +150,18 @@ public final class HoverCardPainter
 		return rows(rows, keep);
 	}
 
-	private static List<HoverCard.Row> rows(List<HoverCard.Row> all, int keep)
+	private static List<Row> rows(List<Row> all, int keep)
 	{
 		if (keep >= all.size())
 		{
 			return all;
 		}
-		List<HoverCard.Row> shown = new ArrayList<>(all.subList(0, Math.max(0, keep - 1)));
-		shown.add(new HoverCard.Row("and " + (all.size() - shown.size()) + " more", ""));
+		List<Row> shown = new ArrayList<>(all.subList(0, Math.max(0, keep - 1)));
+		shown.add(new Row("and " + (all.size() - shown.size()) + " more", ""));
 		return shown;
 	}
 
-	private static Dimension measure(Graphics2D g, HoverCard card, List<HoverCard.Row> rows, boolean preview)
+	private static Dimension measure(Graphics2D g, HoverCard card, List<Row> rows, boolean preview)
 	{
 		g.setFont(Palette.TITLE);
 		int width = g.getFontMetrics().stringWidth(card.getTitle()) + (hasButton(card) ? buttonWidth(card) + BUTTON_GAP : 0);
@@ -155,10 +175,10 @@ public final class HoverCardPainter
 			height += body.getHeight();
 		}
 
-		List<List<HoverCard.Row>> columns = columns(rows);
+		List<List<Row>> columns = columns(rows);
 		int rowsWidth = 0;
 		int tallest = 0;
-		for (List<HoverCard.Row> column : columns)
+		for (List<Row> column : columns)
 		{
 			rowsWidth += columnWidth(body, column) + (rowsWidth > 0 ? COLUMN_GAP : 0);
 			tallest = Math.max(tallest, column.size());
@@ -199,29 +219,16 @@ public final class HoverCardPainter
 		return Math.max(limitStart, Math.min(at, limitStart + limitExtent - extent));
 	}
 
-	/** Whether the picture is kept, which rows are shown, and the card's size, for a card over a map of a given size. */
-	private static final class Fitted
-	{
-		boolean preview;
-		List<HoverCard.Row> rows;
-		Dimension size;
-	}
-
 	/**
 	 * A card is never larger than the map it is over: the picture goes first, then the rows that do not fit, and a text too wide
 	 * for the room is cut short with an ellipsis. The full text is what holding Shift shows.
 	 */
-	private static Fitted fit(Graphics2D g, HoverCard card, boolean expanded, Rectangle limit)
+	private static Layout fit(Graphics2D g, HoverCard card, boolean expanded, Rectangle limit)
 	{
-		Fitted fitted = new Fitted();
-		fitted.preview = card.hasPreview();
-		Dimension size = measure(g, card, card.visibleRows(expanded), fitted.preview);
-		if (size.height > limit.height && fitted.preview)
-		{
-			fitted.preview = false;
-		}
+		Layout fitted = new Layout();
+		fitted.preview = card.hasPreview() && measure(g, card, card.visibleRows(expanded), true).height <= limit.height;
 		fitted.rows = fitRows(g, card, expanded, fitted.preview, limit.height);
-		size = measure(g, card, fitted.rows, fitted.preview);
+		Dimension size = measure(g, card, fitted.rows, fitted.preview);
 		fitted.size = new Dimension(Math.min(size.width, limit.width), Math.min(size.height, limit.height));
 		return fitted;
 	}
@@ -229,9 +236,9 @@ public final class HoverCardPainter
 	/** Where the card is drawn, for a card over a map of the given size. For tests. */
 	static Rectangle boundsOf(Graphics2D g, HoverCard card, boolean expanded, int mouseX, int mouseY, Rectangle limit)
 	{
-		Fitted fitted = fit(g, card, expanded, limit);
-		Point at = place(fitted.size, mouseX, mouseY, limit);
-		return new Rectangle(at.x, at.y, fitted.size.width, fitted.size.height);
+		Dimension size = fit(g, card, expanded, limit).size;
+		Point at = place(size, mouseX, mouseY, limit);
+		return new Rectangle(at, size);
 	}
 
 	public void paint(Graphics2D g, HoverCard card, int mouseX, int mouseY, Rectangle limit, boolean expanded)
@@ -259,7 +266,7 @@ public final class HoverCardPainter
 		}
 		hasLastButton = button;
 
-		Theme.panel(g, boxX, boxY, size.width, size.height);
+		Box.panel(g, boxX, boxY, size.width, size.height);
 		// Clipping to the box is only done where something could run past it: a card as big as its room, several columns, or a value
 		// wider than its column. Cutting a clip out of a complex clip makes garbage every frame.
 		Shape outside = null;
@@ -274,11 +281,11 @@ public final class HoverCardPainter
 
 		g.setFont(Palette.TITLE);
 		FontMetrics title = g.getFontMetrics();
-		g.setColor(Theme.ACCENT);
+		g.setColor(colour("ACCENT"));
 		g.drawString(layout.titleText, x, y + title.getAscent());
 		if (button)
 		{
-			paintButton(g, lastButton, pointer != null && lastButton.contains(pointer), card.getButtonLabel());
+			paintButton(g, lastButton, pointer != null && lastButton.contains(pointer), isSearch(card) ? SEARCH_BUTTON_TEXT : BUTTON_TEXT);
 		}
 		y += title.getHeight();
 
@@ -286,32 +293,20 @@ public final class HoverCardPainter
 		FontMetrics body = g.getFontMetrics();
 		if (layout.subtitleText != null)
 		{
-			g.setColor(Theme.TEXT_DIM);
+			g.setColor(colour("TEXT_DIM"));
 			g.drawString(layout.subtitleText, x, y + body.getAscent());
 			y += body.getHeight();
 		}
 
-		int columnX = x;
-		int tallest = 0;
-		int at = 0;
-		for (int c = 0; c < layout.columns.size(); c++)
+		for (int i = 0; i < layout.labelTexts.length; i++)
 		{
-			List<HoverCard.Row> column = layout.columns.get(c);
-			int columnWidth = layout.columnWidths[c];
-			int rowY = y;
-			for (int r = 0; r < column.size(); r++)
-			{
-				g.setColor(Theme.TEXT_DIM);
-				g.drawString(layout.labelTexts[at], columnX, rowY + body.getAscent());
-				g.setColor(Theme.TEXT);
-				g.drawString(column.get(r).getValue(), columnX + columnWidth - layout.valueWidths[at], rowY + body.getAscent());
-				at++;
-				rowY += body.getHeight();
-			}
-			tallest = Math.max(tallest, column.size());
-			columnX += columnWidth + COLUMN_GAP;
+			int rowY = y + layout.rowY[i] + body.getAscent();
+			g.setColor(colour("TEXT_DIM"));
+			g.drawString(layout.labelTexts[i], x + layout.labelX[i], rowY);
+			g.setColor(colour("TEXT"));
+			g.drawString(layout.rows.get(i).getValue(), x + layout.valueX[i], rowY);
 		}
-		y += tallest * body.getHeight();
+		y += layout.rowsHeight;
 
 		if (preview)
 		{
@@ -323,7 +318,7 @@ public final class HoverCardPainter
 		if (layout.hintText != null)
 		{
 			g.setFont(Palette.SMALL_ITALIC);
-			g.setColor(Theme.HINT);
+			g.setColor(colour("HINT"));
 			g.drawString(layout.hintText, x, y + 2 + g.getFontMetrics().getAscent());
 		}
 		if (layout.clip)
@@ -349,13 +344,16 @@ public final class HoverCardPainter
 		boolean preview;
 		boolean clip;
 		Dimension size;
-		List<List<HoverCard.Row>> columns;
-		int[] columnWidths;
+		List<Row> rows;
 		String titleText;
 		String subtitleText;
 		String hintText;
+		/** Each row's cut label, where its label and value start across the card and how far down it is; how tall the rows are. */
 		String[] labelTexts;
-		int[] valueWidths;
+		int[] labelX;
+		int[] valueX;
+		int[] rowY;
+		int rowsHeight;
 	}
 
 	private Layout layout;
@@ -369,48 +367,50 @@ public final class HoverCardPainter
 			kept.card = card;
 			return kept;
 		}
-		Fitted fitted = fit(g, card, expanded, limit);
-		Layout made = new Layout();
+		Layout made = fit(g, card, expanded, limit);
 		made.card = card;
 		made.expanded = expanded;
 		made.limitWidth = limit.width;
 		made.limitHeight = limit.height;
-		made.preview = fitted.preview;
-		made.size = fitted.size;
-		int innerWidth = fitted.size.width - PADDING * 2;
+		int innerWidth = made.size.width - PADDING * 2;
 		boolean button = hasButton(card);
 		g.setFont(Palette.TITLE);
-		made.titleText = clip(card.getTitle(), g.getFontMetrics(), button ? innerWidth - BUTTON_WIDTH - BUTTON_GAP : innerWidth);
+		made.titleText = Box.dots(card.getTitle(), g.getFontMetrics(), button ? innerWidth - BUTTON_WIDTH - BUTTON_GAP : innerWidth);
 		g.setFont(Palette.BODY);
 		FontMetrics body = g.getFontMetrics();
-		made.subtitleText = card.getSubtitle() == null ? null : clip(card.getSubtitle(), body, innerWidth);
-		made.columns = columns(fitted.rows);
-		made.clip = made.columns.size() > 1 || fitted.size.width >= limit.width || fitted.size.height >= limit.height;
-		int count = fitted.rows.size();
-		made.columnWidths = new int[made.columns.size()];
+		made.subtitleText = card.getSubtitle() == null ? null : Box.dots(card.getSubtitle(), body, innerWidth);
+		List<List<Row>> columns = columns(made.rows);
+		made.clip = columns.size() > 1 || made.size.width >= limit.width || made.size.height >= limit.height;
+		int count = made.rows.size();
 		made.labelTexts = new String[count];
-		made.valueWidths = new int[count];
+		made.labelX = new int[count];
+		made.valueX = new int[count];
+		made.rowY = new int[count];
 		int at = 0;
-		for (int c = 0; c < made.columns.size(); c++)
+		int columnX = 0;
+		for (List<Row> column : columns)
 		{
-			List<HoverCard.Row> column = made.columns.get(c);
-			int columnWidth = made.columns.size() == 1 ? innerWidth : columnWidth(body, column);
-			made.columnWidths[c] = columnWidth;
-			for (HoverCard.Row row : column)
+			int columnWidth = columns.size() == 1 ? innerWidth : columnWidth(body, column);
+			for (int r = 0; r < column.size(); r++)
 			{
+				Row row = column.get(r);
 				int valueWidth = body.stringWidth(row.getValue());
 				// The label may use all the room the value leaves, so a long one is not cut short for nothing.
 				int labelRoom = Math.max(20, columnWidth - valueWidth - (valueWidth > 0 ? ROW_GAP : 0));
-				made.labelTexts[at] = clip(row.getLabel(), body, labelRoom);
-				made.valueWidths[at] = valueWidth;
+				made.labelTexts[at] = Box.dots(row.getLabel(), body, labelRoom);
+				made.labelX[at] = columnX;
+				made.valueX[at] = columnX + columnWidth - valueWidth;
+				made.rowY[at] = r * body.getHeight();
 				made.clip |= valueWidth > columnWidth;
 				at++;
 			}
+			made.rowsHeight = Math.max(made.rowsHeight, column.size() * body.getHeight());
+			columnX += columnWidth + COLUMN_GAP;
 		}
 		if (card.getHint() != null)
 		{
 			g.setFont(Palette.SMALL_ITALIC);
-			made.hintText = clip(card.getHint(), g.getFontMetrics(), innerWidth);
+			made.hintText = Box.dots(card.getHint(), g.getFontMetrics(), innerWidth);
 		}
 		layout = made;
 		return made;
@@ -418,15 +418,11 @@ public final class HoverCardPainter
 
 	private static void paintButton(Graphics2D g, Rectangle box, boolean lit, String text)
 	{
-		g.setColor(lit ? Theme.PANEL_ACTIVE : Theme.CARD_BUTTON);
-		g.fillRoundRect(box.x, box.y, box.width, box.height, 6, 6);
-		g.setColor(lit ? Theme.ACCENT : Theme.BORDER);
-		g.drawRoundRect(box.x, box.y, box.width - 1, box.height - 1, 6, 6);
+		Box.pill(g, box, lit ? "PANEL_ACTIVE" : "CARD_BUTTON", lit ? "ACCENT" : "BORDER");
 		g.setFont(Palette.SMALL_BOLD);
 		FontMetrics metrics = g.getFontMetrics();
-		g.setColor(lit ? Theme.ACCENT : Theme.TEXT);
-		g.drawString(text, box.x + (box.width - metrics.stringWidth(text)) / 2,
-			box.y + (box.height - metrics.getHeight()) / 2 + metrics.getAscent());
+		g.setColor(colour(lit ? "ACCENT" : "TEXT"));
+		g.drawString(text, box.x + (box.width - metrics.stringWidth(text)) / 2, Box.middle(box.y, box.height, metrics));
 	}
 
 	/** Pixels per tile a focused preview opens at: a frame this size then shows about 80 by 50 tiles. */
@@ -523,7 +519,7 @@ public final class HoverCardPainter
 						// The border is drawn with the stroke the landing ring leaves behind, as when the picture is drawn live.
 						g.setStroke(RING_INNER);
 					}
-					g.setColor(Theme.BORDER);
+					g.setColor(colour("BORDER"));
 					g.drawRect(frame.x, frame.y, frame.width - 1, frame.height - 1);
 					return;
 				}
@@ -532,7 +528,7 @@ public final class HoverCardPainter
 		ViewTransform view = previewTransform(map, card, frame);
 		boolean settled = renderer.paintPreview(g, view, map);
 		drawLanding(g, view, card);
-		g.setColor(Theme.BORDER);
+		g.setColor(colour("BORDER"));
 		g.drawRect(frame.x, frame.y, frame.width - 1, frame.height - 1);
 		if (settled && plain)
 		{
@@ -601,19 +597,5 @@ public final class HoverCardPainter
 		slot.height = frame.height;
 		slot.smooth = smooth;
 		slot.image = image;
-	}
-
-	private static String clip(String text, FontMetrics metrics, int maxWidth)
-	{
-		if (metrics.stringWidth(text) <= maxWidth)
-		{
-			return text;
-		}
-		String result = text;
-		while (result.length() > 1 && metrics.stringWidth(result + "...") > maxWidth)
-		{
-			result = result.substring(0, result.length() - 1);
-		}
-		return result + "...";
 	}
 }

@@ -5,13 +5,14 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import com.worldmapplus.map.MapInfo;
 import com.worldmapplus.unlock.Need;
 import com.worldmapplus.unlock.Needs;
-import com.worldmapplus.unlock.FakeProgress;
+import com.worldmapplus.unlock.Unlocks;
 import com.worldmapplus.view.ViewTransform;
 import java.awt.Color;
 import java.awt.Graphics2D;
@@ -40,7 +41,7 @@ public class GameIconProgressTest
 
 	private final Map<Skill, Integer> levels = new EnumMap<>(Skill.class);
 	private final Map<Quest, QuestState> quests = new EnumMap<>(Quest.class);
-	private FakeProgress unlocks;
+	private Unlocks unlocks;
 	private GameIconLayer layer;
 
 	@BeforeClass
@@ -53,7 +54,7 @@ public class GameIconProgressTest
 	private static List<GameIconSet.Spec> specs()
 	{
 		Need agility = Needs.ofWay(Collections.singletonList("90 Agility"), null);
-		Need starts = Need.startOf("Priest in Peril");
+		Need starts = Needs.startOf(net.runelite.api.Quest.PRIEST_IN_PERIL);
 		Need magic = Needs.ofWay(Collections.singletonList("90 Magic"), null);
 		List<GameIconSet.Spec> list = new ArrayList<>();
 		list.add(new GameIconSet.Spec(0, 100.5, 200.5, 3, 0, 4, 0, null, null, agility));
@@ -72,7 +73,7 @@ public class GameIconProgressTest
 		levels.put(Skill.AGILITY, 50);
 		levels.put(Skill.MAGIC, 50);
 		quests.put(Quest.PRIEST_IN_PERIL, QuestState.FINISHED);
-		unlocks = new FakeProgress(new FakeProgress.Source()
+		unlocks = new Unlocks(new Unlocks.Source()
 		{
 			@Override
 			public boolean loggedIn()
@@ -158,9 +159,9 @@ public class GameIconProgressTest
 	@Test
 	public void withTheSettingsOffNothingChangesWhatEverThePlayerHasDone()
 	{
-		layer.setUnlocks(null, false, false, false);
+		layer.setUnlocks(null, false, false, false, false);
 		BufferedImage plain = render(4);
-		layer.setUnlocks(unlocks, false, false, false);
+		layer.setUnlocks(unlocks, false, false, false, false);
 		BufferedImage withProgress = render(4);
 		assertTrue("the same picture", same(plain, withProgress));
 		for (int slot = 0; slot < layer.drawnCount(); slot++)
@@ -173,10 +174,10 @@ public class GameIconProgressTest
 	@Test
 	public void anIconYouCannotUseYetIsDimmedWithAPadlockAndKeepsItsPlace()
 	{
-		layer.setUnlocks(unlocks, false, false, false);
+		layer.setUnlocks(unlocks, false, false, false, false);
 		BufferedImage plain = render(4);
 		int[] before = chosen(4);
-		layer.setUnlocks(unlocks, false, true, false);
+		layer.setUnlocks(unlocks, false, true, false, false);
 		BufferedImage marked = render(4);
 		assertArrayEquals("the same icons are chosen", before, chosen(4));
 		assertEquals(GameIconLayer.LOCKED, layer.lookAt(slotOf(100.5)));
@@ -205,10 +206,10 @@ public class GameIconProgressTest
 	@Test
 	public void theLockedPictureIsOneCachedImageWithAGoldPadlockInItsCorner()
 	{
-		BufferedImage plain = sprites.get(3, 15);
-		BufferedImage locked = sprites.locked(3, 15);
+		BufferedImage plain = sprites.get(3, 20, GameIconLayer.NORMAL);
+		BufferedImage locked = sprites.get(3, 20, GameIconLayer.LOCKED);
 		assertNotNull(locked);
-		assertSame("made once and kept", locked, sprites.locked(3, 15));
+		assertSame("read once and kept", locked, sprites.get(3, 20, GameIconLayer.LOCKED));
 		assertEquals(plain.getWidth(), locked.getWidth());
 		boolean gold = false;
 		for (int y = locked.getHeight() / 2; y < locked.getHeight(); y++)
@@ -231,18 +232,20 @@ public class GameIconProgressTest
 			}
 		}
 		assertTrue(lockedAlpha < plainAlpha || plainAlpha == 0);
-		for (int side = 11; side <= GameIconScale.MAX_SIDE; side++)
+		for (int side = GameIconScale.MIN_SIDE; side <= GameIconScale.MAX_SIDE; side++)
 		{
-			assertNotNull("a padlock fits a picture of " + side, sprites.locked(9, side));
+			assertNotNull("a locked picture at every side the zoom draws, " + side, sprites.get(9, side, GameIconLayer.LOCKED));
 		}
+		assertNull("no side the zoom never draws", sprites.get(9, GameIconScale.MIN_SIDE - 1, GameIconLayer.LOCKED));
+		assertNull("no look that is not drawn", sprites.get(9, GameIconScale.MAX_SIDE, 6));
 	}
 
 	@Test
 	public void showingOnlyWhatYouCanUseLeavesOutTheRestWithoutMovingAnythingElse()
 	{
-		layer.setUnlocks(unlocks, false, false, false);
+		layer.setUnlocks(unlocks, false, false, false, false);
 		int[] before = chosen(4);
-		layer.setUnlocks(unlocks, false, false, true);
+		layer.setUnlocks(unlocks, false, false, true, false);
 		BufferedImage only = render(4);
 		assertArrayEquals("the same icons are chosen, the hidden ones keep their cells", before, chosen(4));
 		assertEquals(GameIconLayer.HIDDEN, layer.lookAt(slotOf(100.5)));
@@ -267,14 +270,14 @@ public class GameIconProgressTest
 	public void aHiddenOrDimmedIconNeverLetsAnotherTakeItsSpotInACrowd()
 	{
 		// Icons 3 and 4 share a spot; 3 wins it by its priority whatever the player can do.
-		layer.setUnlocks(unlocks, false, false, false);
+		layer.setUnlocks(unlocks, false, false, false, false);
 		int[] plain = chosen(0.25);
 		for (boolean[] options : new boolean[][] {{false, true, false}, {false, false, true}, {true, true, true}})
 		{
-			layer.setUnlocks(unlocks, options[0], options[1], options[2]);
+			layer.setUnlocks(unlocks, options[0], options[1], options[2], false);
 			assertArrayEquals(plain, chosen(0.25));
 		}
-		layer.setUnlocks(unlocks, false, false, true);
+		layer.setUnlocks(unlocks, false, false, true, false);
 		layer.layout(view(0.25), 0, 0);
 		int winner = layer.drawnIconIndex(slotOf(220.5));
 		assertEquals("the icon that asks for 90 Magic keeps the spot", 6, layer.drawnOn().picture(winner));
@@ -284,7 +287,7 @@ public class GameIconProgressTest
 	@Test
 	public void aFinishedQuestIsHiddenOnItsOwnAndNothingElseIs()
 	{
-		layer.setUnlocks(unlocks, true, false, false);
+		layer.setUnlocks(unlocks, true, false, false, false);
 		render(4);
 		assertEquals(GameIconLayer.HIDDEN, layer.lookAt(slotOf(140.5)));
 		assertEquals("a level that is missing is not this setting's business", GameIconLayer.NORMAL, layer.lookAt(slotOf(100.5)));
@@ -310,7 +313,7 @@ public class GameIconProgressTest
 	@Test
 	public void aQuestStartCarriesADotForHowFarThePlayerIsAndNothingElseChanges()
 	{
-		layer.setUnlocks(unlocks, false, false, false);
+		layer.setUnlocks(unlocks, false, false, false, false);
 		BufferedImage plain = render(4);
 		int[] before = chosen(4);
 		layer.setUnlocks(unlocks, false, false, false, true);
@@ -322,17 +325,17 @@ public class GameIconProgressTest
 		int side = layer.drawnSize();
 		int x = layer.drawnLeft(slot) + side - 3;
 		int y = layer.drawnTop(slot) + side - 3;
-		assertEquals("a green dot in the corner", GameIconSprites.DOT_COLOURS[2], coloured.getRGB(x, y));
+		assertEquals("a green dot in the corner", 0xFF3FC24F, coloured.getRGB(x, y));
 		assertFalse(same(plain, coloured));
 		questBecomes(QuestState.IN_PROGRESS);
 		assertEquals(GameIconLayer.QUEST_STARTED, layer.lookAt(slot));
-		assertEquals("yellow", GameIconSprites.DOT_COLOURS[1], render(4).getRGB(x, y));
+		assertEquals("yellow", 0xFFF2D43A, render(4).getRGB(x, y));
 		questBecomes(QuestState.NOT_STARTED);
 		assertEquals(GameIconLayer.QUEST_NOT_STARTED, layer.lookAt(slot));
-		assertEquals("red", GameIconSprites.DOT_COLOURS[0], render(4).getRGB(x, y));
+		assertEquals("red", 0xFFE0352B, render(4).getRGB(x, y));
 		// The dotted picture is made once and kept.
 		int picture = layer.drawnOn().picture(layer.drawnIconIndex(slot));
-		assertTrue(sprites.questDot(picture, side, 0) == sprites.questDot(picture, side, 0));
+		assertTrue(sprites.get(picture, side, GameIconLayer.QUEST_NOT_STARTED) == sprites.get(picture, side, GameIconLayer.QUEST_NOT_STARTED));
 		// Hiding a finished quest still wins over its dot.
 		questBecomes(QuestState.FINISHED);
 		layer.setUnlocks(unlocks, true, false, false, true);
@@ -346,9 +349,9 @@ public class GameIconProgressTest
 	public void whenNothingIsKnownEveryIconIsShownAsItAlwaysWas()
 	{
 		unlocks.onGameStateChanged(GameState.LOGIN_SCREEN);
-		layer.setUnlocks(unlocks, true, true, true);
+		layer.setUnlocks(unlocks, true, true, true, false);
 		BufferedImage knownNothing = render(4);
-		layer.setUnlocks(null, false, false, false);
+		layer.setUnlocks(null, false, false, false, false);
 		assertTrue(same(render(4), knownNothing));
 	}
 
@@ -364,7 +367,7 @@ public class GameIconProgressTest
 				i % 3 == 0 ? 0 : GameIconScale.MINOR_PRIORITY, null, null, i % 2 == 0 ? agility : null));
 		}
 		GameIconLayer big = new GameIconLayer(new GameIconSet(many), sprites);
-		big.setUnlocks(unlocks, true, true, false);
+		big.setUnlocks(unlocks, true, true, false, false);
 		com.sun.management.ThreadMXBean bean = (com.sun.management.ThreadMXBean) java.lang.management.ManagementFactory.getThreadMXBean();
 		for (int i = 0; i < 300; i++)
 		{
@@ -388,7 +391,7 @@ public class GameIconProgressTest
 	@Test
 	public void paintingTheSameViewAgainAllocatesNothingBeyondTheDrawingItself()
 	{
-		layer.setUnlocks(unlocks, true, true, false);
+		layer.setUnlocks(unlocks, true, true, false, false);
 		BufferedImage image = new BufferedImage(800, 600, BufferedImage.TYPE_INT_ARGB);
 		Graphics2D g = image.createGraphics();
 		ViewTransform v = view(4);

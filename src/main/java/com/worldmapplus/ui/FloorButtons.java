@@ -1,6 +1,9 @@
 package com.worldmapplus.ui;
 
+import static com.worldmapplus.theme.Palette.colour;
+
 import com.worldmapplus.layers.*;
+import com.worldmapplus.theme.*;
 import java.awt.*;
 import javax.annotation.*;
 import lombok.*;
@@ -88,7 +91,7 @@ public final class FloorButtons
 		{
 			return;
 		}
-		g.setStroke(new BasicStroke(1f));
+		g.setStroke(Palette.ONE);
 		for (Button button : Button.values())
 		{
 			Rectangle rect = rects[button.ordinal()];
@@ -97,17 +100,14 @@ public final class FloorButtons
 				continue;
 			}
 			boolean usable = button == Button.UP ? floor < top : floor > 0;
-			g.setColor(button == hovered && usable ? Theme.FLOOR_HOVER : Theme.FLOOR_FILL);
-			g.fillRoundRect(rect.x, rect.y, rect.width, rect.height, 6, 6);
-			g.setColor(Theme.BORDER);
-			g.drawRoundRect(rect.x, rect.y, rect.width - 1, rect.height - 1, 6, 6);
+			Box.pill(g, rect, button == hovered && usable ? "FLOOR_HOVER" : "FLOOR_FILL", "BORDER");
 
 			int cx = rect.x + rect.width / 2;
 			int cy = rect.y + rect.height / 2;
 			int dir = button == Button.UP ? -1 : 1;
 			int[] xs = {cx - 7, cx + 7, cx};
 			int[] ys = {cy - 3 * dir, cy - 3 * dir, cy + 5 * dir};
-			g.setColor(usable ? Theme.TEXT : Theme.ARROW_OFF);
+			g.setColor(colour(usable ? "TEXT" : "ARROW_OFF"));
 			g.fillPolygon(xs, ys, 3);
 		}
 	}

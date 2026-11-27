@@ -9,7 +9,7 @@ import net.runelite.client.ui.components.*;
 
 /**
  * Moves a built panel from one theme to another: every colour that is a palette colour of the old theme becomes the same
- * role's colour in the new one. Colours that are not in the old palette (a place's own colour, the look and feel's)
+ * name's colour in the new one. Colours that are not in the old palette (a place's own colour, the look and feel's)
  * are left alone. Runs on the interface thread, once, when the theme changes.
  */
 final class Recolour
@@ -37,7 +37,7 @@ final class Recolour
 		{
 			return null;
 		}
-		Role role = from.roleOf(colour);
+		String role = from.nameOf(colour);
 		return role == null ? colour : to.get(role);
 	}
 
@@ -62,7 +62,7 @@ final class Recolour
 		}
 		if (c instanceof IconTextField)
 		{
-			((IconTextField) c).setHoverBackgroundColor(to.get(Role.CARD_HOVER));
+			((IconTextField) c).setHoverBackgroundColor(to.get("CARD_HOVER"));
 		}
 		if (c instanceof JScrollPane)
 		{

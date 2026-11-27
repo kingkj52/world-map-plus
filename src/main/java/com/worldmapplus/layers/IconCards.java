@@ -121,7 +121,7 @@ public final class IconCards
 			card.title(only.getName());
 			card.subtitle(detail.isEmpty() ? base.getTitle() : detail);
 			// The card is now about the point, so the wiki page is the point's, when it has one.
-			card.wiki("layer " + only.getLayer(), only.getName(), only.getDetail());
+			card.wiki(only.getWiki());
 			String where = base.getSubtitle();
 			if (where != null && !where.isEmpty())
 			{

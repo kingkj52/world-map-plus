@@ -3,31 +3,22 @@ package com.worldmapplus.compat;
 import java.util.*;
 
 /**
- * The plugins whose points on the game's map are not shown here, kept in the settings as one list of plugin names
- * separated by a bar. Parsing is forgiving, so a hand edited setting cannot cause an error.
+ * The kinds of the game's icons that are not shown, kept in the settings as one sorted list of names separated by a bar. Parsing is
+ * forgiving, so a hand edited setting cannot cause an error, and at most 200 names are kept, so a setting cannot grow without end.
  */
 public final class HiddenSources
 {
-	private static final String SEPARATOR = "|";
-
-	/** The most names kept, so a setting cannot grow without end. */
-	static final int MOST = 200;
-
 	private HiddenSources()
 	{
 	}
 
 	public static Set<String> parse(String text)
 	{
-		Set<String> names = new LinkedHashSet<>();
-		if (text == null)
-		{
-			return names;
-		}
-		for (String piece : text.split("\\|"))
+		Set<String> names = new TreeSet<>();
+		for (String piece : text == null ? new String[0] : text.split("\\|"))
 		{
 			String name = piece.trim();
-			if (!name.isEmpty() && names.size() < MOST)
+			if (!name.isEmpty() && names.size() < 200)
 			{
 				names.add(name);
 			}
@@ -35,18 +26,11 @@ public final class HiddenSources
 		return names;
 	}
 
-	public static String format(Set<String> names)
-	{
-		String[] sorted = names.toArray(new String[0]);
-		Arrays.sort(sorted);
-		return String.join(SEPARATOR, sorted);
-	}
-
-	/** The list with one plugin's points hidden or shown. */
+	/** The list with one name hidden or shown. */
 	public static String toggled(String text, String name, boolean hidden)
 	{
 		Set<String> names = parse(text);
-		String clean = name.replace(SEPARATOR, " ").trim();
+		String clean = name.replace("|", " ").trim();
 		if (hidden)
 		{
 			names.add(clean);
@@ -55,7 +39,7 @@ public final class HiddenSources
 		{
 			names.remove(clean);
 		}
-		return format(names);
+		return String.join("|", names);
 	}
 
 	public static boolean isHidden(String text, String name)

@@ -6,7 +6,6 @@ import static org.junit.Assert.assertTrue;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 import org.junit.Test;
@@ -17,11 +16,11 @@ public class PaletteTest
 	/** A text colour on a background, both by role. Translucent backgrounds are judged over the worse of black and white. */
 	private static final class Pair
 	{
-		final Role text;
-		final Role back;
+		final String text;
+		final String back;
 		final double needed;
 
-		Pair(Role text, Role back, double needed)
+		Pair(String text, String back, double needed)
 		{
 			this.text = text;
 			this.back = back;
@@ -33,34 +32,34 @@ public class PaletteTest
 	private static List<Pair> body()
 	{
 		List<Pair> pairs = new ArrayList<>();
-		Role[] mapBacks = {Role.PANEL, Role.PANEL_ACTIVE, Role.FIELD_FILL, Role.FIELD_FOCUSED, Role.PLATE, Role.FLOOR_FILL};
-		for (Role back : mapBacks)
+		String[] mapBacks = {"PANEL", "PANEL_ACTIVE", "FIELD_FILL", "FIELD_FOCUSED", "PLATE", "FLOOR_FILL"};
+		for (String back : mapBacks)
 		{
-			pairs.add(new Pair(Role.TEXT, back, 4.5));
+			pairs.add(new Pair("TEXT", back, 4.5));
 		}
-		pairs.add(new Pair(Role.TEXT_DIM, Role.PANEL, 4.5));
-		pairs.add(new Pair(Role.ACCENT, Role.PANEL, 4.5));
-		pairs.add(new Pair(Role.HINT, Role.PANEL, 4.5));
-		pairs.add(new Pair(Role.FIELD_DIM, Role.FIELD_FILL, 4.5));
-		pairs.add(new Pair(Role.MISSING, Role.FIELD_FILL, 4.5));
-		pairs.add(new Pair(Role.TICK_MAP, Role.PANEL, 3.0));
-		Role[] panelBacks = {Role.PAGE, Role.CARD, Role.CARD_HOVER, Role.CARD_ACTIVE, Role.FIELD, Role.BUTTON, Role.BUTTON_TOP,
-			Role.BUTTON_HOVER};
-		for (Role back : panelBacks)
+		pairs.add(new Pair("TEXT_DIM", "PANEL", 4.5));
+		pairs.add(new Pair("ACCENT", "PANEL", 4.5));
+		pairs.add(new Pair("HINT", "PANEL", 4.5));
+		pairs.add(new Pair("FIELD_DIM", "FIELD_FILL", 4.5));
+		pairs.add(new Pair("MISSING", "FIELD_FILL", 4.5));
+		pairs.add(new Pair("TICK_MAP", "PANEL", 3.0));
+		String[] panelBacks = {"PAGE", "CARD", "CARD_HOVER", "CARD_ACTIVE", "FIELD", "BUTTON", "BUTTON_TOP",
+			"BUTTON_HOVER"};
+		for (String back : panelBacks)
 		{
-			pairs.add(new Pair(Role.TEXT, back, 4.5));
+			pairs.add(new Pair("TEXT", back, 4.5));
 		}
-		pairs.add(new Pair(Role.TEXT_DIM, Role.CARD, 4.5));
-		pairs.add(new Pair(Role.TEXT_DIM, Role.PAGE, 4.5));
-		pairs.add(new Pair(Role.ACCENT, Role.CARD, 4.5));
-		pairs.add(new Pair(Role.ACCENT, Role.PAGE, 4.5));
-		pairs.add(new Pair(Role.ACCENT, Role.BADGE, 4.5));
-		pairs.add(new Pair(Role.ACCENT, Role.CARD_ACTIVE, 4.5));
-		pairs.add(new Pair(Role.GOOD, Role.CARD, 4.5));
-		pairs.add(new Pair(Role.BAD, Role.CARD, 4.5));
-		pairs.add(new Pair(Role.PRIMARY_TEXT, Role.PRIMARY, 4.5));
-		pairs.add(new Pair(Role.PRIMARY_TEXT, Role.PRIMARY_TOP, 4.5));
-		pairs.add(new Pair(Role.PRIMARY_TEXT, Role.PRIMARY_HOVER, 4.5));
+		pairs.add(new Pair("TEXT_DIM", "CARD", 4.5));
+		pairs.add(new Pair("TEXT_DIM", "PAGE", 4.5));
+		pairs.add(new Pair("ACCENT", "CARD", 4.5));
+		pairs.add(new Pair("ACCENT", "PAGE", 4.5));
+		pairs.add(new Pair("ACCENT", "BADGE", 4.5));
+		pairs.add(new Pair("ACCENT", "CARD_ACTIVE", 4.5));
+		pairs.add(new Pair("GOOD", "CARD", 4.5));
+		pairs.add(new Pair("BAD", "CARD", 4.5));
+		pairs.add(new Pair("PRIMARY_TEXT", "PRIMARY", 4.5));
+		pairs.add(new Pair("PRIMARY_TEXT", "PRIMARY_TOP", 4.5));
+		pairs.add(new Pair("PRIMARY_TEXT", "PRIMARY_HOVER", 4.5));
 		return pairs;
 	}
 
@@ -68,11 +67,11 @@ public class PaletteTest
 	private static List<Pair> quiet()
 	{
 		List<Pair> pairs = new ArrayList<>();
-		pairs.add(new Pair(Role.TEXT_FAINT, Role.PAGE, 3.0));
-		pairs.add(new Pair(Role.TEXT_FAINT, Role.CARD, 3.0));
-		pairs.add(new Pair(Role.FOCUS, Role.PAGE, 3.0));
-		pairs.add(new Pair(Role.FOCUS, Role.CARD, 3.0));
-		pairs.add(new Pair(Role.BORDER, Role.PANEL, 1.5));
+		pairs.add(new Pair("TEXT_FAINT", "PAGE", 3.0));
+		pairs.add(new Pair("TEXT_FAINT", "CARD", 3.0));
+		pairs.add(new Pair("FOCUS", "PAGE", 3.0));
+		pairs.add(new Pair("FOCUS", "CARD", 3.0));
+		pairs.add(new Pair("BORDER", "PANEL", 1.5));
 		return pairs;
 	}
 
@@ -105,7 +104,7 @@ public class PaletteTest
 	}
 
 	/** The worst contrast of a text colour on a background over any grey the map can put behind a translucent fill. */
-	static double worst(Palette p, Role text, Role back)
+	static double worst(Palette p, String text, String back)
 	{
 		Color fg = p.get(text);
 		Color bg = p.get(back);
@@ -130,29 +129,30 @@ public class PaletteTest
 	{
 		for (ThemeName name : ThemeName.values())
 		{
-			Palette p = Palettes.of(name);
+			Palette p = Palette.of(name);
 			assertNotNull(p);
 			assertEquals(name.toString(), p.name());
-			for (Role role : Role.values())
+			assertEquals(Palette.all()[0].names(), p.names());
+			for (String role : p.names())
 			{
 				assertNotNull(name + " " + role, p.get(role));
 			}
 		}
-		assertEquals(4, Palettes.all().length);
+		assertEquals(4, Palette.all().length);
 	}
 
 	/** The side panel is moved between themes by colour, so no two of its roles may share a colour in one theme. */
 	@Test
 	public void panelRolesCanBeToldApartByColour()
 	{
-		Role[] panelRoles = {Role.PAGE, Role.CARD, Role.CARD_HOVER, Role.CARD_ACTIVE, Role.EDGE, Role.FIELD, Role.ACCENT,
-			Role.ACCENT_DEEP, Role.TEXT, Role.TEXT_DIM, Role.TEXT_FAINT, Role.GOOD, Role.BAD, Role.BUTTON, Role.BUTTON_TOP,
-			Role.BUTTON_HOVER, Role.BUTTON_PRESSED, Role.BUTTON_EDGE, Role.PRIMARY, Role.PRIMARY_TOP, Role.PRIMARY_HOVER,
-			Role.PRIMARY_PRESSED, Role.PRIMARY_TEXT, Role.DISABLED_TEXT, Role.BADGE, Role.FOCUS};
-		for (Palette p : Palettes.all())
+		String[] panelRoles = {"PAGE", "CARD", "CARD_HOVER", "CARD_ACTIVE", "EDGE", "FIELD", "ACCENT",
+			"ACCENT_DEEP", "TEXT", "TEXT_DIM", "TEXT_FAINT", "GOOD", "BAD", "BUTTON", "BUTTON_TOP",
+			"BUTTON_HOVER", "BUTTON_PRESSED", "BUTTON_EDGE", "PRIMARY", "PRIMARY_TOP", "PRIMARY_HOVER",
+			"PRIMARY_PRESSED", "PRIMARY_TEXT", "DISABLED_TEXT", "BADGE", "FOCUS"};
+		for (Palette p : Palette.all())
 		{
 			Set<Color> seen = new java.util.HashSet<>();
-			for (Role role : panelRoles)
+			for (String role : panelRoles)
 			{
 				assertTrue(p.name() + " " + role + " repeats a colour", seen.add(p.get(role)));
 			}
@@ -165,19 +165,19 @@ public class PaletteTest
 	 */
 	private static boolean bronzeException(Palette p, Pair pair)
 	{
-		if (p != Palettes.BRONZE)
+		if (p != Palette.all()[0])
 		{
 			return false;
 		}
-		return pair.text == Role.FIELD_DIM && pair.back == Role.FIELD_FILL
-			|| pair.text == Role.TEXT_FAINT && (pair.back == Role.CARD || pair.back == Role.PAGE);
+		return pair.text.equals("FIELD_DIM") && pair.back.equals("FIELD_FILL")
+			|| pair.text.equals("TEXT_FAINT") && (pair.back.equals("CARD") || pair.back.equals("PAGE"));
 	}
 
 	@Test
 	public void bodyTextReadsAtAAInEveryTheme()
 	{
 		StringBuilder failures = new StringBuilder();
-		for (Palette p : Palettes.all())
+		for (Palette p : Palette.all())
 		{
 			for (Pair pair : body())
 			{
@@ -202,26 +202,63 @@ public class PaletteTest
 	@Test
 	public void highContrastHasNoTranslucencyBehindText()
 	{
-		Palette p = Palettes.HIGH_CONTRAST;
-		EnumSet<Role> behindText = EnumSet.of(Role.PANEL, Role.PANEL_ACTIVE, Role.FIELD_FILL, Role.FIELD_FOCUSED, Role.PLATE,
-			Role.FLOOR_FILL, Role.FLOOR_HOVER, Role.BUTTON_HOVER_MAP, Role.CHIP, Role.RESULT_BUTTON, Role.CARD_BUTTON);
-		for (Role role : behindText)
+		Palette p = Palette.of(ThemeName.HIGH_CONTRAST);
+		List<String> behindText = java.util.Arrays.asList("PANEL", "PANEL_ACTIVE", "FIELD_FILL", "FIELD_FOCUSED", "PLATE",
+			"FLOOR_FILL", "FLOOR_HOVER", "BUTTON_HOVER_MAP", "CHIP", "RESULT_BUTTON", "CARD_BUTTON");
+		for (String role : behindText)
 		{
 			assertEquals("High contrast " + role + " must be solid", 255, p.get(role).getAlpha());
 		}
 		assertTrue(p.edgeWidth() >= 2f);
-		assertTrue("white text on black", worst(p, Role.TEXT, Role.PANEL) >= 15);
+		assertTrue("white text on black", worst(p, "TEXT", "PANEL") >= 15);
 	}
 
 	@Test
 	public void bronzeKeepsTheOriginalColours()
 	{
-		Palette p = Palettes.BRONZE;
-		assertEquals(new Color(24, 21, 17, 238), p.get(Role.PANEL));
-		assertEquals(new Color(255, 214, 120), p.get(Role.ACCENT));
-		assertEquals(new Color(235, 222, 190), p.get(Role.TEXT));
-		assertEquals(new Color(43, 39, 33), p.get(Role.CARD));
-		assertEquals(new Color(30, 28, 25), p.get(Role.PAGE));
+		Palette p = Palette.of(ThemeName.BRONZE);
+		assertEquals(new Color(24, 21, 17, 238), p.get("PANEL"));
+		assertEquals(new Color(255, 214, 120), p.get("ACCENT"));
+		assertEquals(new Color(235, 222, 190), p.get("TEXT"));
+		assertEquals(new Color(43, 39, 33), p.get("CARD"));
+		assertEquals(new Color(30, 28, 25), p.get("PAGE"));
 		assertEquals(1f, p.edgeWidth(), 0f);
+	}
+
+	/**
+	 * Every colour the code asks for by name ({@code colour("...")}, {@code get("...")} on a palette) is a name every theme has, so a
+	 * misspelt name cannot draw nothing.
+	 */
+	@Test
+	public void everyNameTheCodeAsksIsInEveryTheme() throws java.io.IOException
+	{
+		// A call, and every name in capitals written in it: colour("TEXT"), colour(on ? "ACCENT" : "TEXT"), p.get("PAGE").
+		java.util.regex.Pattern call = java.util.regex.Pattern.compile("\\b(?:colour|p\\.get|to\\.get)\\(([^()]*)\\)");
+		java.util.regex.Pattern asked = java.util.regex.Pattern.compile("\"([A-Z_]{2,})\"");
+		Set<String> names = new java.util.TreeSet<>();
+		try (java.util.stream.Stream<java.nio.file.Path> files = java.nio.file.Files.walk(java.nio.file.Paths.get("src", "main", "java")))
+		{
+			for (java.nio.file.Path file : (Iterable<java.nio.file.Path>) files.filter(f -> f.toString().endsWith(".java"))::iterator)
+			{
+				java.util.regex.Matcher m = call.matcher(new String(java.nio.file.Files.readAllBytes(file),
+					java.nio.charset.StandardCharsets.UTF_8));
+				while (m.find())
+				{
+					for (java.util.regex.Matcher name = asked.matcher(m.group(1)); name.find(); )
+					{
+						names.add(name.group(1));
+					}
+				}
+			}
+		}
+		assertTrue("the code asks for colours by name", names.size() > 40);
+		assertTrue("names in a choice are read too", names.contains("PRIMARY_PRESSED") && names.contains("BUTTON_PRESSED"));
+		for (Palette p : Palette.all())
+		{
+			for (String name : names)
+			{
+				assertNotNull(p.name() + " has no " + name, p.get(name));
+			}
+		}
 	}
 }

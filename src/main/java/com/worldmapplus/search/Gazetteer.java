@@ -1,12 +1,10 @@
 package com.worldmapplus.search;
 
-import com.worldmapplus.data.*;
-import com.worldmapplus.layers.*;
 import com.worldmapplus.map.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Consumer;
-import lombok.*;
+import javax.annotation.*;
 
 /**
  * Answers "is this spot in Varrock", "in Kandarin", "in the Dwarven Mines".
@@ -14,234 +12,154 @@ import lombok.*;
  * Three kinds of name are known:
  * <ul>
  * <li>the names of the maps, such as Keldagrim or the Dwarven Mines, which cover everything on them;</li>
- * <li>the lore regions, such as Misthalin and Kandarin, from the region borders data;</li>
- * <li>towns and other places, as a circle around the shops that say they are there. A place name that is
- * only in the shop data, such as Varrock or the Farming Guild, covers the spot where its shops are and
- * a margin around them.</li>
+ * <li>the lore regions, such as Misthalin and Kandarin, from the regions table;</li>
+ * <li>towns and other places, as a square around the shops that say they are there, and the game's own map labels, each
+ * reaching as far as its text size allows. Both are worked out at build time by {@code tools/build_places.py}.</li>
  * </ul>
  * A name matches when what was typed is part of it, so {@code varrock} matches Varrock, South-east Varrock
  * and Varrock Palace.
  */
 public final class Gazetteer
 {
-	/** Least reach of a town's circle, in tiles. */
-	static final double MIN_RADIUS = 30;
-
-	/** Greatest reach of a town's circle, in tiles. */
-	static final double MAX_RADIUS = 120;
-
-	/** A shop this far from the middle of the shops that share its place name is taken to be a mistake. */
-	static final double OUTLIER_TILES = 200;
-
-	/** Margin added to the farthest shop of a town. */
-	static final double MARGIN = 15;
-
-	/** A named place, found from where a shop says it is. */
-	@RequiredArgsConstructor
-	public static final class Place
+	/**
+	 * One record of {@code places.json}, made by {@code tools/build_places.py}: the square of a town or an area named by one of the
+	 * game's labels. Filled by Gson.
+	 */
+	static final class Named
 	{
-		private final String name;
-		private final int mapId;
-		private final double x;
-		private final double y;
+		String n;
+		int m;
+		/** The game's text size of an area's label: 0 small, 1 medium, 2 large. */
+		int s;
+		double x;
+		double y;
+		/** How far a town reaches from its middle, in tiles. */
+		double r;
+		/** The name, normalised once. */
+		transient String key;
 	}
 
-	@RequiredArgsConstructor
-	private static final class Circle
+	/** One lore region of {@code regions.json}, made by {@code tools/build_regions.py}, as the 64 tile squares it has. Filled by Gson. */
+	static final class Lore
 	{
-		final String name;
-		final String display;
-		final int mapId;
-		final double x;
-		final double y;
-		final double radius;
+		String id;
+		String name;
+		List<int[]> cells;
+		/** The name and the id, normalised once. */
+		transient String[] keys;
+	}
+
+	/** The shape of {@code regions.json}. Filled by Gson. */
+	public static final class Regions
+	{
+		List<Lore> regions;
+	}
+
+	/** The shape of {@code places.json}. Filled by Gson. */
+	public static final class Places
+	{
+		List<Named> towns;
+		List<Named> areas;
 	}
 
 	private final List<MapInfo> maps;
 
 	/** Each map's name, normalised once, by map id. */
 	private final Map<Integer, String> mapNames = new HashMap<>();
-	private final RegionLines regions;
-	private final List<Circle> towns = new ArrayList<>();
-
-	/** A named area taken from one of the game's map labels. It reaches as far as its class allows. */
-	private static final class Area
-	{
-		final String display;
-		final String name;
-		final double x;
-		final double y;
-
-		Area(String display, double x, double y)
-		{
-			this.display = display;
-			this.name = SearchEntry.normalize(display);
-			this.x = x;
-			this.y = y;
-		}
-	}
+	/** The lore regions that have a square, in the file's order, and the one each square is in. */
+	private final List<Lore> lore = new ArrayList<>();
+	private final Map<Long, Lore> loreBySquare = new HashMap<>();
+	private final List<Named> towns = new ArrayList<>();
 
 	/** How far from its label an area reaches, in tiles, by the game's text size: small, medium, large. */
 	private static final double[] REACH = {20, 45, 260};
 
-	/** Words that mark a label as water. Seas are not places a shop or a monster can be said to be in. */
-	private static final String[] WATER = {"ocean", "sea", "bay", "strait", "reef", "coast", "channel", "sound",
-		"waters", "shallows", "passage", "belt", "depths", "tides", "expanse", "reach", "shore", "lagoon", "gulf",
-		"deep", "narrows", "sound"};
-
 	/** The labels by map and size, each size being one class of area. */
-	private final Map<Integer, List<List<Area>>> labelAreas = new ConcurrentHashMap<>();
+	private final Map<Integer, List<List<Named>>> labelAreas = new HashMap<>();
 
 	/** What each spot is in, by label, worked out once. */
-	private final Map<Long, String[]> spotCache = new ConcurrentHashMap<>();
+	private final Map<Long, String[]> spotCache = new HashMap<>();
 
-	private Gazetteer(List<MapInfo> maps, RegionLines regions)
+	private Gazetteer(List<MapInfo> maps)
 	{
 		this.maps = maps;
 		for (MapInfo map : maps)
 		{
 			mapNames.putIfAbsent(map.getId(), SearchEntry.normalize(map.getName()));
 		}
-		this.regions = regions;
 	}
 
 	public static Gazetteer empty()
 	{
-		return new Gazetteer(new ArrayList<>(), RegionLines.empty());
-	}
-
-	public Gazetteer(MapCatalog catalog, RegionLines regions, List<Place> places)
-	{
-		this(catalog == null ? new ArrayList<>() : new ArrayList<>(catalog.getMaps()), regions);
-		Map<String, List<Place>> groups = new LinkedHashMap<>();
-		for (Place place : places)
-		{
-			String key = SearchEntry.normalize(place.name);
-			if (!key.isEmpty())
-			{
-				groups.computeIfAbsent(key + "|" + place.mapId, k -> new ArrayList<>()).add(place);
-			}
-		}
-		for (List<Place> group : groups.values())
-		{
-			// The middle by the median and the reach by the farthest of the nearest four fifths, so one
-			// shop whose page has the wrong town does not drag a whole circle across the map.
-			double[] xs = new double[group.size()];
-			double[] ys = new double[group.size()];
-			for (int i = 0; i < group.size(); i++)
-			{
-				xs[i] = group.get(i).x;
-				ys[i] = group.get(i).y;
-			}
-			Arrays.sort(xs);
-			Arrays.sort(ys);
-			double cx = xs[xs.length / 2];
-			double cy = ys[ys.length / 2];
-			// A shop whose page puts it in the wrong place, such as a garden centre in Falador that says it is in the
-			// Farming Guild, is a long way from the others and is left out of the reach.
-			List<Double> near = new ArrayList<>();
-			for (Place place : group)
-			{
-				double d = Math.max(Math.abs(place.x - cx), Math.abs(place.y - cy));
-				if (d <= OUTLIER_TILES)
-				{
-					near.add(d);
-				}
-			}
-			double[] away = new double[near.size()];
-			for (int i = 0; i < away.length; i++)
-			{
-				away[i] = near.get(i);
-			}
-			Arrays.sort(away);
-			double far = away.length == 0 ? 0 : away[Math.min(away.length - 1, (int) Math.ceil(away.length * 0.8) - 1)];
-			towns.add(new Circle(SearchEntry.normalize(group.get(0).name), group.get(0).name, group.get(0).mapId, cx, cy,
-				Math.min(MAX_RADIUS, Math.max(MIN_RADIUS, far + MARGIN))));
-		}
+		return new Gazetteer(new ArrayList<>());
 	}
 
 	/**
-	 * Takes the game's own map labels as areas. A spot is in the nearest label of each size that is near
-	 * enough: within 20 tiles for small text, 45 for medium and 260 for large. A spot in the Farming Guild is then
-	 * in the Farming Guild, in the town or place the medium text names, and in the large region around, such
-	 * as Kebos Lowlands. Labels of seas are left out.
+	 * @param regions the lore regions of the surface. A square two regions claim is the first one's.
+	 * @param file the towns and the game's labels as areas, from {@code places.json}. A spot is in the nearest label of each size that is
+	 * near enough, and in every town whose square holds it.
 	 */
-	public void addLabels(MapElements elements)
+	public Gazetteer(MapCatalog catalog, @Nullable Regions regions, @Nullable Places file)
 	{
-		labelAreas.clear();
-		spotCache.clear();
-		dropTownsTheLabelsContradict(elements);
+		this(catalog == null ? new ArrayList<>() : new ArrayList<>(catalog.getMaps()));
+		for (Lore region : regions == null || regions.regions == null ? Collections.<Lore>emptyList() : regions.regions)
+		{
+			if (region == null || region.id == null || region.name == null || region.cells == null)
+			{
+				continue;
+			}
+			boolean any = false;
+			for (int[] cell : region.cells)
+			{
+				any |= cell != null && cell.length >= 2 && loreBySquare.putIfAbsent(square(cell[0], cell[1]), region) == null;
+			}
+			if (any)
+			{
+				region.keys = new String[] {SearchEntry.normalize(region.name), SearchEntry.normalize(region.id)};
+				lore.add(region);
+			}
+		}
 		for (MapInfo map : maps)
 		{
-			List<List<Area>> classes = new ArrayList<>();
-			for (int i = 0; i < 3; i++)
+			labelAreas.put(map.getId(), Arrays.asList(new ArrayList<>(), new ArrayList<>(), new ArrayList<>()));
+		}
+		if (file == null)
+		{
+			return;
+		}
+		towns.addAll(named(file.towns));
+		for (Named area : named(file.areas))
+		{
+			List<List<Named>> classes = labelAreas.get(area.m);
+			if (classes != null && area.s >= 0 && area.s < 3)
 			{
-				classes.add(new ArrayList<>());
+				classes.get(area.s).add(area);
 			}
-			for (MapElements.Label label : elements.labelsOn(map.getId()))
-			{
-				int scale = label.getScale();
-				if (label.getPlane() != 0 || scale < 0 || scale > 2 || isWater(label.getText()))
-				{
-					continue;
-				}
-				classes.get(scale).add(new Area(label.getText().replace('\n', ' '), label.getX(), label.getY()));
-			}
-			labelAreas.put(map.getId(), classes);
 		}
 	}
 
-	/**
-	 * The towns that were worked out from where shops say they are come second to the game's own labels. A
-	 * town name that a label of the game has, but at some other place than the circle's middle, was a
-	 * mistake in the shop data, such as a shop that says it is in the Farming Guild while standing in
-	 * Falador, and its circle is dropped.
-	 */
-	private void dropTownsTheLabelsContradict(MapElements elements)
+	/** The records that have a name, each with its name normalised. */
+	private static List<Named> named(@Nullable List<Named> records)
 	{
-		townsByRegion.clear();
-		towns.removeIf(town ->
+		List<Named> found = new ArrayList<>();
+		if (records != null)
 		{
-			boolean labelled = false;
-			for (MapElements.Label label : elements.labelsOn(town.mapId))
+			for (Named record : records)
 			{
-				if (!allWords(SearchEntry.normalize(label.getText()), town.name))
+				if (record != null && record.n != null)
 				{
-					continue;
-				}
-				labelled = true;
-				if (Math.max(Math.abs(label.getX() - town.x), Math.abs(label.getY() - town.y)) <= SAME_PLACE_TILES)
-				{
-					return false;
-				}
-			}
-			return labelled;
-		});
-	}
-
-	/** A label and a town circle that are this close are the same place. */
-	private static final double SAME_PLACE_TILES = 90;
-
-	private static boolean isWater(String text)
-	{
-		String name = SearchEntry.normalize(text);
-		for (String word : WATER)
-		{
-			for (String part : name.split(" "))
-			{
-				if (part.equals(word))
-				{
-					return true;
+					record.key = SearchEntry.normalize(record.n);
+					found.add(record);
 				}
 			}
 		}
-		return false;
+		return found;
 	}
 
 	/** The names, normalised, of the label areas a spot is in. At most one for each size of text. */
 	String[] labelNamesAt(int mapId, double x, double y)
 	{
-		List<List<Area>> classes = labelAreas.get(mapId);
+		List<List<Named>> classes = labelAreas.get(mapId);
 		if (classes == null)
 		{
 			return NO_NAMES;
@@ -255,9 +173,9 @@ public final class Gazetteer
 		List<String> found = new ArrayList<>(3);
 		for (int scale = 0; scale < 3; scale++)
 		{
-			Area best = null;
+			Named best = null;
 			double bestDistance = REACH[scale];
-			for (Area area : classes.get(scale))
+			for (Named area : classes.get(scale))
 			{
 				double d = Math.max(Math.abs(area.x - x), Math.abs(area.y - y));
 				if (d <= bestDistance)
@@ -268,7 +186,7 @@ public final class Gazetteer
 			}
 			if (best != null)
 			{
-				found.add(best.name);
+				found.add(best.key);
 			}
 		}
 		String[] names = found.toArray(new String[0]);
@@ -319,25 +237,25 @@ public final class Gazetteer
 		return false;
 	}
 
-	private static final Circle[] NO_TOWNS = new Circle[0];
+	private static final Named[] NO_TOWNS = new Named[0];
 
 	/** The towns whose names have the region's words in them, kept for the last few regions asked about (one per key press). */
-	private final Map<String, Circle[]> townsByRegion = new ConcurrentHashMap<>();
+	private final Map<String, Named[]> townsByRegion = new ConcurrentHashMap<>();
 
-	private Circle[] townsNamed(String region)
+	private Named[] townsNamed(String region)
 	{
-		Circle[] named = townsByRegion.get(region);
+		Named[] named = townsByRegion.get(region);
 		if (named == null)
 		{
-			List<Circle> found = new ArrayList<>();
-			for (Circle town : towns)
+			List<Named> found = new ArrayList<>();
+			for (Named town : towns)
 			{
-				if (allWords(town.name, region))
+				if (allWords(town.key, region))
 				{
 					found.add(town);
 				}
 			}
-			named = found.isEmpty() ? NO_TOWNS : found.toArray(new Circle[0]);
+			named = found.isEmpty() ? NO_TOWNS : found.toArray(new Named[0]);
 			if (townsByRegion.size() >= 64)
 			{
 				townsByRegion.clear();
@@ -347,21 +265,9 @@ public final class Gazetteer
 		return named;
 	}
 
-	/** The normalised name and id of each region of the lore map, made once, since a search asks for them for every entry. */
-	private final Map<RegionLines.Region, String[]> loreNames = new ConcurrentHashMap<>();
-
-	private String[] loreNamesOf(RegionLines.Region lore)
+	private static long square(int sx, int sy)
 	{
-		String[] names = loreNames.get(lore);
-		if (names == null)
-		{
-			names = new String[] {SearchEntry.normalize(lore.getName()), SearchEntry.normalize(lore.getId())};
-			if (loreNames.size() < 4096)
-			{
-				loreNames.put(lore, names);
-			}
-		}
-		return names;
+		return ((long) sx << 32) | (sy & 0xFFFFFFFFL);
 	}
 
 	/** True when anything here is called by a name with these words in it. */
@@ -396,21 +302,21 @@ public final class Gazetteer
 		{
 			offer.accept(map.getName());
 		}
-		for (RegionLines.Region lore : regions.getRegions())
+		for (Lore each : lore)
 		{
-			offer.accept(lore.getName());
+			offer.accept(each.name);
 		}
-		for (Circle town : towns)
+		for (Named town : towns)
 		{
-			offer.accept(town.display);
+			offer.accept(town.n);
 		}
 		for (int scale = 2; scale >= 0; scale--)
 		{
-			for (List<List<Area>> classes : labelAreas.values())
+			for (List<List<Named>> classes : labelAreas.values())
 			{
-				for (Area area : classes.get(scale))
+				for (Named area : classes.get(scale))
 				{
-					offer.accept(area.display);
+					offer.accept(area.n);
 				}
 			}
 		}
@@ -439,19 +345,18 @@ public final class Gazetteer
 		}
 		if (mapId == MapInfo.SURFACE)
 		{
-			RegionLines.Region lore = regions.regionAt((int) Math.floor(x), (int) Math.floor(y));
-			if (lore != null)
+			Lore at = loreBySquare.get(square(Math.floorDiv((int) Math.floor(x), 64), Math.floorDiv((int) Math.floor(y), 64)));
+			if (at != null)
 			{
-				String[] names = loreNamesOf(lore);
-				if (allWords(names[0], region) || allWords(names[1], region))
+				if (allWords(at.keys[0], region) || allWords(at.keys[1], region))
 				{
 					return true;
 				}
 			}
 		}
-		for (Circle town : townsNamed(region))
+		for (Named town : townsNamed(region))
 		{
-			if (town.mapId == mapId && Math.max(Math.abs(x - town.x), Math.abs(y - town.y)) <= town.radius)
+			if (town.m == mapId && Math.max(Math.abs(x - town.x), Math.abs(y - town.y)) <= town.r)
 			{
 				return true;
 			}

@@ -74,7 +74,7 @@ public final class GameIconLayer
 	private long revealUntil;
 	private int revealVersion;
 
-	/** How an icon looks to this player. */
+	/** How an icon looks to this player. The numbers are those of the looks in the pictures' sheets ({@link GameIconSprites}). */
 	static final byte NORMAL = 0;
 	static final byte LOCKED = 1;
 	static final byte HIDDEN = 2;
@@ -83,7 +83,7 @@ public final class GameIconLayer
 	static final byte QUEST_STARTED = 4;
 	static final byte QUEST_FINISHED = 5;
 
-	private UnlockView unlocks;
+	private Unlocks unlocks;
 	private boolean hideFinished;
 	private boolean markMissing;
 	private boolean onlyUsable;
@@ -97,16 +97,11 @@ public final class GameIconLayer
 	private int lookOptions = -1;
 
 	/**
-	 * Says what the player's progress does to the icons: finished quests hidden, icons that cannot be used yet marked, or those hidden too.
-	 * With all three off, or no view of the progress, every icon looks as it always did.
+	 * Says what the player's progress does to the icons: finished quests hidden, icons that cannot be used yet marked, or those hidden
+	 * too, and whether a quest start carries a dot for how far the player is with it (red, yellow, green). With all off, or no view of
+	 * the progress, every icon looks as it always did.
 	 */
-	public void setUnlocks(UnlockView view, boolean hideFinishedQuests, boolean markMissing, boolean onlyUsable)
-	{
-		setUnlocks(view, hideFinishedQuests, markMissing, onlyUsable, false);
-	}
-
-	/** As above, and whether a quest start carries a dot for how far the player is with it (red, yellow, green). */
-	public void setUnlocks(UnlockView view, boolean hideFinishedQuests, boolean markMissing, boolean onlyUsable, boolean colourQuests)
+	public void setUnlocks(Unlocks view, boolean hideFinishedQuests, boolean markMissing, boolean onlyUsable, boolean colourQuests)
 	{
 		if (view != unlocks || hideFinishedQuests != hideFinished || markMissing != this.markMissing || onlyUsable != this.onlyUsable
 			|| colourQuests != this.colourQuests)
@@ -151,13 +146,13 @@ public final class GameIconLayer
 		}
 	}
 
-	private byte lookOf(Need need)
+	byte lookOf(Need need)
 	{
 		if (need == null)
 		{
 			return NORMAL;
 		}
-		if (hideFinished && need.startsQuest() != null && unlocks.finished(need))
+		if (hideFinished && unlocks.finished(need.startsQuestId()))
 		{
 			return HIDDEN;
 		}
@@ -165,21 +160,9 @@ public final class GameIconLayer
 		{
 			return onlyUsable ? HIDDEN : LOCKED;
 		}
-		if (colourQuests && need.startsQuest() != null)
-		{
-			switch (unlocks.questProgress(need))
-			{
-				case UnlockView.QUEST_NOT_STARTED:
-					return QUEST_NOT_STARTED;
-				case UnlockView.QUEST_STARTED:
-					return QUEST_STARTED;
-				case UnlockView.QUEST_FINISHED:
-					return QUEST_FINISHED;
-				default:
-					return NORMAL;
-			}
-		}
-		return NORMAL;
+		// The looks of a quest start follow the quest's progress numbers, one to three.
+		int progress = colourQuests && need.startsQuest() != null ? unlocks.questProgress(need) : Unlocks.QUEST_UNKNOWN;
+		return progress == Unlocks.QUEST_UNKNOWN ? NORMAL : (byte) (QUEST_NOT_STARTED - Unlocks.QUEST_NOT_STARTED + progress);
 	}
 
 	/** How the icon in a slot of the last layout looks: normal, locked (dimmed with a padlock), hidden, or a quest start with a dot. */
@@ -287,9 +270,7 @@ public final class GameIconLayer
 				continue;
 			}
 			int index = drawnOn.picture(drawnIndex[i]);
-			BufferedImage picture = look == LOCKED ? sprites.locked(index, drawnSize)
-				: look >= QUEST_NOT_STARTED ? sprites.questDot(index, drawnSize, look - QUEST_NOT_STARTED)
-				: sprites.get(index, drawnSize);
+			BufferedImage picture = sprites.get(index, drawnSize, look);
 			if (picture != null)
 			{
 				g.drawImage(picture, drawnLeft[i], drawnTop[i], null);

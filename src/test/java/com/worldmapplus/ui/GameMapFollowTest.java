@@ -9,6 +9,8 @@ import com.worldmapplus.MapAssets;
 import com.worldmapplus.WorldMapPlusConfig;
 import com.worldmapplus.bridge.ExternalOverlays;
 import com.worldmapplus.bridge.MapActions;
+import com.worldmapplus.bridge.NativePoints;
+
 import com.worldmapplus.game.PlayerPosition;
 import com.worldmapplus.map.MapInfo;
 import com.worldmapplus.pins.PinStore;
@@ -21,9 +23,7 @@ import java.awt.image.BufferedImage;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import net.runelite.api.Client;
@@ -73,9 +73,7 @@ public class GameMapFollowTest
 		final List<WorldMapPoint> points = new ArrayList<>();
 		final NativeMapSync nativeSync = new NativeMapSync();
 		MapSurface surface;
-		ExternalOverlays external;
-		/** What the Helper remembers: some plugin has had points on the game's map this session. */
-		boolean hadPoints;
+		NativePoints nativePoints;
 		long now = 5_000_000;
 		BufferedImage canvas = new BufferedImage(1200, 800, BufferedImage.TYPE_INT_RGB);
 
@@ -109,10 +107,6 @@ public class GameMapFollowTest
 					continue;
 				}
 				plugin();
-				hadPoints |= !points.isEmpty();
-				Map<String, Object> state = new HashMap<>();
-				state.put("needs", hadPoints);
-				com.worldmapplus.bridge.PartnerDouble.post(external, "state", "game_map", state);
 				nativeSync.update(false, gameAt, true);
 				surface.render(g, BOUNDS, player, new MapSurface.Options().followOnOpen(true).openZoom(4.0), now);
 				NativeMapSync.Spot send = nativeSync.drive(sync && !surface.isLinedUp() && surface.wantsGameMap(), gameAt,
@@ -151,9 +145,10 @@ public class GameMapFollowTest
 				}
 				return null;
 			});
+		NativePoints nativePoints = new NativePoints(rig.points::forEach);
+		rig.nativePoints = nativePoints;
 		PinStore pins = new PinStore(PinStore.Storage.inMemory(), new Gson());
 		ExternalOverlays external = new ExternalOverlays();
-		rig.external = external;
 		SurfaceServices services = new SurfaceServices(new ViewMemory(null)
 		{
 			@Override
@@ -166,7 +161,7 @@ public class GameMapFollowTest
 			public void save(String slot, int mapId, double x, double y, double ppt)
 			{
 			}
-		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), new com.worldmapplus.pins.RouteStore(PinStore.Storage.inMemory(), new Gson(), pins),
+		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), nativePoints, new com.worldmapplus.pins.RouteStore(PinStore.Storage.inMemory(), new Gson(), pins),
 			new com.worldmapplus.pins.PanelLauncher());
 		rig.surface = new MapSurface(client, assets, new WorldMapPlusConfig()
 		{
@@ -210,7 +205,7 @@ public class GameMapFollowTest
 	{
 		Rig rig = rig(true, true, false);
 		rig.frames(30);
-		assertTrue("the plugin's points were seen where the game's map first looked", rig.hadPoints);
+		assertTrue("the plugin's points were seen where the game's map first looked", rig.nativePoints.seenAny());
 		assertTrue(rig.sent.isEmpty());
 		// The player looks somewhere new. Nothing of the plugin's is there, because the game's map is not.
 		rig.surface.focusOn(3600, 3400);
@@ -226,7 +221,7 @@ public class GameMapFollowTest
 	{
 		Rig rig = rig(true, false, false);
 		rig.frames(30);
-		assertTrue(rig.hadPoints);
+		assertTrue(rig.nativePoints.seenAny());
 		rig.surface.focusOn(3600, 3400);
 		rig.frames(30);
 		assertEquals(1, rig.sent.size());
@@ -242,7 +237,7 @@ public class GameMapFollowTest
 		rig.frames(100);
 		rig.surface.focusOn(3000, 3000);
 		rig.frames(100);
-		assertFalse(rig.hadPoints);
+		assertFalse(rig.nativePoints.seenAny());
 		assertTrue("the game's map is never asked to move", rig.sent.isEmpty());
 	}
 

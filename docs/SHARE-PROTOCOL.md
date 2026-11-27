@@ -2,11 +2,8 @@
 
 A share code carries a pin, a route or a set of places as a short text that a player types into the game's chat after
 the command `!wmp`. Everything needed to rebuild it is in the code: no server, no network, no lookup table. The
-implementation is `com.worldmapplus.helper.share.ShareCodec` (no RuneLite dependency) and the tests are `ShareCodecTest`
-(golden vectors, round trips, damaged input), `ShareInboxTest`, `PasteReaderTest` and `chat/ShareChatTest`. Since round 56B all of
-this lives in the World Map Plus Helper plugin (its own repository, `World Map Plus Helper`, next to this one); this plugin keeps
-only the buttons and the saving of the places (`Partners`, the `create` kinds `shared_pins` and `shared_route`, tested by
-`PartnersTest`). The wire format did not change in the move.
+implementation is `com.worldmapplus.share.ShareCodec` (no RuneLite dependency) and the tests are `ShareCodecTest`
+(golden vectors, round trips, damaged input), `ShareInboxTest`, `ShareImportTest` and `bridge/ShareChatTest`.
 
 **Stability.** A version 1 code must always decode to the same value. Nothing in this document may change meaning. A
 change of layout needs version 2 (the second character), which version 1 readers refuse with "made by a newer version".
@@ -177,24 +174,16 @@ Nothing here changes the format; it is what a client with the plugin shows for a
 Nothing here changes the format either.
 
 - **Copy whole code** copies `!wmp` and the whole code as one, however long (up to 528 characters). It is the same code
-  the parts are cut from: the data of the parts, in order, is the whole code (`PasteReaderTest.thePartsArePiecesOfTheWholeCode`).
+  the parts are cut from: the data of the parts, in order, is the whole code (`ShareCodecTest.thePartsArePiecesOfTheWholeCode`).
   **Copy all parts** copies the messages of a long code, one a line, each with `!wmp`.
-- **Import a code** (`share/PasteReader`, then `ShareInbox.receive` for each code, the reading chat uses) finds codes in
-  any text: a run of ASCII letters and digits that starts with `p`, `r`, `s` or `c` and a version digit, at least 6 long,
-  so the command, quotes, backticks, markdown, other words and line breaks are passed over; `!wmp` with the space left
-  out is dropped; case does not matter. A version digit above 1 is answered "made by a newer version"; a letter codes
-  never use is named with its position.
-- Parts may come one a line, on one line, in any order, or one paste at a time: pasted parts wait under their own key, as
-  chat parts do (10 minutes, 8 codes), and the answer says which are still missing ("Part 1 of 2 added, paste the next
-  part (part 2 of 2 is missing)"). Parts run together with nothing between them are split from their heads: with `T`
-  parts (from the first head) and the run `R` long, the code is `L = R - 5T` long, `T` must be `ceil(L / 66)`, every part
-  but the last carries `ceil(L / T)` characters and the last the rest, so each piece's length follows from its own head
-  and the pieces may be in any order. If the lengths do not add up or a head does not fit, the answer is "put each part on
-  its own line".
-- A code that does not read is searched for one mistyped character (codes up to 142 characters, every character after
-  `p1`, `r1` or `s1` tried with every other letter, a few thousand tries, on the button press only): when one to three
-  places make it read, the answer names them, "Checksum mismatch near character 11, check what you typed". A 10 bit check
-  passes about one change in a thousand by chance, so for a long code more places may be named, or none.
+- **Import a code** (round 76: `ShareInbox.importPasted`, then `ShareInbox.receive` for each code, the reading chat uses)
+  reads codes exactly as the Copy buttons give them, or as a `!wmp` line typed by hand: every line that is `!wmp`, one or
+  more spaces and one code (letters and digits, any case, spaces around the line allowed) gives a code. Anything else is
+  passed over, so a code without the command or inside other words is not read (rounds 52 to 75 found codes in any text;
+  round 76 dropped that to keep the plugin small). A version digit above 1 is answered "made by a newer version"; a letter
+  codes never use is named.
+- Parts may come one a line, in any order, or one paste at a time: pasted parts wait under their own key, as chat parts do
+  (10 minutes, 8 codes), and the answer says how many are still missing ("1 of 3 parts added, paste the rest.").
 - Bounded: 20,000 characters of a paste are looked at (the box holds no more), 32 codes taken from one paste, every
   share listed under Shared with you and nothing saved until Save.
 
@@ -267,4 +256,4 @@ arithmetic is done in `int` on values that cannot overflow and checked for 0..32
 ## Old codes
 
 Codes made before this version start with `wmp` (no `!`), use a different alphabet and carried names and colours. They
-are not read; a pasted old code gets a sentence saying so. Saved pins and routes are unchanged.
+are not read. Saved pins and routes are unchanged.

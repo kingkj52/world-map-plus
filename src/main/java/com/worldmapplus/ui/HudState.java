@@ -28,6 +28,12 @@ public class HudState
 		visible = !visible;
 	}
 
+	/** Shows the floating map, to open a place on it. */
+	public void show()
+	{
+		visible = true;
+	}
+
 	public void toggleClickThrough()
 	{
 		clickThrough = !clickThrough;

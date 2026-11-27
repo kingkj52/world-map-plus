@@ -90,7 +90,7 @@ public class PoiMergeSurfaceTest
 		ExternalOverlays external = new ExternalOverlays();
 		com.worldmapplus.pins.RouteStore routes = new com.worldmapplus.pins.RouteStore(PinStore.Storage.inMemory(), new Gson(), pins);
 		SurfaceServices services = new SurfaceServices(memory, pins, external, new MapActions(new EventBus(), external),
-			new Settings(null), routes, new com.worldmapplus.pins.PanelLauncher());
+			new Settings(null), null, routes, new com.worldmapplus.pins.PanelLauncher());
 		return new MapSurface(client, assets, new WorldMapPlusConfig()
 		{
 			@Override
@@ -145,9 +145,9 @@ public class PoiMergeSurfaceTest
 	private HoverCard hoverIcon(MapSurface surface, double x, double y)
 	{
 		frames(surface, 10);
-		surface.viewer().getCamera().setFollowing(false);
+		surface.viewer().setFollowing(false);
 		surface.viewer().showMap(assets.getCatalog().surface(), x, y);
-		surface.viewer().getZoom().jumpTo(8.0);
+		surface.viewer().jumpZoom(8.0);
 		frames(surface, 5);
 		ViewTransform view = surface.currentView();
 		mouseX = (int) Math.round(view.screenX(x));

@@ -10,7 +10,6 @@ import com.worldmapplus.layers.PoiCategory;
 import com.worldmapplus.layers.PoiSelection;
 import com.worldmapplus.map.MapCatalog;
 import com.worldmapplus.map.MapInfo;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -38,7 +37,7 @@ public class PoiLoaderTest
 	@Test
 	public void categoriesKeepTheirOrderAndLooks()
 	{
-		PoiLoader.Result result = PoiLoader.read(new StringReader(JSON), GSON, catalog());
+		PoiLoader.Result result = PoiLoader.read(GSON.fromJson(JSON, PoiLoader.PoiFile.class), catalog(), 20261125);
 		assertEquals(2, result.getCategories().size());
 		PoiCategory altar = result.getCategories().get(0);
 		assertEquals("altar", altar.getId());
@@ -51,7 +50,7 @@ public class PoiLoaderTest
 	@Test
 	public void everyPointIsAHotspotWithTheSharedCard()
 	{
-		List<Hotspot> hotspots = PoiLoader.read(new StringReader(JSON), GSON, catalog()).getHotspots();
+		List<Hotspot> hotspots = PoiLoader.read(GSON.fromJson(JSON, PoiLoader.PoiFile.class), catalog(), 20261125).getHotspots();
 		assertEquals(3, hotspots.size());
 		Hotspot air = hotspots.get(0);
 		assertEquals(Hotspot.Kind.POI, air.getKind());
@@ -67,7 +66,7 @@ public class PoiLoaderTest
 	@Test
 	public void pointsOffEveryMapAreSkipped()
 	{
-		List<Hotspot> hotspots = PoiLoader.read(new StringReader(JSON), GSON, catalog()).getHotspots();
+		List<Hotspot> hotspots = PoiLoader.read(GSON.fromJson(JSON, PoiLoader.PoiFile.class), catalog(), 20261125).getHotspots();
 		for (Hotspot h : hotspots)
 		{
 			assertTrue(!h.getCard().getTitle().equals("Off the map"));
@@ -77,9 +76,9 @@ public class PoiLoaderTest
 	@Test
 	public void damagedDataGivesNothing()
 	{
-		assertTrue(PoiLoader.read(new StringReader("null"), GSON, catalog()).getHotspots().isEmpty());
-		assertTrue(PoiLoader.read(new StringReader("{}"), GSON, catalog()).getCategories().isEmpty());
-		assertTrue(PoiLoader.read(new StringReader("{\"categories\":[null,{\"id\":\"x\"}]}"), GSON, catalog())
+		assertTrue(PoiLoader.read(GSON.fromJson("null", PoiLoader.PoiFile.class), catalog(), 20261125).getHotspots().isEmpty());
+		assertTrue(PoiLoader.read(GSON.fromJson("{}", PoiLoader.PoiFile.class), catalog(), 20261125).getCategories().isEmpty());
+		assertTrue(PoiLoader.read(GSON.fromJson("{\"categories\":[null,{\"id\":\"x\"}]}", PoiLoader.PoiFile.class), catalog(), 20261125)
 			.getCategories().isEmpty());
 	}
 

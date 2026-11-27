@@ -1,7 +1,6 @@
 package com.worldmapplus.search;
 
 import java.util.*;
-import java.util.function.BiFunction;
 import java.util.function.IntBinaryOperator;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
@@ -45,8 +44,7 @@ public final class SearchBox
 	@Getter
 	private String hint = "";
 	private String completion = "";
-	/** Gives the results other plugins have for a text, which follow this plugin's own. Null for none. */
-	private BiFunction<String, SearchContext, List<SearchEntry>> extra;
+	private Predicate<SearchEntry> filter;
 
 	/** The text the results were last worked out for, so the list only goes back to the top for a new search. */
 	private String lastQuery = "";
@@ -74,16 +72,13 @@ public final class SearchBox
 		refresh();
 	}
 
-	/** Adds what other plugins found for the text after this plugin's own results. Null for none. */
-	public void setExtra(@Nullable BiFunction<String, SearchContext, List<SearchEntry>> extra)
+	/**
+	 * Leaves out of every result list the entries a filter does not keep, such as the quests the player has finished. A null filter keeps
+	 * everything. The list is worked out again at once.
+	 */
+	public void setFilter(@Nullable Predicate<SearchEntry> filter)
 	{
-		this.extra = extra;
-		refresh();
-	}
-
-	/** Works the list out again, for when an answer from another plugin has come in. */
-	public void refreshExtras()
-	{
+		this.filter = filter;
 		refresh();
 	}
 
@@ -312,7 +307,7 @@ public final class SearchBox
 		completion = "";
 		if (query.hasBadFilter())
 		{
-			hint = "A filter value was not understood. Try dist:40 or sort:name";
+			hint = "A filter value was not understood. Try cost:500, dist:40 or sort:cost";
 			return;
 		}
 		if (!results.isEmpty())
@@ -375,37 +370,22 @@ public final class SearchBox
 		return null;
 	}
 
-	/**
-	 * Puts the results of other plugins among the results of this search by the same score (of the plain words, as the filtered search
-	 * scores them), so that "every bank" is where a result of that name belongs, with a filter or without. They already passed the
-	 * filters. Without plain words, or with sort: or a distance, the order is not by score and they go last.
-	 */
-	private static void merge(List<SearchEntry> own, List<SearchEntry> more, String typed)
-	{
-		SearchQuery query = SearchQuery.parse(typed);
-		String normalized = query.hasFilters() ? String.join(" ", query.getWords()) : SearchEntry.normalize(typed);
-		if (normalized.isEmpty() || query.getSort() != SearchQuery.Sort.RELEVANCE || query.getMaxDistance() >= 0)
-		{
-			own.addAll(more);
-			return;
-		}
-		String[] words = normalized.split(" ");
-		for (SearchEntry entry : more)
-		{
-			int score = SearchIndex.score(entry, normalized, words);
-			int at = 0;
-			while (at < own.size() && SearchIndex.score(own.get(at), normalized, words) >= score)
-			{
-				at++;
-			}
-			own.add(at, entry);
-		}
-	}
-
 	private void refresh()
 	{
 		SearchContext where = context.get();
 		results = index.search(text.toString(), MAX_RESULTS, where);
+		if (filter != null)
+		{
+			List<SearchEntry> kept = new ArrayList<>(results.size());
+			for (SearchEntry entry : results)
+			{
+				if (filter.test(entry))
+				{
+					kept.add(entry);
+				}
+			}
+			results = kept;
+		}
 		boolean sameSearch = text.toString().equals(lastQuery);
 		int[] tile = TileQuery.parse(text.toString());
 		if (tile != null)
@@ -419,16 +399,6 @@ public final class SearchBox
 					map, tile[0] + 0.5, tile[1] + 0.5));
 				withTile.addAll(results);
 				results = withTile;
-			}
-		}
-		if (extra != null)
-		{
-			List<SearchEntry> more = extra.apply(text.toString(), where);
-			if (!more.isEmpty())
-			{
-				List<SearchEntry> both = new ArrayList<>(results.subList(0, Math.min(results.size(), Math.max(0, MAX_RESULTS - more.size()))));
-				merge(both, more, text.toString());
-				results = both;
 			}
 		}
 		// Something other than typing, such as the index being rebuilt, must not throw the list back to the top.

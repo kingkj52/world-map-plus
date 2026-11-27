@@ -1,5 +1,7 @@
 package com.worldmapplus.ui;
 
+import static com.worldmapplus.theme.Palette.colour;
+
 import com.worldmapplus.theme.*;
 import java.awt.*;
 import javax.annotation.*;
@@ -192,7 +194,7 @@ public final class MapButtons
 	{
 		int cx = rect.x + rect.width / 2;
 		int cy = rect.y + rect.height / 2;
-		g.setColor(Theme.TEXT);
+		g.setColor(colour("TEXT"));
 		for (int i = -1; i <= 1; i++)
 		{
 			int y = cy + i * 5;
@@ -214,20 +216,20 @@ public final class MapButtons
 	{
 		int cx = rect.x + rect.width / 2;
 		int cy = rect.y + rect.height / 2;
-		g.setColor(on ? Theme.ACCENT : Theme.TEXT);
-		g.setStroke(new BasicStroke(1.6f));
+		g.setColor(colour(on ? "ACCENT" : "TEXT"));
+		g.setStroke(Palette.ICON_LINE);
 		g.drawOval(cx - 6, cy - 6, 12, 12);
 		g.drawLine(cx - 10, cy, cx + 10, cy);
 		g.drawLine(cx, cy - 10, cx, cy + 10);
-		g.setStroke(new BasicStroke(1f));
+		g.setStroke(Palette.ONE);
 	}
 
-	private final Fade fade = new Fade();
+	private final Motion fade = new Motion();
 
 	public void paint(Graphics2D g, @Nullable Button hovered)
 	{
 		long now = System.currentTimeMillis();
-		g.setStroke(new BasicStroke(1f));
+		g.setStroke(Palette.ONE);
 		for (Button button : Button.values())
 		{
 			Rectangle rect = rects[button.ordinal()];
@@ -235,14 +237,14 @@ public final class MapButtons
 			{
 				continue;
 			}
-			g.setColor(Fade.mix(Theme.PANEL, Theme.BUTTON_HOVER, fade.level(button, button == hovered, now)));
+			g.setColor(Motion.mix(colour("PANEL"), colour("BUTTON_HOVER_MAP"), fade.level(button, button == hovered, now)));
 			g.fillRoundRect(rect.x, rect.y, rect.width, rect.height, 6, 6);
 			if (button == Button.LINE_UP && lineUpOn)
 			{
-				g.setColor(Theme.PANEL_ACTIVE);
+				g.setColor(colour("PANEL_ACTIVE"));
 				g.fillRoundRect(rect.x, rect.y, rect.width, rect.height, 6, 6);
 			}
-			g.setColor(button == Button.LINE_UP && lineUpOn ? Theme.ACCENT : Theme.BORDER);
+			g.setColor(colour(button == Button.LINE_UP && lineUpOn ? "ACCENT" : "BORDER"));
 			g.drawRoundRect(rect.x, rect.y, rect.width - 1, rect.height - 1, 6, 6);
 
 			if (button == Button.LINE_UP)
@@ -257,7 +259,7 @@ public final class MapButtons
 			}
 			g.setFont(button == Button.LOCATE ? Palette.SMALL_BOLD : Palette.BUTTON_FONT);
 			FontMetrics metrics = g.getFontMetrics();
-			g.setColor(Theme.TEXT);
+			g.setColor(colour("TEXT"));
 			int tx = rect.x + (rect.width - metrics.stringWidth(button.label)) / 2;
 			int ty = rect.y + (rect.height - metrics.getHeight()) / 2 + metrics.getAscent();
 			g.drawString(button.label, tx, ty);

@@ -2,6 +2,7 @@ package com.worldmapplus.input;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import java.awt.Rectangle;
@@ -45,7 +46,7 @@ public class ViewerInputTest
 		MouseWheelEvent wheel = wheel(200, 200, -1);
 		input.mouseWheelMoved(wheel);
 		assertFalse(wheel.isConsumed());
-		assertTrue(input.getQueue().drain().isEmpty());
+		assertTrue(input.drain().isEmpty());
 	}
 
 	@Test
@@ -55,11 +56,11 @@ public class ViewerInputTest
 		MouseEvent press = mouse(MouseEvent.MOUSE_PRESSED, 200, 200, MouseEvent.BUTTON1);
 		input.mousePressed(press);
 		assertTrue(press.isConsumed());
-		List<MapInput> events = input.getQueue().drain();
+		List<MapInput> events = input.drain();
 		assertEquals(1, events.size());
 		assertEquals(MapInput.Kind.PRESS, events.get(0).kind);
 		assertEquals(200, events.get(0).x);
-		assertEquals(MouseEvent.BUTTON1, events.get(0).button());
+		assertEquals(MouseEvent.BUTTON1, events.get(0).code());
 	}
 
 	@Test
@@ -69,7 +70,7 @@ public class ViewerInputTest
 		MouseEvent press = mouse(MouseEvent.MOUSE_PRESSED, 50, 50, MouseEvent.BUTTON1);
 		input.mousePressed(press);
 		assertFalse(press.isConsumed());
-		List<MapInput> noted = input.getQueue().drain();
+		List<MapInput> noted = input.drain();
 		assertEquals("only noted, for the map key", 1, noted.size());
 		assertEquals(MapInput.Kind.GAME_PRESS, noted.get(0).kind);
 	}
@@ -98,7 +99,7 @@ public class ViewerInputTest
 		MouseEvent drag = mouse(MouseEvent.MOUSE_DRAGGED, 200, 200, MouseEvent.NOBUTTON);
 		input.mouseDragged(drag);
 		assertFalse(drag.isConsumed());
-		assertTrue(input.getQueue().drain().isEmpty());
+		assertTrue(input.drain().isEmpty());
 	}
 
 	@Test
@@ -111,24 +112,10 @@ public class ViewerInputTest
 		MouseWheelEvent outside = wheel(10, 10, -1);
 		input.mouseWheelMoved(outside);
 		assertFalse(outside.isConsumed());
-		List<MapInput> events = input.getQueue().drain();
+		List<MapInput> events = input.drain();
 		assertEquals(1, events.size());
 		assertEquals(MapInput.Kind.WHEEL, events.get(0).kind);
 		assertEquals(-1.0, events.get(0).amount, 1e-9);
-	}
-
-	@Test
-	public void passThroughRecordsButNeverConsumes()
-	{
-		ViewerInput input = active();
-		input.setPassThrough(true);
-		MouseEvent press = mouse(MouseEvent.MOUSE_PRESSED, 200, 200, MouseEvent.BUTTON1);
-		input.mousePressed(press);
-		MouseWheelEvent wheel = wheel(200, 200, 1);
-		input.mouseWheelMoved(wheel);
-		assertFalse(press.isConsumed());
-		assertFalse(wheel.isConsumed());
-		assertEquals(2, input.getQueue().drain().size());
 	}
 
 	@Test
@@ -146,15 +133,50 @@ public class ViewerInputTest
 	@Test
 	public void theQueueIsBounded()
 	{
-		InputQueue queue = new InputQueue();
-		for (int i = 0; i < InputQueue.LIMIT * 3; i++)
+		ViewerInput queue = new ViewerInput();
+		for (int i = 0; i < ViewerInput.LIMIT * 3; i++)
 		{
-			queue.add(MapInput.drag(i, 0, i));
+			queue.add(new MapInput(MapInput.Kind.DRAG, i, 0, 0, i, true));
 		}
 		List<MapInput> events = queue.drain();
-		assertTrue(events.size() <= InputQueue.LIMIT + 1);
-		assertEquals(InputQueue.LIMIT * 3 - 1, events.get(events.size() - 1).x);
+		assertTrue(events.size() <= ViewerInput.LIMIT + 1);
+		assertEquals(ViewerInput.LIMIT * 3 - 1, events.get(events.size() - 1).x);
 		assertTrue(queue.drain().isEmpty());
+	}
+
+	@Test
+	public void anEmptyQueueHandsOutTheSameEmptyListEveryFrame()
+	{
+		ViewerInput queue = new ViewerInput();
+		List<MapInput> first = queue.drain();
+		assertTrue(first.isEmpty());
+		assertSame(first, queue.drain());
+	}
+
+	@Test
+	public void eventsComeOutOldestFirstAndOnlyOnce()
+	{
+		ViewerInput queue = new ViewerInput();
+		queue.add(new MapInput(MapInput.Kind.WHEEL, 1, 2, 3, 100, false));
+		queue.add(new MapInput(MapInput.Kind.WHEEL, 4, 5, 6, 101, false));
+		List<MapInput> events = queue.drain();
+		assertEquals(2, events.size());
+		assertEquals(1, events.get(0).x);
+		assertEquals(4, events.get(1).x);
+		assertTrue(queue.drain().isEmpty());
+	}
+
+	@Test
+	public void pastTheLimitTheOldestAreDropped()
+	{
+		ViewerInput queue = new ViewerInput();
+		for (int i = 0; i < ViewerInput.LIMIT + 10; i++)
+		{
+			queue.add(new MapInput(MapInput.Kind.WHEEL, i, 0, 1, i, false));
+		}
+		List<MapInput> events = queue.drain();
+		assertEquals(ViewerInput.LIMIT, events.size());
+		assertEquals(10, events.get(0).x);
 	}
 
 	private static KeyEvent key(int id, int code, char c, int modifiers)
@@ -172,7 +194,7 @@ public class ViewerInputTest
 		input.keyPressed(pressed);
 		assertFalse(typed.isConsumed());
 		assertFalse(pressed.isConsumed());
-		assertTrue(input.getQueue().drain().isEmpty());
+		assertTrue(input.drain().isEmpty());
 	}
 
 	@Test
@@ -189,12 +211,12 @@ public class ViewerInputTest
 		assertTrue(typed.isConsumed());
 		assertTrue(pressed.isConsumed());
 		assertTrue(released.isConsumed());
-		List<MapInput> events = input.getQueue().drain();
+		List<MapInput> events = input.drain();
 		assertEquals(2, events.size());
 		assertEquals(MapInput.Kind.TYPED, events.get(0).kind);
 		assertEquals('q', events.get(0).character());
 		assertEquals(MapInput.Kind.KEY, events.get(1).kind);
-		assertEquals(KeyEvent.VK_BACK_SPACE, events.get(1).keyCode());
+		assertEquals(KeyEvent.VK_BACK_SPACE, events.get(1).code());
 	}
 
 	@Test
@@ -204,15 +226,15 @@ public class ViewerInputTest
 		KeyEvent chord = key(KeyEvent.KEY_PRESSED, KeyEvent.VK_F, 'f', KeyEvent.CTRL_DOWN_MASK);
 		showing.keyPressed(chord);
 		assertTrue(chord.isConsumed());
-		List<MapInput> events = showing.getQueue().drain();
+		List<MapInput> events = showing.drain();
 		assertEquals(1, events.size());
-		assertEquals(ViewerInput.KEY_FOCUS_SEARCH, events.get(0).keyCode());
+		assertEquals(ViewerInput.KEY_FOCUS_SEARCH, events.get(0).code());
 
 		ViewerInput hidden = new ViewerInput();
 		KeyEvent other = key(KeyEvent.KEY_PRESSED, KeyEvent.VK_F, 'f', KeyEvent.CTRL_DOWN_MASK);
 		hidden.keyPressed(other);
 		assertFalse(other.isConsumed());
-		assertTrue(hidden.getQueue().drain().isEmpty());
+		assertTrue(hidden.drain().isEmpty());
 	}
 
 	@Test
@@ -296,7 +318,7 @@ public class ViewerInputTest
 		MouseEvent press = mouse(MouseEvent.MOUSE_PRESSED, 20, 20, MouseEvent.BUTTON1);
 		input.mousePressed(press);
 		assertFalse("the click is for the game", press.isConsumed());
-		List<MapInput> events = input.getQueue().drain();
+		List<MapInput> events = input.drain();
 		assertEquals(2, events.size());
 		assertEquals(MapInput.Kind.GAME_PRESS, events.get(0).kind);
 		assertEquals(MapInput.Kind.OUTSIDE_PRESS, events.get(1).kind);
@@ -309,7 +331,7 @@ public class ViewerInputTest
 		MouseEvent press = mouse(MouseEvent.MOUSE_PRESSED, 20, 20, MouseEvent.BUTTON1);
 		input.mousePressed(press);
 		assertFalse(press.isConsumed());
-		List<MapInput> events = input.getQueue().drain();
+		List<MapInput> events = input.drain();
 		assertEquals(1, events.size());
 		assertEquals(MapInput.Kind.GAME_PRESS, events.get(0).kind);
 	}
@@ -329,12 +351,12 @@ public class ViewerInputTest
 		assertFalse("the chat area takes the letter itself", typed.isConsumed());
 		assertFalse(pressed.isConsumed());
 		assertFalse(released.isConsumed());
-		assertTrue("nothing is queued for the map's own field", input.getQueue().drain().isEmpty());
+		assertTrue("nothing is queued for the map's own field", input.drain().isEmpty());
 
 		MouseEvent press = mouse(MouseEvent.MOUSE_PRESSED, 20, 30, MouseEvent.BUTTON1);
 		input.mousePressed(press);
 		assertFalse("the click is for the game", press.isConsumed());
-		List<MapInput> events = input.getQueue().drain();
+		List<MapInput> events = input.drain();
 		assertEquals(2, events.size());
 		assertEquals(MapInput.Kind.OUTSIDE_PRESS, events.get(1).kind);
 		assertEquals(20, events.get(1).x);
@@ -351,13 +373,13 @@ public class ViewerInputTest
 		input.setWatchClicks(true);
 		input.setWatchClicks(false);
 		input.mousePressed(mouse(MouseEvent.MOUSE_PRESSED, 20, 20, MouseEvent.BUTTON1));
-		assertEquals("only the note for the map key", 1, input.getQueue().drain().size());
+		assertEquals("only the note for the map key", 1, input.drain().size());
 
 		input.setWatchClicks(true);
 		time[0] += ViewerInput.FRESH_NANOS + 1;
 		input.setActive(AREA);
 		input.mousePressed(mouse(MouseEvent.MOUSE_PRESSED, 20, 20, MouseEvent.BUTTON1));
-		assertEquals("a map that stopped drawing reports nothing more", 1, input.getQueue().drain().size());
+		assertEquals("a map that stopped drawing reports nothing more", 1, input.drain().size());
 	}
 
 	@Test
@@ -368,7 +390,7 @@ public class ViewerInputTest
 		MouseEvent onClose = mouse(MouseEvent.MOUSE_PRESSED, 470, 120, MouseEvent.BUTTON1);
 		input.mousePressed(onClose);
 		assertFalse("the game's close button gets its click", onClose.isConsumed());
-		List<MapInput> noted = input.getQueue().drain();
+		List<MapInput> noted = input.drain();
 		assertEquals("the click is only noted", 1, noted.size());
 		assertEquals(MapInput.Kind.GAME_PRESS, noted.get(0).kind);
 		assertEquals(470, noted.get(0).x);
@@ -388,13 +410,13 @@ public class ViewerInputTest
 		KeyEvent chord = key(KeyEvent.KEY_PRESSED, KeyEvent.VK_A, 'a', KeyEvent.CTRL_DOWN_MASK);
 		input.keyPressed(chord);
 		assertTrue(chord.isConsumed());
-		List<MapInput> events = input.getQueue().drain();
+		List<MapInput> events = input.drain();
 		assertEquals(1, events.size());
-		assertEquals(ViewerInput.KEY_SELECT_ALL, events.get(0).keyCode());
+		assertEquals(ViewerInput.KEY_SELECT_ALL, events.get(0).code());
 
 		KeyEvent plain = key(KeyEvent.KEY_PRESSED, KeyEvent.VK_A, 'a', 0);
 		input.keyPressed(plain);
-		assertEquals(KeyEvent.VK_A, input.getQueue().drain().get(0).keyCode());
+		assertEquals(KeyEvent.VK_A, input.drain().get(0).code());
 	}
 
 	@Test
@@ -471,7 +493,7 @@ public class ViewerInputTest
 		KeyEvent away = key(KeyEvent.KEY_PRESSED, KeyEvent.VK_F, 'f', KeyEvent.CTRL_DOWN_MASK);
 		input.keyPressed(away);
 		assertFalse("the chord goes on to the game while the pointer is elsewhere", away.isConsumed());
-		assertTrue(input.getQueue().drain().isEmpty());
+		assertTrue(input.drain().isEmpty());
 		KeyEvent awayUp = key(KeyEvent.KEY_RELEASED, KeyEvent.VK_F, 'f', 0);
 		input.keyReleased(awayUp);
 		assertFalse(awayUp.isConsumed());
@@ -495,7 +517,7 @@ public class ViewerInputTest
 	{
 		ViewerInput input = active();
 		input.keyPressed(key(KeyEvent.KEY_PRESSED, KeyEvent.VK_F, 'f', KeyEvent.CTRL_DOWN_MASK));
-		input.getQueue().drain();
+		input.drain();
 		KeyEvent down = key(KeyEvent.KEY_PRESSED, KeyEvent.VK_B, 'b', 0);
 		KeyEvent typed = key(KeyEvent.KEY_TYPED, KeyEvent.VK_UNDEFINED, 'b', 0);
 		KeyEvent up = key(KeyEvent.KEY_RELEASED, KeyEvent.VK_B, 'b', 0);
@@ -504,7 +526,7 @@ public class ViewerInputTest
 		input.keyReleased(up);
 		assertTrue(down.isConsumed() && typed.isConsumed() && up.isConsumed());
 		boolean sawLetter = false;
-		for (MapInput event : input.getQueue().drain())
+		for (MapInput event : input.drain())
 		{
 			sawLetter |= event.kind == MapInput.Kind.TYPED && event.character() == 'b';
 		}
@@ -544,6 +566,6 @@ public class ViewerInputTest
 		KeyEvent typed = key(KeyEvent.KEY_TYPED, KeyEvent.VK_UNDEFINED, '', KeyEvent.CTRL_DOWN_MASK);
 		input.keyTyped(typed);
 		assertFalse(typed.isConsumed());
-		assertTrue(input.getQueue().drain().isEmpty());
+		assertTrue(input.drain().isEmpty());
 	}
 }

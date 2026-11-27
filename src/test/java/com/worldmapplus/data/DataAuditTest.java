@@ -38,14 +38,8 @@ public class DataAuditTest
 
 	private static JsonObject load(String name) throws Exception
 	{
-		// shops.json is a build input since round 62E (the Helper holds the copy the plugin reads), not a resource of this plugin.
-		if (name.equals("shops.json"))
-		{
-			org.junit.Assume.assumeTrue("the build inputs are not in this copy", java.nio.file.Files.exists(java.nio.file.Paths.get("tools", "input", "shops.json")));
-		}
-		try (Reader reader = name.equals("shops.json")
-			? java.nio.file.Files.newBufferedReader(java.nio.file.Paths.get("tools", "input", name), StandardCharsets.UTF_8)
-			: new InputStreamReader(DataAuditTest.class.getResourceAsStream("/com/worldmapplus/" + name), StandardCharsets.UTF_8))
+		try (Reader reader = new InputStreamReader(
+			com.worldmapplus.data.ToolInputs.stream(name), StandardCharsets.UTF_8))
 		{
 			return GSON.fromJson(reader, JsonObject.class);
 		}
@@ -179,15 +173,19 @@ public class DataAuditTest
 	@Test
 	public void spawnPlaceTextHasNoMarkupOrEmptyBrackets() throws Exception
 	{
+		JsonObject spawns = SpawnTestData.json();
 		List<String> bad = new ArrayList<>();
-		for (String key : new String[]{"spawns", "shops"})
+		for (String key : new String[]{"monsters", "npcs", "items"})
 		{
-			for (JsonElement e : load("place-names.json").getAsJsonArray(key))
+			for (JsonElement e : spawns.getAsJsonArray(key))
 			{
-				String where = e.getAsJsonArray().get(0).getAsString();
-				if (stray(where))
+				for (JsonElement g : e.getAsJsonObject().getAsJsonArray("groups"))
 				{
-					bad.add(where);
+					String where = g.getAsJsonObject().get("where").getAsString();
+					if (stray(where))
+					{
+						bad.add(e.getAsJsonObject().get("name").getAsString() + ": " + where);
+					}
 				}
 			}
 		}

@@ -1,0 +1,25 @@
+markers shown: 7
+party member card: Zezima / Zezima / hint Click to go there
+party member menu: [Route here (Shortest Path)] [Clear route] [Copy tile  3200, 3200] [Nearest teleports] [Add pin here] [Focus on Zezima] [Follow Zezima]
+quest point card: Cook's Assistant / Quest Helper / hint null / Talk to the Cook =  / Bring an egg = 
+quest point menu: [Route here (Shortest Path)] [Clear route] [Copy tile  3215, 3210] [Nearest teleports] [Add pin here]
+jump point card: Golem / Respawns soon / hint Click to go there
+jump point menu: [Route here (Shortest Path)] [Clear route] [Copy tile  3230, 3195] [Nearest teleports] [Add pin here] [Focus on Golem]
+clickable marker card: Group storage / Open the group's storage / hint Open the bank / Two rows =  / Three rows = 
+clickable marker menu: [Route here (Shortest Path)] [Clear route] [Copy tile  3190, 3215] [Nearest teleports] [Add pin here] [Route here] [Hide]
+plain marker card: Marker / null / hint null
+plain marker menu: [Route here (Shortest Path)] [Clear route] [Copy tile  3205, 3225] [Nearest teleports] [Add pin here]
+menu marker card: Only a menu / null / hint Right-click for more
+menu marker menu: [Route here (Shortest Path)] [Clear route] [Copy tile  3240, 3220] [Nearest teleports] [Add pin here] [Ping]
+empty ground card: none
+empty ground menu: [Route here (Shortest Path)] [Clear route] [Copy tile  3222, 3240] [Nearest teleports] [Add pin here]
+reply marker_clicked {id=spot, source=gim}
+reply marker_menu {id=spot, option=Hide, source=gim}
+after a click on the jump point: camera 3300.5,3300.5 map Gielinor Surface following null
+following: camera 3200.5,3200.5 map Gielinor Surface following Zezima
+after the member walked: camera 3240.5,3230.5 map Gielinor Surface following Zezima
+stopped: camera 3240.5,3230.5 map Gielinor Surface following null
+after a focus: camera 3222.5,3218.5 map Gielinor Surface following null
+reply focus_result {id=f-1, mapKind=surface, mapName=Gielinor Surface, ok=true, reason=ok}
+after a focus nowhere: camera 3222.5,3218.5 map Gielinor Surface following null
+reply focus_result {id=f-2, mapKind=, mapName=, ok=false, reason=no_map}

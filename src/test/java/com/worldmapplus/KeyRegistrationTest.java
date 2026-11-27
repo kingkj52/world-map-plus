@@ -288,7 +288,7 @@ public class KeyRegistrationTest
 			assertFalse(e.isConsumed());
 		}
 		assertEquals(3, late.seen.size());
-		assertTrue(viewer.getQueue().drain().isEmpty());
+		assertTrue(viewer.drain().isEmpty());
 	}
 
 	@Test
@@ -306,11 +306,11 @@ public class KeyRegistrationTest
 		{
 			assertTrue("taken, so the game does not also get it", e.isConsumed());
 		}
-		List<MapInput> events = viewer.getQueue().drain();
+		List<MapInput> events = viewer.drain();
 		assertEquals("delivered once, not once per route", 1, typedCount(events, 'w'));
 		assertEquals(3, early.seen.size());
 		assertTrue("a plugin registered after the bar is never offered what the bar took", late.seen.isEmpty());
-		assertTrue("the other map's input is not involved", hud.getQueue().drain().isEmpty());
+		assertTrue("the other map's input is not involved", hud.drain().isEmpty());
 	}
 
 	@Test
@@ -332,8 +332,8 @@ public class KeyRegistrationTest
 			assertFalse(e.isConsumed());
 		}
 		assertEquals(6, late.seen.size());
-		assertTrue(viewer.getQueue().drain().isEmpty());
-		assertTrue(hud.getQueue().drain().isEmpty());
+		assertTrue(viewer.drain().isEmpty());
+		assertTrue(hud.drain().isEmpty());
 	}
 
 	@Test
@@ -353,9 +353,9 @@ public class KeyRegistrationTest
 		keyManager.processKeyPressed(open);
 		assertTrue(open.isConsumed());
 		assertEquals(1, late.seen.size());
-		List<MapInput> events = viewer.getQueue().drain();
+		List<MapInput> events = viewer.drain();
 		assertEquals(1, events.size());
-		assertEquals(ViewerInput.KEY_FOCUS_SEARCH, events.get(0).keyCode());
+		assertEquals(ViewerInput.KEY_FOCUS_SEARCH, events.get(0).code());
 	}
 
 	@Test
@@ -382,7 +382,7 @@ public class KeyRegistrationTest
 		keyManager.processKeyReleased(event(KeyEvent.KEY_RELEASED, KeyEvent.VK_F, 'f', 0));
 		assertEquals("only the control press was offered to the other plugin", 1, late.seen.size());
 		assertEquals("pressed " + KeyEvent.VK_CONTROL, late.seen.get(0));
-		assertEquals(1, typedCount(viewer.getQueue().drain(), 'b'));
+		assertEquals(1, typedCount(viewer.drain(), 'b'));
 	}
 
 	@Test
@@ -473,7 +473,7 @@ public class KeyRegistrationTest
 		keyManager.processKeyPressed(chord);
 		assertFalse("the chord is the game's", chord.isConsumed());
 		assertEquals(1, late.seen.size());
-		assertTrue("no search was asked for", viewer.getQueue().drain().isEmpty());
+		assertTrue("no search was asked for", viewer.drain().isEmpty());
 		for (KeyEvent e : stroke(KeyEvent.VK_B, 'b'))
 		{
 			assertFalse("and no key is taken after it", e.isConsumed());
@@ -484,7 +484,7 @@ public class KeyRegistrationTest
 		KeyEvent again = event(KeyEvent.KEY_PRESSED, KeyEvent.VK_F, 'f', KeyEvent.CTRL_DOWN_MASK);
 		keyManager.processKeyPressed(again);
 		assertTrue(again.isConsumed());
-		assertEquals(ViewerInput.KEY_FOCUS_SEARCH, viewer.getQueue().drain().get(0).keyCode());
+		assertEquals(ViewerInput.KEY_FOCUS_SEARCH, viewer.drain().get(0).code());
 	}
 
 	@Test
@@ -500,7 +500,7 @@ public class KeyRegistrationTest
 		{
 			assertTrue(e.isConsumed());
 		}
-		assertEquals(1, typedCount(viewer.getQueue().drain(), 'w'));
+		assertEquals(1, typedCount(viewer.drain(), 'w'));
 	}
 
 	@Test
@@ -515,10 +515,10 @@ public class KeyRegistrationTest
 		viewer.setCaptureKeys(true);
 
 		stroke(KeyEvent.VK_W, 'w');
-		assertTrue("the letter another plugin bound did not reach the bar", viewer.getQueue().drain().isEmpty());
+		assertTrue("the letter another plugin bound did not reach the bar", viewer.drain().isEmpty());
 		// Every other letter still does.
 		stroke(KeyEvent.VK_Q, 'q');
-		assertEquals(1, typedCount(viewer.getQueue().drain(), 'q'));
+		assertEquals(1, typedCount(viewer.drain(), 'q'));
 	}
 
 	@Test
@@ -534,10 +534,10 @@ public class KeyRegistrationTest
 		viewer.setCaptureKeys(true);
 
 		List<KeyEvent> events = stroke(KeyEvent.VK_W, 'w');
-		List<MapInput> queued = viewer.getQueue().drain();
+		List<MapInput> queued = viewer.drain();
 		assertEquals("the letter itself was eaten by the remapper", 0, typedCount(queued, 'w'));
 		assertEquals(1, queued.size());
-		assertEquals(KeyEvent.VK_UP, queued.get(0).keyCode());
+		assertEquals(KeyEvent.VK_UP, queued.get(0).code());
 		assertTrue("the remapped press is the bar's, so the game does not move the camera", events.get(0).isConsumed());
 		assertTrue(late.seen.isEmpty());
 	}

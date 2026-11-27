@@ -78,7 +78,11 @@ public class PackedTilesTest
 		{
 			for (Map.Entry<String, byte[]> e : new java.util.TreeMap<>(entries).entrySet())
 			{
-				zip.putNextEntry(new ZipEntry(e.getKey()));
+				// A fixed time stamp, as make_map_release.py writes: with the clock's time, the same pack made two seconds apart has
+				// other bytes and another hash, so a test that builds the right pack a second time saw it refused now and then.
+				ZipEntry entry = new ZipEntry(e.getKey());
+				entry.setTime(946684800000L);
+				zip.putNextEntry(entry);
 				zip.write(e.getValue());
 				zip.closeEntry();
 			}
@@ -130,6 +134,8 @@ public class PackedTilesTest
 		volatile TileIndex index = INDEX;
 		/** When set, a request for a file whose name starts with p waits for it before it is answered. */
 		volatile java.util.concurrent.CountDownLatch gate;
+		/** When set, each download of a pack named p... takes one permit before it answers, so a test lets them finish one by one. */
+		volatile java.util.concurrent.Semaphore permits;
 
 		Rig() throws IOException
 		{
@@ -144,11 +150,19 @@ public class PackedTilesTest
 				String name = request.url().pathSegments().get(request.url().pathSegments().size() - 1);
 				requests.add(name);
 				java.util.concurrent.CountDownLatch waiting = gate;
-				if (waiting != null && name.startsWith("p"))
+				java.util.concurrent.Semaphore one = permits;
+				if ((waiting != null || one != null) && name.startsWith("p"))
 				{
 					try
 					{
-						waiting.await();
+						if (waiting != null)
+						{
+							waiting.await();
+						}
+						if (one != null)
+						{
+							one.acquire();
+						}
 					}
 					catch (InterruptedException e)
 					{
@@ -342,8 +356,9 @@ public class PackedTilesTest
 	@Test
 	public void theNearestPacksAreFetchedFirstWhenThereIsNoRoomForAll() throws Exception
 	{
-		// Five packs of one square each. Three downloads run at once (held at the gate); the two that wait start in order of their
-		// distance from the middle of the view when room is made.
+		// Five packs of one square each. Three downloads run at once (held until let go one at a time); the two that wait start in
+		// order of their distance from the middle of the view when room is made. They are let go one by one because two downloads
+		// started at once by two finishing ones reach the server in either order.
 		Map<String, int[]> maps = new HashMap<>();
 		int[] keys = new int[5];
 		for (int i = 0; i < 5; i++)
@@ -361,7 +376,7 @@ public class PackedTilesTest
 			entries[i] = entry("p" + i + ".zip", pack, "[[0," + (50 + i) + ",60," + (50 + i) + ",60]]");
 		}
 		rig.files.put("manifest.json", manifest(1, entries));
-		rig.gate = new java.util.concurrent.CountDownLatch(1);
+		rig.permits = new java.util.concurrent.Semaphore(0);
 		PackedTiles tiles = rig.open();
 		assertTrue(waitFor(() ->
 		{
@@ -376,11 +391,13 @@ public class PackedTilesTest
 		}
 		assertTrue(waitFor(() -> rig.requests.size() == 4));
 		assertEquals("room for three", 3, rig.requests.stream().filter(n -> n.startsWith("p")).count());
-		rig.gate.countDown();
+		rig.permits.release();
+		assertTrue(waitFor(() -> rig.requests.size() == 5));
+		assertEquals("the nearest waiting pack first", "p3.zip", new ArrayList<>(rig.requests).get(4));
+		rig.permits.release();
 		assertTrue(waitFor(() -> rig.requests.size() == 6));
-		List<String> order = new ArrayList<>(rig.requests);
-		assertEquals("the nearest waiting pack first", "p3.zip", order.get(4));
-		assertEquals("then the next", "p4.zip", order.get(5));
+		assertEquals("then the next", "p4.zip", new ArrayList<>(rig.requests).get(5));
+		rig.permits.release(10);
 		assertTrue(waitFor(() -> tiles.ready(0, 53, 60) && tiles.ready(0, 54, 60)));
 	}
 
@@ -604,13 +621,15 @@ public class PackedTilesTest
 		java.io.File[] files = rig.folder.resolve("maps").toFile().listFiles((dir, name) -> name.startsWith("ground"));
 		assertEquals(1, files.length);
 		Files.write(files[0].toPath(), new byte[] {1, 2, 3});
+		rig.requests.clear();
 
 		PackedTiles second = rig.open();
 		assertTrue(second.ready(0, 50, 50));
 		assertNull("a file that does not match is not used", second.load(0, 50, 50));
-		assertFalse(second.ready(0, 50, 50));
-		// The pack comes again; the manifest may be asked for again at the same time, so wait until the square reads.
+		// The pack comes again. The first read also asks for the manifest, and when that answer lands while the damaged file is being
+		// dropped the square can say ready for one more read, which then finds no file; so the test waits until the square reads.
 		assertTrue(ask(second, 0, 50, 50, () -> second.ready(0, 50, 50) && second.load(0, 50, 50) != null));
+		assertTrue("the pack was downloaded again", rig.count("ground-01.zip") >= 1);
 	}
 
 	@Test

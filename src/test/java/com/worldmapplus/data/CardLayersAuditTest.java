@@ -113,7 +113,8 @@ public class CardLayersAuditTest
 		{
 			System.out.println("CARD LAYER " + entry.getKey() + ": on an icon " + entry.getValue()[0] + ", on no icon " + entry.getValue()[1]);
 		}
-		assertTrue(counts.containsKey(Hotspot.Kind.TRANSPORT));
+		assertTrue(counts.containsKey(Hotspot.Kind.SHOP) && counts.containsKey(Hotspot.Kind.TRANSPORT));
+		assertEquals("a shop's card is on an icon when one is near", true, counts.get(Hotspot.Kind.SHOP)[0] > 100);
 		// The teleport destinations: cards of the teleport layer, each at a place a teleport lands on, and the layer's own markers.
 		int cards = 0;
 		int cardsOnIcons = 0;

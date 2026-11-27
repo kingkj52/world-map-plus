@@ -3,24 +3,40 @@ package com.worldmapplus.data;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.worldmapplus.layers.GameIconSet;
 import com.worldmapplus.layers.Hotspot;
-import com.worldmapplus.layers.HoverCard;
 import com.worldmapplus.layers.LabelLayer;
 import com.worldmapplus.map.MapCatalog;
 import com.worldmapplus.map.MapInfo;
+import com.worldmapplus.unlock.Needs;
 import com.worldmapplus.view.ViewTransform;
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import net.runelite.api.Quest;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-/** The game's own labels and icon names, read from the bundled file, against the bundled map catalog. */
+/**
+ * The cards, the game's own labels and icons, read from the bundled {@code things.json} ({@code tools/build_cards.py}), and the rules
+ * the plugin applies as it reads them: what a card asks, and when what the wiki says an icon asks is added.
+ */
 public class MapElementsTest
 {
 	private static final Gson GSON = new Gson();
@@ -32,8 +48,8 @@ public class MapElementsTest
 	public static void load()
 	{
 		catalog = MapCatalog.load(GSON);
-		existing = HotspotLoader.load(GSON, catalog);
-		elements = MapElements.load(GSON, catalog, existing);
+		elements = MapElements.load(GSON);
+		existing = elements.loaded(Collections.emptyList());
 	}
 
 	@Test
@@ -85,32 +101,25 @@ public class MapElementsTest
 	}
 
 	@Test
-	public void anIconBesideACardThePluginAlreadyHasIsLeftOut()
+	public void theCardsOfEveryKindAreThere()
 	{
-		for (Hotspot icon : elements.getIcons())
+		int shops = 0;
+		int doorways = 0;
+		int transport = 0;
+		int teleports = 0;
+		for (Hotspot h : existing)
 		{
-			for (Hotspot other : existing)
-			{
-				String title = icon.getCard().getTitle();
-				String sub = icon.getCard().getSubtitle() == null ? "" : icon.getCard().getSubtitle();
-				Hotspot.Kind only = MapElements.kindFor(title);
-				if (sub.equals("Dungeon entrance"))
-				{
-					only = Hotspot.Kind.DOORWAY;
-				}
-				else if (sub.equals("Transportation") || sub.startsWith("Agility shortcut"))
-				{
-					only = Hotspot.Kind.TRANSPORT;
-				}
-				if (icon.getKind() == Hotspot.Kind.POI && other.getCategory() == null && other.getMapId() == icon.getMapId()
-				&& (only == null || other.getKind() == only))
-				{
-					boolean close = Math.abs(other.getX() - icon.getX()) <= 1.4
-						&& Math.abs(other.getY() - icon.getY()) <= 1.4;
-					assertFalse("an icon at " + icon.getX() + ", " + icon.getY() + " duplicates a card", close);
-				}
-			}
+			assertNotNull("on a known map", catalog.byId(h.getMapId()));
+			assertFalse(h.getCard().getTitle().contains("<"));
+			shops += h.getKind() == Hotspot.Kind.SHOP ? 1 : 0;
+			doorways += h.getKind() == Hotspot.Kind.DOORWAY ? 1 : 0;
+			transport += h.getKind() == Hotspot.Kind.TRANSPORT ? 1 : 0;
+			teleports += h.getKind() == Hotspot.Kind.TELEPORT ? 1 : 0;
 		}
+		assertTrue("shops " + shops, shops > 300);
+		assertTrue("doorways " + doorways, doorways > 200);
+		assertTrue("transport and shortcuts " + transport, transport > 180);
+		assertTrue("teleport destinations " + teleports, teleports > 100);
 	}
 
 	@Test
@@ -126,13 +135,11 @@ public class MapElementsTest
 				assertNotNull(catalog.byId(icon.getTarget().getMapId()));
 				if (icon.getKind() == Hotspot.Kind.POI)
 				{
-					assertTrue("no preview on " + icon.getCard().getTitle() + " at " + icon.getX() + ", " + icon.getY() + " on "
-						+ icon.getMapId(), icon.getCard().hasPreview());
+					assertTrue("no preview on " + icon.getCard().getTitle(), icon.getCard().hasPreview());
 					assertEquals("Click to open this map", icon.getCard().getHint());
 				}
 			}
 		}
-		// Most dungeon icons are covered by an entrance card of the plugin, which carries the same link, and are not in this list.
 		assertTrue("linked icons " + linked, linked > 15);
 	}
 
@@ -143,11 +150,10 @@ public class MapElementsTest
 		Hotspot found = null;
 		for (Hotspot spot : existing)
 		{
-			if (spot.getKind() == Hotspot.Kind.DOORWAY && spot.getMapId() == MapInfo.SURFACE
-				&& Math.abs(spot.getX() - 1232.5) < 2
+			if (spot.getKind() == Hotspot.Kind.DOORWAY && spot.getMapId() == MapInfo.SURFACE && Math.abs(spot.getX() - 1232.5) < 2
 				&& Math.abs(spot.getY() - 3729.5) < 2)
 			{
-				assertNotNull("followable: " + spot.getCard().getTitle() + " kind " + spot.getKind() + " cat " + spot.getCategory(), spot.getTarget());
+				assertNotNull("followable: " + spot.getCard().getTitle(), spot.getTarget());
 				found = spot;
 			}
 		}
@@ -191,23 +197,22 @@ public class MapElementsTest
 		MapElements none = MapElements.none();
 		assertEquals(0, none.labelCount());
 		assertTrue(none.getIcons().isEmpty());
+		assertTrue(none.getGameIcons().isEmpty());
+		assertTrue(none.loaded(Collections.emptyList()).isEmpty());
 		assertTrue(new ArrayList<>(none.labelsOn(0)).isEmpty());
+		assertEquals(0, none.categoryCount());
+		assertNull(none.categoryNamed("Bank"));
+		MapElements broken = GSON.fromJson("{\"things\":[],\"pois\":5,\"own\":-3,\"icons\":[{\"card\":7}]}", MapElements.class).ready();
+		assertTrue(broken.loaded(Collections.emptyList()).isEmpty());
+		assertNull("a card index off the list gives no card", broken.getGameIcons().get(0).getCard());
 	}
 
 	@Test
 	public void everyMapTheGamesOwnLinksLeadToCanBeOpenedWithAClick()
 	{
-		MapElements.File file;
-		try (java.io.InputStream in = MapElements.class.getResourceAsStream("/com/worldmapplus/map-elements.json");
-			java.io.Reader reader = new java.io.InputStreamReader(in, java.nio.charset.StandardCharsets.UTF_8))
-		{
-			file = GSON.fromJson(reader, MapElements.File.class);
-		}
-		catch (java.io.IOException e)
-		{
-			throw new AssertionError(e);
-		}
-		java.util.Set<Integer> opened = new java.util.HashSet<>();
+		JsonObject file = GSON.fromJson(new InputStreamReader(com.worldmapplus.data.ToolInputs.stream("map-elements.json"),
+			StandardCharsets.UTF_8), JsonObject.class);
+		Set<Integer> opened = new HashSet<>();
 		List<Hotspot> everything = new ArrayList<>(existing);
 		everything.addAll(elements.getIcons());
 		for (Hotspot spot : everything)
@@ -217,11 +222,12 @@ public class MapElementsTest
 				opened.add(spot.getTarget().getMapId());
 			}
 		}
-		java.util.Set<Integer> missing = new java.util.TreeSet<>();
-		for (int[] link : file.links)
+		Set<Integer> missing = new TreeSet<>();
+		for (JsonElement element : file.getAsJsonArray("links"))
 		{
-			MapInfo from = catalog.mapFor(link[0], link[1]);
-			MapInfo to = catalog.mapFor(link[2], link[3]);
+			JsonArray link = element.getAsJsonArray();
+			MapInfo from = catalog.mapFor(link.get(0).getAsInt(), link.get(1).getAsInt());
+			MapInfo to = catalog.mapFor(link.get(2).getAsInt(), link.get(3).getAsInt());
 			if (from != null && to != null && from.getId() != to.getId() && !opened.contains(to.getId()))
 			{
 				missing.add(to.getId());
@@ -233,16 +239,16 @@ public class MapElementsTest
 	@Test
 	public void aQuestIconIsNamedAfterTheQuestThatStartsBesideIt()
 	{
-		List<com.worldmapplus.search.SearchEntry> known = PlaceLoader.quests(GSON, catalog);
-		MapElements named = MapElements.load(GSON, catalog, existing, known);
 		int quests = 0;
 		int generic = 0;
-		for (Hotspot icon : named.getIcons())
+		int starts = 0;
+		for (Hotspot icon : elements.getIcons())
 		{
 			if ("Quest start".equals(icon.getCard().getSubtitle()))
 			{
 				quests++;
 				assertFalse(icon.getCard().getTitle().equals("Quest"));
+				starts += icon.getNeed() != null && icon.getNeed().startsQuest() != null ? 1 : 0;
 			}
 			if (icon.getCard().getTitle().equals("Quest"))
 			{
@@ -251,6 +257,7 @@ public class MapElementsTest
 		}
 		assertTrue("named quest icons " + quests, quests > 60);
 		assertTrue("generic quest icons left " + generic, generic < quests);
+		assertTrue("quest icons that know the quest they start " + starts, starts > 60);
 	}
 
 	@Test
@@ -270,6 +277,8 @@ public class MapElementsTest
 		assertTrue("banks on the surface " + banks, banks > 50);
 		assertFalse(elements.isCategory(1));
 		assertTrue(elements.spotsOn(-5).isEmpty());
+		assertTrue(elements.drawnCategoryNames().contains("Bank"));
+		assertFalse(elements.categoriesNamed("Bank").isEmpty());
 	}
 
 	@Test
@@ -285,74 +294,120 @@ public class MapElementsTest
 		assertEquals(null, elements.categoryNamed(null));
 	}
 
-	private static MapElements.File tiny(String icons)
+	@Test
+	public void everyDrawnIconHasACardAndTheIconsAnswerForTheirCards()
 	{
-		return GSON.fromJson("{\"labels\":[{\"t\":\"Falador\",\"x\":2950,\"y\":3380,\"z\":0,\"s\":1,\"c\":16777215}],"
-			+ "\"categories\":[\"Dungeon\",\"Transportation\",\"Quest\"],\"categoryIds\":[1062,1104,1056],\"links\":[],"
-			+ "\"icons\":{" + icons + "}}", MapElements.File.class);
-	}
-
-	private static Hotspot cardAt(MapElements elements, double x, double y)
-	{
-		for (Hotspot icon : elements.getIcons())
+		GameIconSet set = new GameIconSet(elements.getGameIcons());
+		int covers = 0;
+		for (GameIconSet.Spec spec : elements.getGameIcons())
 		{
-			if (Math.abs(icon.getX() - x) < 0.01 && Math.abs(icon.getY() - y) < 0.01)
-			{
-				return icon;
-			}
+			assertNotNull(spec.getCard());
+			assertTrue(set.isCardOfAnIcon(spec.getCard()));
+			covers += existing.contains(elements.replacementOf(spec.getCard())) || existing.contains(spec.getCard()) ? 1 : 0;
 		}
-		return null;
+		assertTrue("icons answered by a card of the plugin's own " + covers, covers > 300);
+	}
+
+	// --- what the reader does with the checks the file gives (the rules that make them are in tools/test_build_cards.py) ---------
+
+	private static String level(String skill, int level, String text)
+	{
+		return "{\"k\":\"s\",\"s\":\"" + skill + "\",\"n\":" + level + ",\"t\":\"" + text + "\"}";
+	}
+
+	private static String need(String... ways)
+	{
+		return "{\"any\":[" + String.join(",", ways) + "]}";
+	}
+
+	private static MapElements read(String things)
+	{
+		return GSON.fromJson("{\"pois\":0,\"own\":0,\"things\":[" + things + "],\"icons\":[{\"m\":0,\"x\":10.5,\"y\":20.5,\"card\":0,"
+			+ "\"extras\":[{\"layer\":\"tree\",\"name\":\"Yew tree\",\"detail\":\"Woodcutting level 60\"}],\"n\":"
+			+ need("[" + level("WOODCUTTING", 60, "60 Woodcutting") + "]") + "}]}", MapElements.class).ready();
+	}
+
+	private static final String CARD = "\"kind\":\"POI\",\"m\":0,\"x\":10.5,\"y\":20.5,\"r\":9,\"card\":{\"title\":\"Dungeon\"},\"floor\":0";
+
+	@Test
+	public void whatTheWikiSaysAnIconAsksIsAddedAsANeedAndARow()
+	{
+		MapElements read = read("{" + CARD + ",\"req\":" + need("[" + level("STRENGTH", 60, "60 Strength") + "]",
+			"[" + level("AGILITY", 60, "60 Agility") + "]") + ",\"reqRow\":\"60 Strength or 60 Agility\"}");
+		Hotspot icon = read.getIcons().get(0);
+		assertEquals(2, icon.getNeed().alternatives().length);
+		assertEquals("60 Agility", Needs.describe(icon.getNeed().alternatives()[1]));
+		assertEquals("Requires", icon.getCard().getRows().get(0).getLabel());
+		assertEquals("60 Strength or 60 Agility", icon.getCard().getRows().get(0).getValue());
+		assertSame("the icon's card is the one with the requirement", icon, read.getGameIcons().get(0).getCard());
+		assertSame(icon.getNeed(), read.getGameIcons().get(0).getNeed());
+		assertNull("the card as made asks nothing", read.needOf(0, null, null));
 	}
 
 	@Test
-	public void aNoteForAnIconIsUsedWhereNothingRicherIsThere()
+	public void aCardThatAsksNothingGivesTheIconWhatItsMergedPointsAsk()
 	{
-		MapElements.File file = tiny("\"0\":[[2940.5,3370.5,1],[2960.5,3370.5,0]]");
-		java.util.Map<String, MapElements.Detail> details = new java.util.HashMap<>();
-		MapElements.Detail ship = GSON.fromJson("{\"map\":0,\"x\":2940.5,\"y\":3370.5,\"title\":\"Ship to <b>Crandor\","
-			+ "\"subtitle\":\"Transportation\",\"rows\":[[\"Fare\",\"free\"]]}", MapElements.Detail.class);
-		details.put("0:2940.5:3370.5", ship);
-		MapElements elements = MapElements.parse(file, catalog, new ArrayList<>(), new ArrayList<>(), details);
-		Hotspot noted = cardAt(elements, 2940.5, 3370.5);
-		assertEquals("Ship to bCrandor", noted.getCard().getTitle());
-		assertEquals("Transportation", noted.getCard().getSubtitle());
-		assertEquals("Fare", noted.getCard().getRows().get(0).getLabel());
-		Hotspot plain = cardAt(elements, 2960.5, 3370.5);
-		assertEquals("Dungeon", plain.getCard().getTitle());
-		assertEquals("Near Falador", plain.getCard().getSubtitle());
+		MapElements read = read("{" + CARD + "}");
+		assertNull(read.getIcons().get(0).getNeed());
+		assertTrue("no row", read.getIcons().get(0).getCard().getRows().isEmpty());
+		assertEquals("60 Woodcutting", Needs.describe(read.getGameIcons().get(0).getNeed().alternatives()[0]));
+		MapElements asks = read("{" + CARD + ",\"need\":" + need("[" + level("AGILITY", 50, "50 Agility") + "]") + "}");
+		assertEquals("the card's own need wins", "50 Agility", Needs.describe(asks.getGameIcons().get(0).getNeed().alternatives()[0]));
+		assertSame("nothing replaced", asks.getIcons().get(0), asks.replacementOf(asks.getIcons().get(0)));
 	}
 
 	@Test
-	public void aCardOfTheRightKindJustOffTheIconIsMovedOntoIt()
+	public void aQuestTheIconStartsIsKeptWithTheWikisNeed()
 	{
-		MapElements.File file = tiny("\"0\":[[2940.5,3370.5,0]]");
-		HoverCard card = HoverCard.builder("Cave entrance").subtitle("Leads somewhere").build();
-		Hotspot door = new Hotspot(0, 2942.5, 3370.5, 11, card, null, new ArrayList<>(), Hotspot.Kind.DOORWAY);
-		Hotspot shop = new Hotspot(0, 2941.0, 3370.5, 11, HoverCard.builder("A shop").build(), null, new ArrayList<>(),
-			Hotspot.Kind.SHOP);
-		MapElements elements = MapElements.parse(file, catalog, java.util.Arrays.asList(door, shop), new ArrayList<>());
-		Hotspot moved = cardAt(elements, 2940.5, 3370.5);
-		assertEquals("a dungeon icon takes the entrance, not the nearer shop", "Cave entrance", moved.getCard().getTitle());
-		assertEquals(Hotspot.Kind.DOORWAY, moved.getKind());
+		MapElements read = read("{" + CARD + ",\"need\":{\"starts\":\"Cook's Assistant\",\"quest\":\"COOKS_ASSISTANT\"},\"req\":"
+			+ "{\"any\":[[" + level("COOKING", 10, "10 Cooking") + "]],\"starts\":\"Cook's Assistant\",\"quest\":\"COOKS_ASSISTANT\"}}");
+		Hotspot icon = read.getIcons().get(0);
+		assertEquals("Cook's Assistant", icon.getNeed().startsQuest());
+		assertEquals(Quest.COOKS_ASSISTANT, icon.getNeed().startsQuestId());
+		assertEquals("10 Cooking", Needs.describe(icon.getNeed().alternatives()[0]));
+		assertTrue("no row text, no row", icon.getCard().getRows().isEmpty());
+		assertFalse("the card as made only starts the quest", read.needOf(0, null, null).hasAlternatives());
 	}
 
 	@Test
-	public void anIconInsideADungeonSaysWhichMapItIsOn()
+	public void aCoveringCardIsShownWithTheRequirementAndSearchedWithout()
 	{
-		MapInfo dungeon = null;
-		for (MapInfo map : catalog.getMaps())
-		{
-			if (map.getId() == 12)
-			{
-				dungeon = map;
-			}
-		}
-		assertNotNull(dungeon);
-		double x = dungeon.getCenterX();
-		double y = dungeon.getCenterY();
-		MapElements.File file = GSON.fromJson("{\"labels\":[],\"categories\":[\"Map link\"],\"categoryIds\":[1063],\"links\":[],"
-			+ "\"icons\":{\"12\":[[" + x + "," + y + ",0]]}}", MapElements.File.class);
-		MapElements elements = MapElements.parse(file, catalog, new ArrayList<>(), new ArrayList<>());
-		assertEquals("In " + dungeon.getName(), cardAt(elements, x, y).getCard().getSubtitle());
+		MapElements read = GSON.fromJson("{\"pois\":1,\"own\":1,\"things\":[{\"kind\":\"SHOP\",\"m\":0,\"x\":10.5,\"y\":20.5,\"r\":11,"
+			+ "\"card\":{\"title\":\"Shop\",\"rows\":[{\"label\":\"Axe\",\"value\":\"1 coin\"}]},\"req\":{\"any\":[[{\"k\":\"q\","
+			+ "\"q\":\"DRAGON_SLAYER_I\",\"t\":\"Dragon Slayer I\"}]]},\"reqRow\":\"Dragon Slayer I\"}],\"icons\":[{\"card\":0}]}",
+			MapElements.class).ready();
+		Hotspot made = read.loaded(Collections.emptyList()).get(0);
+		assertEquals(1, made.getCard().getRows().size());
+		assertNull(made.getNeed());
+		Hotspot shown = read.replacementOf(made);
+		assertEquals("Requires", shown.getCard().getRows().get(1).getLabel());
+		assertSame(shown, read.getGameIcons().get(0).getCard());
+		assertEquals("Dragon Slayer I", Needs.describe(shown.getNeed().alternatives()[0]));
+	}
+
+	@Test
+	public void eachTeleportKnowsTheNeedOfItsOwnWay()
+	{
+		MapElements read = GSON.fromJson("{\"pois\":1,\"own\":1,\"things\":[{\"kind\":\"TELEPORT\",\"m\":0,\"x\":1.5,\"y\":2.5,\"r\":11,"
+			+ "\"card\":{\"title\":\"Teleports here\"},\"layer\":\"teleport\",\"ways\":{\"A\":" + need("[" + level("MAGIC", 25, "25 Magic")
+			+ "]") + "}}]}", MapElements.class).ready();
+		Hotspot teleport = read.loaded(Collections.emptyList()).get(0);
+		assertNull("one way asks nothing, so the place asks nothing", teleport.getNeed());
+		assertEquals("25 Magic", Needs.describe(teleport.wayNeed("A").alternatives()[0]));
+		assertEquals("25 Magic", Needs.describe(read.needOf(0, "A", null).alternatives()[0]));
+		assertNull(teleport.wayNeed("B"));
+		assertEquals("teleport", teleport.getCategory());
+	}
+
+	@Test
+	public void thePointsOfInterestGoWhereTheFileSays()
+	{
+		MapElements read = GSON.fromJson("{\"pois\":1,\"own\":2,\"things\":[" + "{" + CARD + "},{" + CARD + "},{" + CARD + "}]}",
+			MapElements.class).ready();
+		Hotspot point = new Hotspot(0, 1, 1, 11, com.worldmapplus.layers.HoverCard.builder("Point").build(), null);
+		List<Hotspot> loaded = read.loaded(Collections.singletonList(point));
+		assertEquals(3, loaded.size());
+		assertSame(point, loaded.get(1));
+		assertEquals(1, read.getIcons().size());
 	}
 }

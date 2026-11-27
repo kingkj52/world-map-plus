@@ -2,12 +2,16 @@ package com.worldmapplus;
 
 import com.google.gson.*;
 import com.worldmapplus.data.*;
+import com.worldmapplus.drops.*;
 import com.worldmapplus.layers.*;
 import com.worldmapplus.map.*;
 import com.worldmapplus.render.*;
 import com.worldmapplus.search.*;
 import com.worldmapplus.tiles.*;
 import com.worldmapplus.unlock.*;
+import com.worldmapplus.walk.*;
+import java.io.*;
+import java.nio.charset.*;
 import java.util.*;
 import java.util.concurrent.*;
 import javax.annotation.Nullable;
@@ -59,9 +63,17 @@ public class MapAssets
 	/** The loaded data, or null until the first use. Written once, under the lock, after everything in it is built. */
 	private volatile Data data;
 
+	/** The drop tables, read on first use (never at start) on the shared executor. */
+	@Getter
+	private final DropLoader drops;
+
+	/** Item prices from RuneLite's item manager. Set by the plugin while it runs; none in tests and previews. */
+	@Getter
+	private volatile PriceSource prices = PriceSource.NONE;
+
 	/** What the player has done, for the icons to follow. Set by the plugin while it runs; null in tests and previews. */
 	@Getter
-	private volatile UnlockView unlocks;
+	private volatile Unlocks unlocks;
 
 	@Inject
 	public MapAssets(Gson gson, ScheduledExecutorService executor, OkHttpClient http, WorldMapPlusConfig config)
@@ -88,6 +100,32 @@ public class MapAssets
 		this.http = http;
 		this.config = config;
 		this.fixedTiles = tiles;
+		this.drops = new DropLoader(executor, () -> DropTables.load(gson));
+	}
+
+	/** A bundled JSON file read into its shape, or null when it is missing or damaged. */
+	@Nullable
+	public static <T> T json(Gson gson, String name, Class<T> type)
+	{
+		try (InputStream in = MapAssets.class.getResourceAsStream("/com/worldmapplus/" + name))
+		{
+			if (in != null)
+			{
+				return gson.fromJson(new InputStreamReader(in, StandardCharsets.UTF_8), type);
+			}
+			log.warn("World Map Plus: {} is missing from the plugin jar", name);
+		}
+		catch (IOException | JsonParseException e)
+		{
+			log.warn("World Map Plus: could not read {}", name, e);
+		}
+		return null;
+	}
+
+	/** Gives the drop tabs item prices to show, or takes them away with null. */
+	public void setPrices(PriceSource source)
+	{
+		this.prices = source == null ? PriceSource.NONE : source;
 	}
 
 	/** Tells where downloaded map pictures are kept. Must be called before the data is first read to have any effect. */
@@ -110,7 +148,7 @@ public class MapAssets
 	}
 
 	/** Gives the icons the player's progress to follow, or takes it away with null. */
-	public void setUnlocks(UnlockView view)
+	public void setUnlocks(Unlocks view)
 	{
 		this.unlocks = view;
 	}
@@ -138,14 +176,15 @@ public class MapAssets
 		private final PoiLayer poiLayer;
 		private final PoiIcons poiIcons = new PoiIcons();
 		private final Set<String> poiIconNames = new LinkedHashSet<>();
-		private final RegionLines regions;
 		private final int floors;
 		private final Gazetteer gazetteer;
 		private final MapElements elements;
 		private final LabelLayer labels;
+		private final WalkPlanner walkPlanner;
 		private final List<Hotspot> teleports = new ArrayList<>();
 		private final List<SearchEntry> searchEntries;
 		private final GameIconSet gameIcons;
+		private final KindIndex kinds;
 		/** Made when the map first draws the game's icons itself. */
 		private volatile GameIconLayer gameIconLayer;
 
@@ -155,22 +194,22 @@ public class MapAssets
 			this.floors = index.highestFloor(MapInfo.SURFACE);
 			this.tiles = new TileCache(source, executor, tileBudget(0));
 			this.renderer = new MapRenderer(tiles);
-			List<Hotspot> loaded = HotspotLoader.load(gson, catalog);
+			// Every card, the game's icons, links and labels, made at build time (things.json, from tools/build_cards.py).
+			this.elements = MapElements.load(gson);
 			PoiLoader.Result pois = PoiLoader.load(gson, catalog);
-			loaded.addAll(pois.getHotspots());
-			loaded.addAll(ShortcutLoader.load(gson, catalog));
+			List<Hotspot> loaded = elements.loaded(pois.getHotspots());
 			this.poiCategories = pois.getCategories();
-			List<SearchEntry> entries = SearchSources.build(catalog, loaded);
-			this.searchEntries = entries;
-			// The game's own icon names, for the icons the tiles show where no richer card exists.
-			this.elements = MapElements.load(gson, catalog, loaded, PlaceLoader.quests(gson, catalog));
-			// A result for something an icon stands for says what is missing for it, as the icon's card does.
-			SearchSources.attachIconNeeds(entries, elements.getGameIcons());
+			// Every search entry and every place of each kind, made at build time (search.json, from tools/build_search.py).
+			SearchFile search = json(gson, "search.json", SearchFile.class);
+			this.searchEntries = search == null ? new ArrayList<>() : search.entries(elements, PoiLoader.today());
+			this.kinds = search == null ? KindIndex.empty() : search.kinds();
 			// A card that covers an icon and was given the wiki's requirement for it is used in place of the one it was made from.
 			loaded.replaceAll(elements::replacementOf);
-			entries.addAll(PlaceLoader.build(gson, catalog, elements));
+			// The town areas, worked out at build time (places.json, from tools/build_places.py).
+			Gazetteer.Places places = json(gson, "places.json", Gazetteer.Places.class);
 			this.labels = new LabelLayer(elements);
 			this.gameIcons = new GameIconSet(elements.getGameIcons());
+			this.walkPlanner = new WalkPlanner(executor);
 			List<Hotspot> indexed = new ArrayList<>(loaded);
 			indexed.addAll(elements.getIcons());
 			this.hotspots = new HotspotIndex(indexed);
@@ -189,9 +228,7 @@ public class MapAssets
 			}
 			this.poiLayer = new PoiLayer(hotspots, poiIcons, byId);
 			this.searchIndex = new SearchIndex(searchEntries);
-			this.regions = RegionLines.load(gson);
-			this.gazetteer = new Gazetteer(catalog, regions, PlaceLoader.shopPlaces(gson, catalog));
-			gazetteer.addLabels(elements);
+			this.gazetteer = new Gazetteer(catalog, json(gson, "regions.json", Gazetteer.Regions.class), places);
 			for (Hotspot hotspot : loaded)
 			{
 				if (hotspot.getKind() == Hotspot.Kind.TELEPORT)
@@ -253,6 +290,12 @@ public class MapAssets
 		});
 	}
 
+	/** Finds the walking between the jumps of a route, for drawing the exact way. */
+	public WalkPlanner getWalkPlanner()
+	{
+		return data().walkPlanner;
+	}
+
 	/** The game's own text labels, such as area names. */
 	public LabelLayer getLabels()
 	{
@@ -288,6 +331,12 @@ public class MapAssets
 		return layer;
 	}
 
+	/** Every place of each kind, merged per town. */
+	public KindIndex getKinds()
+	{
+		return data().kinds;
+	}
+
 	/** The game's own labels and icon names. */
 	public MapElements getElements()
 	{
@@ -310,12 +359,6 @@ public class MapAssets
 	public int getFloors()
 	{
 		return data().floors;
-	}
-
-	/** The regions of the world, for the region borders layer. */
-	public RegionLines getRegions()
-	{
-		return data().regions;
 	}
 
 	public MapCatalog getCatalog()
@@ -383,9 +426,9 @@ public class MapAssets
 	public void releaseIfIdle()
 	{
 		Data loaded = data;
-		if (loaded != null)
+		if (loaded != null && loaded.tiles.releaseIfIdle(IDLE_RELEASE_MILLIS))
 		{
-			loaded.tiles.releaseIfIdle(IDLE_RELEASE_MILLIS);
+			loaded.walkPlanner.release();
 		}
 	}
 
@@ -396,6 +439,7 @@ public class MapAssets
 		if (loaded != null)
 		{
 			loaded.tiles.close();
+			loaded.walkPlanner.release();
 		}
 	}
 }

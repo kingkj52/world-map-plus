@@ -17,7 +17,7 @@ public class MapViewerTest
 	private static MapViewer viewer()
 	{
 		MapViewer v = new MapViewer(SURFACE, 3200, 3200, 4.0);
-		v.getZoom().setSmoothingSeconds(0);
+		v.setFeel(1, 1, 0);
 		v.update(0, BOUNDS, 0, 0);
 		return v;
 	}
@@ -77,7 +77,7 @@ public class MapViewerTest
 	public void whileFollowingTheZoomAnchorsOnTheCentre()
 	{
 		MapViewer v = viewer();
-		v.getCamera().setFollowing(true);
+		v.setFollowing(true);
 		v.update(16, BOUNDS, 3200, 3200);
 		v.onWheel(-3, 700, 100, 100);
 		ViewTransform after = v.update(116, BOUNDS, 3200, 3200);
@@ -126,7 +126,7 @@ public class MapViewerTest
 	public void theCameraCannotLeaveTheMapByMoreThanTheMargin()
 	{
 		MapViewer v = viewer();
-		v.getCamera().jumpTo(-50000, 90000);
+		v.jumpTo(-50000, 90000);
 		ViewTransform t = v.update(16, BOUNDS, 0, 0);
 		assertTrue(t.getCenterX() > SURFACE.getMinX() - BOUNDS.width);
 		assertTrue(t.getCenterY() < SURFACE.getMaxY() + BOUNDS.height);
@@ -140,21 +140,21 @@ public class MapViewerTest
 		v.update(16, BOUNDS, 0, 0);
 		// 192 x 128 tiles in an 800 x 600 view: fits at about 4.2 px per tile, so the floor is
 		// well above the global minimum.
-		assertTrue(v.getZoom().getMinPixelsPerTile() > 1.0);
+		assertTrue(v.getMinPixelsPerTile() > 1.0);
 		for (int i = 0; i < 100; i++)
 		{
 			v.onWheel(5, 400, 300, 100 + i * 30L);
 		}
 		ViewTransform t = v.update(5000, BOUNDS, 0, 0);
-		assertTrue(t.getPixelsPerTile() >= v.getZoom().getMinPixelsPerTile() - 1e-9);
+		assertTrue(t.getPixelsPerTile() >= v.getMinPixelsPerTile() - 1e-9);
 	}
 
 	@Test
 	public void theSurfaceCanBeZoomedOutUntilTheWholeWorldFits()
 	{
 		MapViewer v = viewer();
-		assertTrue(v.getZoom().getMinPixelsPerTile() < 0.25);
-		assertEquals(ZoomModel.MAX_PIXELS_PER_TILE, v.getZoom().getMaxPixelsPerTile(), 1e-9);
+		assertTrue(v.getMinPixelsPerTile() < 0.25);
+		assertEquals(MapViewer.MAX_PIXELS_PER_TILE, v.getMaxPixelsPerTile(), 1e-9);
 	}
 
 	@Test
@@ -172,7 +172,7 @@ public class MapViewerTest
 	public void followingTracksTheTarget()
 	{
 		MapViewer v = viewer();
-		v.getCamera().setFollowing(true);
+		v.setFollowing(true);
 		ViewTransform t = null;
 		for (int i = 0; i < 100; i++)
 		{

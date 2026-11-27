@@ -1,5 +1,7 @@
 package com.worldmapplus.ui;
 
+import static com.worldmapplus.theme.Palette.colour;
+
 import com.worldmapplus.search.*;
 import com.worldmapplus.theme.*;
 import java.awt.*;
@@ -23,8 +25,6 @@ public final class SearchBar
 	static final int MAX_WIDTH = 380;
 	/** Gap to the left of the map's coordinate plate, which sits in the top left corner. */
 	static final int LEFT_CLEARANCE = 190;
-
-	/** The words of a "Missing" note on a result, the gold of the padlock on a dimmed icon. */
 
 	/** What is missing for a result, as a card would say it, or null; asked only for the rows drawn (round 47). */
 	@Nullable
@@ -97,7 +97,7 @@ public final class SearchBar
 	/** How open the results are, from 0 folded away to 1 fully shown. */
 	private double open = 1;
 	private long lastTick;
-	private final Fade rowFade = new Fade();
+	private final Motion rowFade = new Motion();
 
 	/** Places the field top centre of the map, clear of the corner plate and the buttons. */
 	public void layout(Rectangle map, int resultCount)
@@ -147,7 +147,7 @@ public final class SearchBar
 	/** The results as far as they are open: the same top and width, and a height that grows and shrinks. */
 	private Rectangle shown()
 	{
-		int height = (int) Math.round(resultsRect.height * Fade.ease(open));
+		int height = (int) Math.round(resultsRect.height * Motion.ease(open));
 		return new Rectangle(resultsRect.x, resultsRect.y, resultsRect.width, height);
 	}
 
@@ -214,17 +214,17 @@ public final class SearchBar
 	public void paint(Graphics2D g, SearchBox box, @Nullable Point mouse, long nowMillis)
 	{
 		boolean focused = box.isFocused();
-		Theme.panel(g, fieldRect.x, fieldRect.y, fieldRect.width, fieldRect.height,
-			focused ? Theme.PANEL_ACTIVE : Theme.PANEL, focused ? Theme.ACCENT : Theme.BORDER);
+		Box.panel(g, fieldRect.x, fieldRect.y, fieldRect.width, fieldRect.height,
+			colour(focused ? "PANEL_ACTIVE" : "PANEL"), colour(focused ? "ACCENT" : "BORDER"));
 
 		g.setFont(Palette.FIELD_FONT);
 		FontMetrics metrics = g.getFontMetrics();
 		int textX = fieldRect.x + 10;
-		int baseline = fieldRect.y + (fieldRect.height - metrics.getHeight()) / 2 + metrics.getAscent();
+		int baseline = Box.middle(fieldRect.y, fieldRect.height, metrics);
 		String text = box.getText();
 		if (text.isEmpty() && !focused)
 		{
-			g.setColor(Theme.FIELD_DIM);
+			g.setColor(colour("FIELD_DIM"));
 			g.drawString("Search places, shops, items", textX, baseline);
 		}
 		else
@@ -232,10 +232,10 @@ public final class SearchBar
 			String shown = tail(text, metrics, fieldRect.width - 24);
 			if (box.isAllSelected())
 			{
-				g.setColor(Theme.ACCENT_GLOW);
+				g.setColor(colour("ACCENT_GLOW"));
 				g.fillRect(textX - 1, fieldRect.y + 4, metrics.stringWidth(shown) + 2, fieldRect.height - 8);
 			}
-			g.setColor(Theme.TEXT);
+			g.setColor(colour("TEXT"));
 			g.drawString(shown, textX, baseline);
 			if (focused && !box.isAllSelected() && (nowMillis / 500) % 2 == 0)
 			{
@@ -250,9 +250,9 @@ public final class SearchBar
 			g.setFont(Palette.SMALL);
 			String count = results.size() >= SearchBox.MAX_RESULTS ? SearchBox.MAX_RESULTS + "+" : String.valueOf(results.size());
 			FontMetrics small = g.getFontMetrics();
-			g.setColor(Theme.FIELD_DIM);
+			g.setColor(colour("FIELD_DIM"));
 			g.drawString(count, fieldRect.x + fieldRect.width - small.stringWidth(count) - 10,
-				fieldRect.y + (fieldRect.height - small.getHeight()) / 2 + small.getAscent());
+				Box.middle(fieldRect.y, fieldRect.height, small));
 		}
 		Rectangle area = shown();
 		if (area.height > 0)
@@ -260,7 +260,7 @@ public final class SearchBar
 			Shape oldClip = g.getClip();
 			Composite oldComposite = g.getComposite();
 			g.clipRect(area.x, area.y, area.width, area.height);
-			g.setComposite(AlphaComposite.SrcOver.derive((float) Math.min(1.0, Fade.ease(open) * 1.2)));
+			g.setComposite(AlphaComposite.SrcOver.derive((float) Math.min(1.0, Motion.ease(open) * 1.2)));
 			for (int i = 0; i < visibleRows && box.getScrollTop() + i < results.size(); i++)
 			{
 				int index = box.getScrollTop() + i;
@@ -287,14 +287,14 @@ public final class SearchBar
 	private void paintScrollBar(Graphics2D g, SearchBox box)
 	{
 		int trackX = resultsRect.x + resultsRect.width - SCROLL_WIDTH - 2;
-		g.setColor(Theme.SEARCH_INSET);
+		g.setColor(colour("SEARCH_INSET"));
 		g.fillRect(trackX, resultsRect.y, SCROLL_WIDTH + 2, resultsRect.height);
 		int count = box.getResults().size();
 		int thumb = Math.max(18, resultsRect.height * visibleRows / Math.max(1, count));
 		int range = resultsRect.height - thumb;
 		int hidden = Math.max(1, count - visibleRows);
 		int thumbY = resultsRect.y + range * box.getScrollTop() / hidden;
-		g.setColor(Theme.ACCENT);
+		g.setColor(colour("ACCENT"));
 		g.fillRoundRect(trackX + 2, thumbY, SCROLL_WIDTH - 2, thumb, 6, 6);
 	}
 
@@ -304,10 +304,10 @@ public final class SearchBar
 		g.setFont(Palette.SMALL);
 		FontMetrics small = g.getFontMetrics();
 		int y = resultsRect.y + shown().height + 2;
-		Theme.panel(g, fieldRect.x, y, fieldRect.width, HINT_HEIGHT);
-		g.setColor(Theme.FIELD_DIM);
-		g.drawString(clip(text, small, fieldRect.width - 20), fieldRect.x + 10,
-			y + (HINT_HEIGHT - small.getHeight()) / 2 + small.getAscent());
+		Box.panel(g, fieldRect.x, y, fieldRect.width, HINT_HEIGHT);
+		g.setColor(colour("FIELD_DIM"));
+		g.drawString(Box.dots(text, small, fieldRect.width - 20), fieldRect.x + 10,
+			Box.middle(y, HINT_HEIGHT, small));
 	}
 
 	private static final String[] HELP = {
@@ -324,33 +324,32 @@ public final class SearchBar
 		FontMetrics small = g.getFontMetrics();
 		int height = HELP.length * (small.getHeight() + 2) + 12;
 		int y = fieldRect.y + fieldRect.height + 2;
-		g.setColor(Theme.FIELD_FILL);
+		g.setColor(colour("FIELD_FILL"));
 		g.fillRect(fieldRect.x, y, fieldRect.width, height);
-		g.setColor(Theme.BORDER);
+		g.setColor(colour("BORDER"));
 		g.drawRect(fieldRect.x, y, fieldRect.width - 1, height - 1);
-		g.setColor(Theme.FIELD_DIM);
+		g.setColor(colour("FIELD_DIM"));
 		int line = y + 6 + small.getAscent();
 		for (String text : HELP)
 		{
-			g.drawString(clip(text, small, fieldRect.width - 20), fieldRect.x + 10, line);
+			g.drawString(Box.dots(text, small, fieldRect.width - 20), fieldRect.x + 10, line);
 			line += small.getHeight() + 2;
 		}
 	}
 
+	/** The rectangle of the row being drawn, reused so a frame makes none. */
+	private final Rectangle cell = new Rectangle();
+
 	private void paintRow(Graphics2D g, SearchEntry entry, int row, boolean selected, @Nullable Point mouse,
 		long nowMillis)
 	{
-		Rectangle rect = new Rectangle(resultsRect.x, resultsRect.y + row * ROW_HEIGHT, resultsRect.width, ROW_HEIGHT);
-		g.setColor(Theme.FIELD_FILL);
+		Rectangle rect = cell;
+		rect.setBounds(resultsRect.x, resultsRect.y + row * ROW_HEIGHT, resultsRect.width, ROW_HEIGHT);
+		g.setColor(colour("FIELD_FILL"));
 		g.fillRect(rect.x, rect.y, rect.width, rect.height);
 		boolean hovered = mouse != null && rect.contains(mouse);
-		double warmth = rowFade.level(entry, selected || hovered, nowMillis);
-		if (warmth > 0)
-		{
-			g.setColor(Fade.withAlpha(Theme.ROW_SELECTED, warmth));
-			g.fillRect(rect.x, rect.y, rect.width, rect.height);
-		}
-		g.setColor(Theme.BORDER);
+		Box.warm(g, "ROW_SELECTED", rowFade.level(entry, selected || hovered, nowMillis), rect.x, rect.y, rect.width, rect.height);
+		g.setColor(colour("BORDER"));
 		g.drawLine(rect.x, rect.y + rect.height - 1, rect.x + rect.width - 1, rect.y + rect.height - 1);
 
 		g.setFont(Palette.SMALL);
@@ -358,15 +357,15 @@ public final class SearchBar
 		String kind = entry.getKind().label();
 		int chipWidth = small.stringWidth(kind) + 10;
 		int chipX = rect.x + rect.width - chipWidth - 8;
-		g.setColor(Theme.CHIP);
+		g.setColor(colour("CHIP"));
 		g.fillRoundRect(chipX, rect.y + 6, chipWidth, 16, 8, 8);
-		g.setColor(Theme.TEXT);
-		g.drawString(kind, chipX + 5, rect.y + 6 + (16 - small.getHeight()) / 2 + small.getAscent());
+		g.setColor(colour("TEXT"));
+		g.drawString(kind, chipX + 5, Box.middle(rect.y + 6, 16, small));
 
 		g.setFont(Palette.BODY_BOLD);
 		FontMetrics bold = g.getFontMetrics();
-		g.setColor(Theme.TEXT);
-		g.drawString(clip(entry.getName(), bold, chipX - rect.x - 18), rect.x + 10, rect.y + 6 + bold.getAscent());
+		g.setColor(colour("TEXT"));
+		g.drawString(Box.dots(entry.getName(), bold, chipX - rect.x - 18), rect.x + 10, rect.y + 6 + bold.getAscent());
 
 		g.setFont(Palette.SMALL);
 		int width = rect.width - 20 - (scrolls() ? SCROLL_WIDTH : 0);
@@ -376,8 +375,8 @@ public final class SearchBar
 		if (lack != null)
 		{
 			// The same words as the card's Missing row, then the result's own detail in what room is left.
-			String note = clip("Missing: " + lack, small, width);
-			g.setColor(Theme.MISSING);
+			String note = Box.dots("Missing: " + lack, small, width);
+			g.setColor(colour("MISSING"));
 			g.drawString(note, x, baseline);
 			int used = small.stringWidth(note) + 8;
 			x += used;
@@ -385,8 +384,8 @@ public final class SearchBar
 		}
 		if (width > 20)
 		{
-			g.setColor(Theme.FIELD_DIM);
-			g.drawString(clip(entry.getDetail(), small, width), x, baseline);
+			g.setColor(colour("FIELD_DIM"));
+			g.drawString(Box.dots(entry.getDetail(), small, width), x, baseline);
 		}
 	}
 
@@ -403,19 +402,5 @@ public final class SearchBar
 			start++;
 		}
 		return text.substring(start);
-	}
-
-	private static String clip(String text, FontMetrics metrics, int maxWidth)
-	{
-		if (text == null || metrics.stringWidth(text) <= maxWidth)
-		{
-			return text == null ? "" : text;
-		}
-		String result = text;
-		while (result.length() > 1 && metrics.stringWidth(result + "...") > maxWidth)
-		{
-			result = result.substring(0, result.length() - 1);
-		}
-		return result + "...";
 	}
 }

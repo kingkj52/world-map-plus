@@ -114,7 +114,7 @@ public class OwnSearchTest
 		entries.add(new SearchEntry(SearchKind.PLACE, "Bank chest", "Area", 0, 3100, 3100));
 		SearchIndex index = new SearchIndex(entries);
 		SearchContext context = new SearchContext(false, 0, 0, 0, new Gazetteer(com.worldmapplus.map.MapCatalog.load(new Gson()),
-			com.worldmapplus.layers.RegionLines.load(new Gson()), Collections.emptyList()));
+			null, null));
 		for (String filter : new String[] {"kind:route bank", "type:routes bank", "kind:route"})
 		{
 			List<SearchEntry> found = index.search(filter, 10, context);

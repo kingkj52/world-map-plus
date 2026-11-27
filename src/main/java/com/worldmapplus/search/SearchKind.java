@@ -20,9 +20,7 @@ public enum SearchKind
 	TELEPORT("Teleport", 12),
 	POINT("Point", 26),
 	ITEM("Item", 5),
-	MUSIC("Music", 3),
-	/** A result another plugin gave, through the plugin API. */
-	PARTNER("Plugin", 8);
+	MUSIC("Music", 3);
 
 	private final String label;
 	private final int weight;

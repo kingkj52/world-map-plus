@@ -127,7 +127,8 @@ public class ChatSearchSurfaceTest
 			{
 				return null;
 			}
-		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), routes, new PanelLauncher(), withChat);
+		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), null,
+			routes, new PanelLauncher(), withChat);
 		return new MapSurface(client, assets, config, services);
 	}
 
@@ -195,13 +196,13 @@ public class ChatSearchSurfaceTest
 	{
 		chatOn = false;
 		startSearch();
-		for (char c : "varrock teleport".toCharArray())
+		for (char c : "bob's brilliant".toCharArray())
 		{
 			assertTrue("taken for the map's own field", typeDirect(c).isConsumed());
 		}
 		frame();
-		assertEquals("varrock teleport", surface.searchBox().getText());
-		assertEquals(SearchKind.TELEPORT, surface.searchBox().getResults().get(0).getKind());
+		assertEquals("bob's brilliant", surface.searchBox().getText());
+		assertEquals(SearchKind.SHOP, surface.searchBox().getResults().get(0).getKind());
 
 		surface.getInput().keyPressed(new KeyEvent(SOURCE, KeyEvent.KEY_PRESSED, now, 0, KeyEvent.VK_ENTER, '\n'));
 		frames(30);
@@ -269,15 +270,15 @@ public class ChatSearchSurfaceTest
 		chatOn = true;
 		startSearch();
 		typeDirect('b');
-		prompts.type("varrock teleport");
+		prompts.type("bob's brilliant");
 		frame();
-		assertEquals("varrock teleport", surface.searchBox().getText());
+		assertEquals("bob's brilliant", surface.searchBox().getText());
 		assertFalse(surface.searchBox().getResults().isEmpty());
-		assertEquals(SearchKind.TELEPORT, surface.searchBox().getResults().get(0).getKind());
+		assertEquals(SearchKind.SHOP, surface.searchBox().getResults().get(0).getKind());
 
-		prompts.set("varrock");
+		prompts.set("bob");
 		frame();
-		assertEquals("results follow each change", "varrock", surface.searchBox().getText());
+		assertEquals("results follow each change", "bob", surface.searchBox().getText());
 		prompts.set("");
 		frame();
 		assertEquals("", surface.searchBox().getText());
@@ -305,7 +306,7 @@ public class ChatSearchSurfaceTest
 	{
 		chatOn = true;
 		startSearch();
-		prompts.type("varrock teleport");
+		prompts.type("bob's brilliant");
 		frame();
 		prompts.enter();
 		frames(80);
@@ -463,44 +464,6 @@ public class ChatSearchSurfaceTest
 		startSearch();
 		assertTrue("the default opens the prompt", prompts.isOpen());
 		assertFalse("and the map takes no keys", typeDirect('a').isConsumed());
-	}
-
-	@Test
-	public void aMapInAWindowOfItsOwnTypesDirectlyWithTheDefaultToo()
-	{
-		MapSurface windowed = newSurface(chat, new WorldMapPlusConfig()
-		{
-		});
-		windowed.asWindow(() -> new Point(-1, -1), Runnable::run);
-		for (int i = 0; i < 10; i++)
-		{
-			frame(windowed, BOUNDS, options());
-		}
-		controlF(windowed);
-		frame(windowed, BOUNDS, options());
-		assertTrue(windowed.searchBox().isFocused());
-		assertEquals(0, prompts.calls());
-	}
-
-	@Test
-	public void aMapInAWindowOfItsOwnNeverUsesTheChatArea()
-	{
-		chatOn = true;
-		MapSurface windowed = newSurface(chat);
-		windowed.asWindow(() -> new Point(-1, -1), Runnable::run);
-		for (int i = 0; i < 10; i++)
-		{
-			frame(windowed, BOUNDS, options());
-		}
-		controlF(windowed);
-		frame(windowed, BOUNDS, options());
-		assertTrue(windowed.searchBox().isFocused());
-		KeyEvent typed = new KeyEvent(SOURCE, KeyEvent.KEY_TYPED, now, 0, KeyEvent.VK_UNDEFINED, 'w');
-		windowed.getInput().keyTyped(typed);
-		assertTrue("it types straight into its own field", typed.isConsumed());
-		frame(windowed, BOUNDS, options());
-		assertEquals("w", windowed.searchBox().getText());
-		assertEquals(0, prompts.calls());
 	}
 
 	@Test

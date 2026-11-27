@@ -1,0 +1,242 @@
+# answers before any question
+  reply ready {apiVersion=1, limits={answerMillis=5000, coverPoints=16, coversPerSecond=8, hellosPerSecond=4, hintText=60, idLength=64, image=64, layerText=40, linePoints=5000, lines=60, markers=500, menuEntries=4, menuText=40, text=120}, messages=['marker', 'marker_clear', 'line', 'line_clear', 'focus', 'covers', 'hello'], plugin='World Map Plus', replies=['hello_reply', 'ready', 'covers_reply', 'focus_result', 'marker_clicked', 'marker_menu']}
+  version 0 idle true
+> hello ['id', 'golden-1']
+  reply hello_reply {apiVersion=1, id='golden-1', limits={answerMillis=5000, coverPoints=16, coversPerSecond=8, hellosPerSecond=4, hintText=60, idLength=64, image=64, layerText=40, linePoints=5000, lines=60, markers=500, menuEntries=4, menuText=40, text=120}, messages=['marker', 'marker_clear', 'line', 'line_clear', 'focus', 'covers', 'hello'], plugin='World Map Plus', replies=['hello_reply', 'ready', 'covers_reply', 'focus_result', 'marker_clicked', 'marker_menu']}
+  version 0 idle true
+> hello ['id', 'bad id!']
+  version 0 idle true
+> hello []
+  version 0 idle true
+> hello ['id', 42]
+  version 0 idle true
+# markers
+> marker ['id', 'a', 'point', (3200,3200,0)]
+  marker /a at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  version 1 idle true
+> marker ['id', 'b', 'source', 'gim', 'point', (3210,3201,1), 'name', '  Bob  ', 'tooltip', 'Bob\nHitpoints 50\n\tPrayer 30', 'color', color 280a141e, 'image', image 16x12 #a2d5c3e2eba0a1a7, 'layer', 'Group']
+  marker /a at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/b at 3210.5,3201.5 name 'Bob' tooltip 'Bob\nHitpoints 50\n\tPrayer 30' color 280a141e icon image 16x12 #a2d5c3e2eba0a1a7 anchor null snap false jump null party false clickable false hint '' menu []
+  version 2 idle true
+> marker ['id', 'c', 'source', 'gim', 'point', (3220,3202,0), 'clickable', true, 'hint', '  Open\tthe\n|bank|  ', 'menu', ['Route here', 'Route here', '', '  Hide  ', 'x|y', 7, 'A very long menu entry that goes past forty letters for sure', 'Fifth', 'Sixth']]
+  marker /a at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/b at 3210.5,3201.5 name 'Bob' tooltip 'Bob\nHitpoints 50\n\tPrayer 30' color 280a141e icon image 16x12 #a2d5c3e2eba0a1a7 anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/c at 3220.5,3202.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable true hint 'Open the bank' menu ['Route here', 'Hide', 'x y', 'A very long menu entry that goes past fo']
+  version 3 idle true
+> marker ['id', 'bad id', 'source', 'gim', 'point', (3230,3203,0), 'clickable', true, 'menu', ['Nope']]
+  marker /a at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/b at 3210.5,3201.5 name 'Bob' tooltip 'Bob\nHitpoints 50\n\tPrayer 30' color 280a141e icon image 16x12 #a2d5c3e2eba0a1a7 anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/c at 3220.5,3202.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable true hint 'Open the bank' menu ['Route here', 'Hide', 'x y', 'A very long menu entry that goes past fo']
+  marker gim/bad id at 3230.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  version 4 idle true
+> marker ['id', 'd', 'source', 'bad source!', 'point', (3231,3203,0), 'clickable', true]
+  marker /a at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/b at 3210.5,3201.5 name 'Bob' tooltip 'Bob\nHitpoints 50\n\tPrayer 30' color 280a141e icon image 16x12 #a2d5c3e2eba0a1a7 anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/c at 3220.5,3202.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable true hint 'Open the bank' menu ['Route here', 'Hide', 'x y', 'A very long menu entry that goes past fo']
+  marker gim/bad id at 3230.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker bad source!/d at 3231.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  version 5 idle true
+> marker ['id', 'e', 'point', (3232,3204,0), 'image', image 65x10 #bc3b8eea82e0e1dc, 'color', 'red', 'name', 5]
+  marker /a at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/b at 3210.5,3201.5 name 'Bob' tooltip 'Bob\nHitpoints 50\n\tPrayer 30' color 280a141e icon image 16x12 #a2d5c3e2eba0a1a7 anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/c at 3220.5,3202.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable true hint 'Open the bank' menu ['Route here', 'Hide', 'x y', 'A very long menu entry that goes past fo']
+  marker gim/bad id at 3230.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker bad source!/d at 3231.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker /e at 3232.5,3204.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  version 6 idle true
+> marker ['id', 'f', 'point', '3200,3200']
+  marker /a at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/b at 3210.5,3201.5 name 'Bob' tooltip 'Bob\nHitpoints 50\n\tPrayer 30' color 280a141e icon image 16x12 #a2d5c3e2eba0a1a7 anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/c at 3220.5,3202.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable true hint 'Open the bank' menu ['Route here', 'Hide', 'x y', 'A very long menu entry that goes past fo']
+  marker gim/bad id at 3230.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker bad source!/d at 3231.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker /e at 3232.5,3204.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  version 6 idle true
+> marker ['point', (3233,3205,0)]
+  marker /a at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/b at 3210.5,3201.5 name 'Bob' tooltip 'Bob\nHitpoints 50\n\tPrayer 30' color 280a141e icon image 16x12 #a2d5c3e2eba0a1a7 anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/c at 3220.5,3202.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable true hint 'Open the bank' menu ['Route here', 'Hide', 'x y', 'A very long menu entry that goes past fo']
+  marker gim/bad id at 3230.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker bad source!/d at 3231.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker /e at 3232.5,3204.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  version 6 idle true
+> marker ['id', 'a', 'point', (3201,3201,0), 'name', 'Name0Name1Name2Name3Name4Name5Name6Name7Name8Name9Name10Name11Name12Name13Name14Name15Name16Name17Name18Name19Name20Name21Name22Name23Name24Name25Name26Name27Name28Name29', 'clickable', 'yes']
+  marker /a at 3201.5,3201.5 name 'Name0Name1Name2Name3Name4Name5Name6Name7Name8Name9Name10Name11Name12Name13Name14Name15Name16Name17Name18Name19Name20Name' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/b at 3210.5,3201.5 name 'Bob' tooltip 'Bob\nHitpoints 50\n\tPrayer 30' color 280a141e icon image 16x12 #a2d5c3e2eba0a1a7 anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/c at 3220.5,3202.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable true hint 'Open the bank' menu ['Route here', 'Hide', 'x y', 'A very long menu entry that goes past fo']
+  marker gim/bad id at 3230.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker bad source!/d at 3231.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker /e at 3232.5,3204.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  version 7 idle true
+> marker ['id', 'g', 'source', 'gim', 'point', (3240,3206,0), 'image', image 64x64 #af465e076197807, 'clickable', true]
+  marker /a at 3201.5,3201.5 name 'Name0Name1Name2Name3Name4Name5Name6Name7Name8Name9Name10Name11Name12Name13Name14Name15Name16Name17Name18Name19Name20Name' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/b at 3210.5,3201.5 name 'Bob' tooltip 'Bob\nHitpoints 50\n\tPrayer 30' color 280a141e icon image 16x12 #a2d5c3e2eba0a1a7 anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/c at 3220.5,3202.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable true hint 'Open the bank' menu ['Route here', 'Hide', 'x y', 'A very long menu entry that goes past fo']
+  marker gim/bad id at 3230.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker bad source!/d at 3231.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker /e at 3232.5,3204.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/g at 3240.5,3206.5 name '' tooltip '' color ffff00ff icon image 64x64 #af465e076197807 anchor null snap false jump null party false clickable true hint '' menu []
+  version 8 idle true
+> marker_clear ['id', 'g', 'source', 'other']
+  marker /a at 3201.5,3201.5 name 'Name0Name1Name2Name3Name4Name5Name6Name7Name8Name9Name10Name11Name12Name13Name14Name15Name16Name17Name18Name19Name20Name' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/b at 3210.5,3201.5 name 'Bob' tooltip 'Bob\nHitpoints 50\n\tPrayer 30' color 280a141e icon image 16x12 #a2d5c3e2eba0a1a7 anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/c at 3220.5,3202.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable true hint 'Open the bank' menu ['Route here', 'Hide', 'x y', 'A very long menu entry that goes past fo']
+  marker gim/bad id at 3230.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker bad source!/d at 3231.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker /e at 3232.5,3204.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/g at 3240.5,3206.5 name '' tooltip '' color ffff00ff icon image 64x64 #af465e076197807 anchor null snap false jump null party false clickable true hint '' menu []
+  version 8 idle true
+> marker_clear ['id', 'g']
+  marker /a at 3201.5,3201.5 name 'Name0Name1Name2Name3Name4Name5Name6Name7Name8Name9Name10Name11Name12Name13Name14Name15Name16Name17Name18Name19Name20Name' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/b at 3210.5,3201.5 name 'Bob' tooltip 'Bob\nHitpoints 50\n\tPrayer 30' color 280a141e icon image 16x12 #a2d5c3e2eba0a1a7 anchor null snap false jump null party false clickable false hint '' menu []
+  marker gim/c at 3220.5,3202.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable true hint 'Open the bank' menu ['Route here', 'Hide', 'x y', 'A very long menu entry that goes past fo']
+  marker gim/bad id at 3230.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker bad source!/d at 3231.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker /e at 3232.5,3204.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  version 9 idle true
+> marker_clear ['source', 'gim']
+  marker /a at 3201.5,3201.5 name 'Name0Name1Name2Name3Name4Name5Name6Name7Name8Name9Name10Name11Name12Name13Name14Name15Name16Name17Name18Name19Name20Name' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker bad source!/d at 3231.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker /e at 3232.5,3204.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  version 10 idle true
+> marker_clear ['id', 'nothing']
+  marker /a at 3201.5,3201.5 name 'Name0Name1Name2Name3Name4Name5Name6Name7Name8Name9Name10Name11Name12Name13Name14Name15Name16Name17Name18Name19Name20Name' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker bad source!/d at 3231.5,3203.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker /e at 3232.5,3204.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  version 10 idle true
+> marker_clear []
+  version 11 idle true
+> marker_clear []
+  version 11 idle true
+# lines
+> line ['id', 'l1', 'source', 'gim', 'points', [(3200,3200,0), (3210,3220,0), 'skip', (3230,3240,1)], 'color', color ff00ff00, 'label', ' Path ', 'layer', 'Routes']
+  line gim/l1 [[3200.5, 3200.5, 0.0], [3210.5, 3220.5, 0.0], [3230.5, 3240.5, 1.0]] color ff00ff00 label 'Path' hop false
+  version 12 idle true
+> line ['id', 'l2', 'points', [(3200,3200,0)]]
+  line gim/l1 [[3200.5, 3200.5, 0.0], [3210.5, 3220.5, 0.0], [3230.5, 3240.5, 1.0]] color ff00ff00 label 'Path' hop false
+  version 12 idle true
+> line ['id', 'l3', 'points', 'none']
+  line gim/l1 [[3200.5, 3200.5, 0.0], [3210.5, 3220.5, 0.0], [3230.5, 3240.5, 1.0]] color ff00ff00 label 'Path' hop false
+  version 12 idle true
+> line ['points', [(1,1,0), (2,2,0)]]
+  line gim/l1 [[3200.5, 3200.5, 0.0], [3210.5, 3220.5, 0.0], [3230.5, 3240.5, 1.0]] color ff00ff00 label 'Path' hop false
+  version 12 idle true
+> line ['id', 'l4', 'points', [(1,1,0), (2,2,0)], 'color', 5]
+  line gim/l1 [[3200.5, 3200.5, 0.0], [3210.5, 3220.5, 0.0], [3230.5, 3240.5, 1.0]] color ff00ff00 label 'Path' hop false
+  line /l4 [[1.5, 1.5, 0.0], [2.5, 2.5, 0.0]] color ff00c8ff label '' hop false
+  version 13 idle true
+> line_clear ['source', 'gim']
+  line /l4 [[1.5, 1.5, 0.0], [2.5, 2.5, 0.0]] color ff00c8ff label '' hop false
+  version 14 idle true
+> line_clear []
+  version 15 idle true
+# Shortest Path's jumps
+> shortestpath transports
+  line shortestpath/hop0 [[3200.5, 3200.5, 0.0], [3300.5, 3300.5, 0.0]] color ffff7828 label 'Fairy ring BIP' hop true
+  line shortestpath/hop1 [[3100.5, 3100.5, 0.0], [3000.5, 3000.5, 1.0]] color ffff7828 label 'Boat' hop true
+  line shortestpath/hop2 [[2900.5, 2900.5, 0.0], [2800.5, 2800.5, 0.0]] color ffff7828 label 'Transport' hop true
+  hop 3200.5,3200.5,0 > 3300.5,3300.5,0 'Fairy ring BIP'
+  hop 3100.5,3100.5,0 > 3000.5,3000.5,1 'Boat'
+  hop 2900.5,2900.5,0 > 2800.5,2800.5,0 'Transport'
+  version 16 idle true
+> hold first hops, then two answers
+  line shortestpath/hop0 [[1.5, 2.5, 0.0], [3.5, 4.5, 0.0]] color ffff7828 label 'Transport' hop true
+  hop 1.5,2.5,0 > 3.5,4.5,0 'Transport'
+  version 17 idle true
+> released, then an answer
+  line shortestpath/hop0 [[9.5, 10.5, 0.0], [11.5, 12.5, 0.0]] color ffff7828 label 'Transport' hop true
+  hop 9.5,10.5,0 > 11.5,12.5,0 'Transport'
+  version 18 idle true
+> cleared
+  version 19 idle true
+> another namespace and another name
+  version 19 idle true
+# focus
+> focus ['point', (3222,3218,0)]
+  focus (3222,3218,0) zoom 0.0 name '' id '' exact false
+  version 19 idle true
+> focus ['point', (3222,3218,0), 'zoom', 6, 'name', 'Lumbridge', 'id', 'f-1', 'exact', true]
+  focus (3222,3218,0) zoom 6.0 name 'Lumbridge' id 'f-1' exact true
+  reply focus_result {id='f-1', mapKind='surface', mapName='Gielinor Surface', ok=true, reason='ok'}
+  version 19 idle true
+> focus ['point', (1,1,0), 'zoom', NaN, 'id', 'bad id']
+  focus (1,1,0) zoom 0.0 name '' id '' exact false
+  version 19 idle true
+> focus ['point', (1,1,0), 'zoom', -3.5, 'exact', 'yes']
+  focus (1,1,0) zoom 0.0 name '' id '' exact false
+  version 19 idle true
+> focus ['zoom', 4]
+  version 19 idle true
+> the side panel's Show
+  focus (3000,3000,0) zoom 0.0 name 'Saved place' id '' exact false
+  version 19 idle true
+  version 19 idle true
+# covers, before the maps are loaded and after
+> covers ['id', 'c-early', 'point', (3615,9469,0)]
+  version 19 idle false
+  reply covers_reply {covered=[true], exact=[true], id='c-early', mapKinds=['area'], mapNames=['Guardians of the Rift']}
+  version 19 idle true
+> covers ['id', 'c-many', 'points', [(3000,3000,0), (3001,3000,0), (3002,3000,0), (3003,3000,0), (3004,3000,0), (3005,3000,0), (3006,3000,0), (3007,3000,0), (3008,3000,0), (3009,3000,0), (3010,3000,0), (3011,3000,0), (3012,3000,0), (3013,3000,0), (3014,3000,0), (3015,3000,0), (3016,3000,0), (3017,3000,0), (3018,3000,0), (3019,3000,0)]]
+  reply covers_reply {covered=[true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true], exact=[true, false, true, false, true, false, true, false, true, false, true, false, true, false, true, false], id='c-many', mapKinds=['surface', 'surface', 'surface', 'surface', 'surface', 'surface', 'surface', 'surface', 'surface', 'surface', 'surface', 'surface', 'surface', 'surface', 'surface', 'surface'], mapNames=['Gielinor Surface', 'Gielinor Surface', 'Gielinor Surface', 'Gielinor Surface', 'Gielinor Surface', 'Gielinor Surface', 'Gielinor Surface', 'Gielinor Surface', 'Gielinor Surface', 'Gielinor Surface', 'Gielinor Surface', 'Gielinor Surface', 'Gielinor Surface', 'Gielinor Surface', 'Gielinor Surface', 'Gielinor Surface']}
+  version 19 idle true
+> covers ['id', 'c-bad', 'points', [(3000,3000,0), 'x']]
+  version 19 idle true
+> covers ['id', 'c-one', 'point', (1,1,0), 'points', 'not a list']
+  reply covers_reply {covered=[false], exact=[false], id='c-one', mapKinds=[''], mapNames=['']}
+  version 19 idle true
+> covers ['point', (1,1,0)]
+  version 19 idle true
+> covers ['id', 'c-none']
+  version 19 idle true
+# clicks and menu entries said back
+> marker ['id', 'k', 'source', 'gim', 'point', (3200,3200,0), 'clickable', true, 'menu', ['Route here', 'Hide']]
+  marker gim/k at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable true hint '' menu ['Route here', 'Hide']
+  version 20 idle true
+> click current: true
+> menu Hide: true
+> menu Other: false
+> click null: false
+  marker gim/k at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable true hint '' menu ['Route here', 'Hide']
+  reply marker_clicked {id='k', source='gim'}
+  reply marker_menu {id='k', option='Hide', source='gim'}
+  version 20 idle true
+> marker ['id', 'k', 'source', 'gim', 'point', (3200,3200,0), 'clickable', false]
+  marker gim/k at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  version 21 idle true
+> click replaced: false menu false
+> click not clickable: false
+  marker gim/k at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  version 21 idle true
+# a share shown and cleared
+  marker gim/k at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker World Map Plus share/share0 at 3200.5,3200.5 name 'Stop 1 of 3' tooltip 'Bob's route. Not saved: Save it from the side panel.' color ffffaa28 icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker World Map Plus share/share1 at 3210.5,3210.5 name 'Stop 2 of 3' tooltip 'Bob's route. Not saved: Save it from the side panel.' color ffffaa28 icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker World Map Plus share/share2 at 3220.5,3220.5 name 'Stop 3 of 3' tooltip 'Bob's route. Not saved: Save it from the side panel.' color ffffaa28 icon null anchor null snap false jump null party false clickable false hint '' menu []
+  line World Map Plus share/order [[3200.5, 3200.5, 0.0], [3210.5, 3210.5, 1.0], [3220.5, 3220.5, 0.0]] color ffffaa28 label 'Bob's route' hop false
+  version 22 idle true
+  marker gim/k at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker World Map Plus share/share0 at 3000.5,3000.5 name 'Shared pin' tooltip 'A pin. Not saved: Save it from the side panel.' color ffffaa28 icon null anchor null snap false jump null party false clickable false hint '' menu []
+  version 23 idle true
+  marker gim/k at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker World Map Plus share/share0 at 3000.5,3000.5 name 'Shared place 1' tooltip 'Places. Not saved: Save it from the side panel.' color ffffaa28 icon null anchor null snap false jump null party false clickable false hint '' menu []
+  marker World Map Plus share/share1 at 3001.5,3001.5 name 'Shared place 2' tooltip 'Places. Not saved: Save it from the side panel.' color ffffaa28 icon null anchor null snap false jump null party false clickable false hint '' menu []
+  version 24 idle true
+  marker gim/k at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  version 25 idle true
+  marker gim/k at 3200.5,3200.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu []
+  version 25 idle true
+# map kinds
+  kind 0 surface
+  kind 1 submap
+  kind 9999 submap
+  kind 10000 extra
+  kind 10999 extra
+  kind 11000 area
+  kind 40000 area
+# everything forgotten
+  version 26 idle true
+# the game map's points
+  marker worldmap/point0 at 3222.5,3218.5 name 'Alice' tooltip 'Alice | 99/99 hp' color ffff00ff icon image 8x8 #d6a8fd04bc44f9e7 anchor null snap false jump null party false clickable false hint '' menu [] from game map
+  marker worldmap/point1 at 2000.5,3000.5 name '' tooltip '' color ffff00ff icon image 20x30 #5dfc2a403c4c879b anchor [4, 8] snap true jump (2100,3100,0) party false clickable false hint '' menu [] from game map
+  marker worldmap/point2 at 2500.5,3500.5 name '' tooltip '' color ffff00ff icon null anchor null snap false jump (2500,3500,0) party false clickable false hint '' menu [] from game map
+  marker worldmap/point3 at 1.5,2.5 name 'Tooltip0 Tooltip1 Tooltip2 Tooltip3 Tooltip4 Tooltip5 Tooltip6 Tooltip7 Tooltip8 Tooltip9 Tooltip10 Tooltip11 Tooltip12 ' tooltip 'Tooltip0 Tooltip1 Tooltip2 Tooltip3 Tooltip4 Tooltip5 Tooltip6 Tooltip7 Tooltip8 Tooltip9 Tooltip10 Tooltip11 Tooltip12 Tooltip13 Tooltip14 Tooltip15 Tooltip16 Tooltip17 Tooltip18 Tooltip19 Tooltip20 Tooltip21 Tooltip22 Tooltip23 Tooltip24 Tooltip25 Tooltip26 Tooltip27 Tooltip28 Tooltip29 Tooltip30 Tooltip31 Tooltip32 Tooltip33 Tooltip34 Tooltip35 Tooltip36 Tooltip37 Tooltip38 Tooltip39 Tooltip40 Tooltip41 Tooltip42 Tooltip43 Tooltip44 Tooltip45 Tooltip46 Tooltip47 Tooltip48 Tooltip49 Tooltip50 Tooltip51 Tooltip52 Tooltip53 Tooltip54 Tooltip55 Tooltip56 Tooltip57 Tooltip58 Tooltip59 Tooltip60 ' color ffff00ff icon null anchor null snap false jump null party false clickable false hint '' menu [] from game map

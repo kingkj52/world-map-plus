@@ -18,8 +18,7 @@ public class ArenaIconsTest
 {
 	private static JsonObject elements()
 	{
-		return new Gson().fromJson(new InputStreamReader(ArenaIconsTest.class
-			.getResourceAsStream("/com/worldmapplus/map-elements.json"), StandardCharsets.UTF_8), JsonObject.class);
+		return new Gson().fromJson(new InputStreamReader(com.worldmapplus.data.ToolInputs.stream("map-elements.json"), StandardCharsets.UTF_8), JsonObject.class);
 	}
 
 	@Test

@@ -10,6 +10,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.worldmapplus.MapAssets;
+import com.worldmapplus.layers.GameIconScale;
 import com.worldmapplus.layers.GameIconSprites;
 import com.worldmapplus.layers.Hotspot;
 import com.worldmapplus.map.MapCatalog;
@@ -51,7 +52,7 @@ public class GameIconDataTest
 	public static void load() throws IOException
 	{
 		catalog = MapCatalog.load(GSON);
-		try (Reader reader = new InputStreamReader(GameIconDataTest.class.getResourceAsStream("/com/worldmapplus/map-elements.json"),
+		try (Reader reader = new InputStreamReader(com.worldmapplus.data.ToolInputs.stream("map-elements.json"),
 			StandardCharsets.UTF_8))
 		{
 			file = GSON.fromJson(reader, JsonObject.class);
@@ -92,7 +93,11 @@ public class GameIconDataTest
 	@Test
 	public void everyIconOfAGameMapHasAPictureThatExistsAndShowsSomething()
 	{
-		assertEquals("the atlas holds every picture", pictures.size(), sprites.size());
+		assertEquals(pictures.size(), sprites.size());
+		for (int side = GameIconScale.MIN_SIDE; side <= GameIconScale.MAX_SIDE; side++)
+		{
+			assertNotNull("the sheet of side " + side + " holds every picture", sprites.get(pictures.size() - 1, side, 0));
+		}
 		Set<Integer> used = new HashSet<>();
 		int drawn = 0;
 		for (Map.Entry<Integer, List<double[]>> entry : rows.entrySet())
@@ -110,7 +115,7 @@ public class GameIconDataTest
 				assertTrue("picture " + picture + " is in the list of the file", index >= 0);
 				used.add(picture);
 				drawn++;
-				BufferedImage image = sprites.get(index);
+				BufferedImage image = sprites.get(index, GameIconScale.MAX_SIDE, 0);
 				assertNotNull(image);
 				boolean something = false;
 				for (int y = 0; y < image.getHeight() && !something; y++)
@@ -255,14 +260,14 @@ public class GameIconDataTest
 	}
 
 	@Test
-	public void fairyRingsAreDrawnWithTheBlueIcon()
+	public void fairyRingsAreDrawnWithTheBlueIcon() throws Exception
 	{
 		int blue = pictures.indexOf(90001);
 		int plain = pictures.indexOf(1504);
 		assertTrue(blue >= 0 && plain >= 0);
-		assertTrue("the blue icon is the travel arrow with a cyan rim", has(sprites.get(blue), 26, 219, 219));
-		assertFalse("and has none of the orange", has(sprites.get(blue), 228, 100, 21));
-		assertTrue("the ordinary travel icon is orange", has(sprites.get(plain), 228, 100, 21));
+		assertTrue("the blue icon is the travel arrow with a cyan rim", has(gamePicture(90001), 26, 219, 219));
+		assertFalse("and has none of the orange", has(gamePicture(90001), 228, 100, 21));
+		assertTrue("the ordinary travel icon is orange", has(gamePicture(1504), 228, 100, 21));
 		int rings = 0;
 		for (double[] row : rows.get(0))
 		{
@@ -273,6 +278,14 @@ public class GameIconDataTest
 			}
 		}
 		assertTrue("fairy rings on the surface " + rings, rings >= 40);
+	}
+
+	/** A picture as the game's cache has it (tools/input/game-sprites), which the build draws the plugin's pictures from. */
+	private static BufferedImage gamePicture(int number) throws java.io.IOException
+	{
+		java.nio.file.Path path = java.nio.file.Paths.get("tools", "input", "game-sprites", number + ".png");
+		org.junit.Assume.assumeTrue("tools/input is not in this copy", java.nio.file.Files.exists(path));
+		return javax.imageio.ImageIO.read(path.toFile());
 	}
 
 	private static boolean has(BufferedImage image, int r, int g, int b)

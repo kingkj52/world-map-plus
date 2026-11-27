@@ -1,14 +1,13 @@
 package com.worldmapplus.data;
 
 import com.google.gson.*;
+import com.worldmapplus.*;
 import com.worldmapplus.layers.*;
 import com.worldmapplus.map.*;
-import java.io.*;
-import java.nio.charset.*;
 import java.time.*;
 import java.util.*;
+import javax.annotation.*;
 import lombok.*;
-import lombok.extern.slf4j.*;
 
 /**
  * Reads the bundled points of interest: agility courses, banks, fishing spots and the other kinds
@@ -17,10 +16,8 @@ import lombok.extern.slf4j.*;
  * A point that has an icon of the game at its place (tools/merge_pois.py says which, in {@code g}) is not drawn by the plugin: it is
  * loaded as a merged point, standing on the icon, and the icon's card says what it says.
  */
-@Slf4j
 public final class PoiLoader
 {
-	private static final String RESOURCE = "/com/worldmapplus/pois.json";
 	private static final int RADIUS = 11;
 
 	private PoiLoader()
@@ -41,38 +38,26 @@ public final class PoiLoader
 		}
 	}
 
+	/** Reads the bundled {@code pois.json} as it stands today. */
 	public static Result load(Gson gson, MapCatalog catalog)
 	{
-		try (InputStream in = PoiLoader.class.getResourceAsStream(RESOURCE))
-		{
-			if (in == null)
-			{
-				log.warn("World Map Plus: {} is missing from the plugin jar", RESOURCE);
-				return new Result(new ArrayList<>(), new ArrayList<>());
-			}
-			return read(new InputStreamReader(in, StandardCharsets.UTF_8), gson, catalog);
-		}
-		catch (IOException | JsonParseException e)
-		{
-			log.warn("World Map Plus: could not read {}", RESOURCE, e);
-			return new Result(new ArrayList<>(), new ArrayList<>());
-		}
+		return read(MapAssets.json(gson, "pois.json", PoiFile.class), catalog, today());
 	}
 
-	public static Result read(Reader reader, Gson gson, MapCatalog catalog)
+	/** Today written as yyyymmdd, the way the points of events give their first and last day. */
+	public static int today()
 	{
 		LocalDate now = LocalDate.now();
-		return read(reader, gson, catalog, now.getYear() * 10000 + now.getMonthValue() * 100 + now.getDayOfMonth());
+		return now.getYear() * 10000 + now.getMonthValue() * 100 + now.getDayOfMonth();
 	}
 
 	/**
-	 * As {@link #read(Reader, Gson, MapCatalog)}, on a given day written as yyyymmdd. A point with a start {@code s} or an end
-	 * {@code e} (tools/merge_seasonal.py, for events of the game) is left out before its start and after its end, so an event
-	 * marker goes away on its own once the event is over, with no new release; a category whose points all ended goes with them.
+	 * The points on a given day written as yyyymmdd. A point with a start {@code s} or an end {@code e} (tools/merge_seasonal.py, for
+	 * events of the game) is left out before its start and after its end, so an event marker goes away on its own once the event is
+	 * over, with no new release; a category whose points all ended goes with them.
 	 */
-	static Result read(Reader reader, Gson gson, MapCatalog catalog, int today)
+	static Result read(@Nullable PoiFile file, MapCatalog catalog, int today)
 	{
-		PoiFile file = gson.fromJson(reader, PoiFile.class);
 		List<PoiCategory> categories = new ArrayList<>();
 		List<Hotspot> hotspots = new ArrayList<>();
 		if (file == null || file.categories == null)

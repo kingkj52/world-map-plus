@@ -97,7 +97,8 @@ public class MotionSurfaceTest
 			{
 				return null;
 			}
-		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), routes, new PanelLauncher());
+		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), null,
+			routes, new PanelLauncher(), (com.worldmapplus.input.ChatSearch) null);
 		return new MapSurface(client, assets, new WorldMapPlusConfig()
 		{
 			@Override
@@ -130,10 +131,10 @@ public class MotionSurfaceTest
 	{
 		MapSurface glide = surface(AnimationMode.ON);
 		frames(glide, 5);
-		double startX = glide.viewer().getCamera().getX();
+		double startX = glide.viewer().getX();
 		glide.activateForTest(far(), now);
 		frames(glide, 3);
-		double early = glide.viewer().getCamera().getX();
+		double early = glide.viewer().getX();
 		assertTrue("on its way", early > startX && early < 3500.5);
 		assertTrue(glide.isMoving());
 		frames(glide, 60);
@@ -142,25 +143,13 @@ public class MotionSurfaceTest
 		frames(instant, 5);
 		instant.activateForTest(far(), now);
 		frames(instant, 1);
-		assertEquals("off: there at once", 3500.5, instant.viewer().getCamera().getX(), 1e-9);
+		assertEquals("off: there at once", 3500.5, instant.viewer().getX(), 1e-9);
 		frames(instant, 60);
 
-		assertEquals(instant.viewer().getCamera().getX(), glide.viewer().getCamera().getX(), 0);
-		assertEquals(instant.viewer().getCamera().getY(), glide.viewer().getCamera().getY(), 0);
-		assertEquals(instant.viewer().getZoom().pixelsPerTile(), glide.viewer().getZoom().pixelsPerTile(), 0);
+		assertEquals(instant.viewer().getX(), glide.viewer().getX(), 0);
+		assertEquals(instant.viewer().getY(), glide.viewer().getY(), 0);
+		assertEquals(instant.viewer().pixelsPerTile(), glide.viewer().pixelsPerTile(), 0);
 		assertFalse("settled", glide.isMoving());
-	}
-
-	@Test
-	public void reducedKeepsTheFadesButJumpsAtOnce()
-	{
-		MapSurface reduced = surface(AnimationMode.REDUCED);
-		frames(reduced, 5);
-		reduced.activateForTest(far(), now);
-		frames(reduced, 1);
-		assertEquals(3500.5, reduced.viewer().getCamera().getX(), 1e-9);
-		assertTrue(Motion.fades());
-		assertFalse(Motion.full());
 	}
 
 	@Test
@@ -239,15 +228,15 @@ public class MotionSurfaceTest
 	public void aFadeWithAnimationsOffNeverChangesTheOpacity()
 	{
 		Motion.use(AnimationMode.OFF);
-		Appear appear = new Appear();
+		Motion appear = new Motion();
 		assertEquals(1f, appear.alpha(10), 0);
 		assertFalse(appear.moving(10));
 		Motion.use(AnimationMode.ON);
-		Appear fading = new Appear();
+		Motion fading = new Motion();
 		assertTrue(fading.alpha(1000) < 0.5f);
 		assertTrue(fading.alpha(1060) > 0 && fading.alpha(1060) < 1);
 		assertEquals(1f, fading.alpha(1000 + Motion.FADE_MILLIS), 0);
 		assertEquals("a late frame skips to the end", 1f, fading.alpha(900_000), 0);
-		assertTrue(new Appear().alpha(5) < 1f);
+		assertTrue(new Motion().alpha(5) < 1f);
 	}
 }

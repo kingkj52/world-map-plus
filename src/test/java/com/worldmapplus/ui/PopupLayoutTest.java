@@ -10,6 +10,8 @@ import com.worldmapplus.MapAssets;
 import com.worldmapplus.WorldMapPlusConfig;
 import com.worldmapplus.bridge.ExternalOverlays;
 import com.worldmapplus.bridge.MapActions;
+import com.worldmapplus.bridge.NativePoints;
+
 import com.worldmapplus.game.PlayerPosition;
 import com.worldmapplus.layers.HoverCard;
 import com.worldmapplus.layers.PoiCategory;
@@ -28,7 +30,6 @@ import java.awt.image.BufferedImage;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -192,15 +193,19 @@ public class PopupLayoutTest
 				}
 				return null;
 			});
-		PinStore pins = new PinStore(PinStore.Storage.inMemory(), new Gson());
-		ExternalOverlays external = new ExternalOverlays();
 		if (pluginName != null)
 		{
-			// The Helper tells which plugins have points on the game's map, with how many each.
-			Map<String, Object> layers = new HashMap<>();
-			layers.put("plugins", Collections.singletonMap(pluginName, 3));
-			com.worldmapplus.bridge.PartnerDouble.post(external, "state", "layers", layers);
+			for (int i = 0; i < 3; i++)
+			{
+				rig.points.add(new WorldMapPoint(new WorldPoint(3222 + i, 3218, 0), null)
+				{
+				});
+			}
 		}
+		NativePoints nativePoints = new NativePoints(rig.points::forEach);
+
+		PinStore pins = new PinStore(PinStore.Storage.inMemory(), new Gson());
+		ExternalOverlays external = new ExternalOverlays();
 		SurfaceServices services = new SurfaceServices(new ViewMemory(null)
 		{
 			@Override
@@ -213,7 +218,8 @@ public class PopupLayoutTest
 			public void save(String slot, int mapId, double x, double y, double ppt)
 			{
 			}
-		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), new com.worldmapplus.pins.RouteStore(PinStore.Storage.inMemory(), new Gson(), pins),
+		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), nativePoints,
+			new com.worldmapplus.pins.RouteStore(PinStore.Storage.inMemory(), new Gson(), pins),
 			new com.worldmapplus.pins.PanelLauncher());
 		rig.surface = new MapSurface(client, assets, new WorldMapPlusConfig()
 		{
@@ -433,7 +439,7 @@ public class PopupLayoutTest
 			assertNotNull(size.getKey(), first);
 			LayerPanel.Row hit = panel.hit(first.x + 30, first.y + first.height / 2);
 			assertNotNull(size.getKey(), hit);
-			assertEquals("showNpcs", hit.getKey());
+			assertEquals("showHotspots", hit.getKey());
 		}
 	}
 
@@ -450,7 +456,7 @@ public class PopupLayoutTest
 		{
 			labels.add(real + " (400)");
 		}
-		FontMetrics metrics = PopupText.metrics(new java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.PLAIN, 12));
+		FontMetrics metrics = Box.metrics(new java.awt.Font(java.awt.Font.SANS_SERIF, java.awt.Font.PLAIN, 12));
 		for (Map.Entry<String, Rectangle> size : sizes().entrySet())
 		{
 			Rig rig = rig(size.getValue(), LONG_PLUGIN);
@@ -466,7 +472,7 @@ public class PopupLayoutTest
 				{
 					continue;
 				}
-				String shown = PopupText.clip(row.getLabel(), metrics, room);
+				String shown = Box.clip(row.getLabel(), metrics, room);
 				assertTrue(size.getKey() + ": '" + shown + "' fits " + room, metrics.stringWidth(shown) <= room || room < 8);
 				Rectangle tag = panel.tagFor(i, metrics);
 				if (tag != null)
@@ -474,8 +480,8 @@ public class PopupLayoutTest
 					assertTrue(size.getKey() + ": tag " + tag + " inside " + size.getValue(), size.getValue().contains(tag));
 					assertFalse(size.getKey() + ": tag " + tag + " covers a button", tag.intersects(block));
 					assertTrue(size.getKey() + ": a cut label ends in an ellipsis",
-						PopupText.clip(row.getLabel(), metrics, room).endsWith(PopupText.ELLIPSIS)
-							|| PopupText.clip(row.getLabel(), metrics, room).isEmpty());
+						Box.clip(row.getLabel(), metrics, room).endsWith(Box.ELLIPSIS)
+							|| Box.clip(row.getLabel(), metrics, room).isEmpty());
 				}
 			}
 			assertTrue(list.width >= LayerPanel.MIN_WIDTH || list.width == 0);
@@ -520,7 +526,7 @@ public class PopupLayoutTest
 	public void theMenuStaysInsideTheMapWhateverItsSizeAndWhereverItOpens()
 	{
 		String longLabel = "Hide " + LONG_PLUGIN + " (still used by routes) and route to it";
-		FontMetrics metrics = PopupText.metrics(ContextMenu.font());
+		FontMetrics metrics = Box.metrics(ContextMenu.font());
 		for (Map.Entry<String, Rectangle> size : sizes().entrySet())
 		{
 			Rectangle map = size.getValue();
@@ -669,16 +675,16 @@ public class PopupLayoutTest
 	@Test
 	public void clippedTextFitsAndWrappedTextFitsToo()
 	{
-		FontMetrics metrics = PopupText.metrics(ContextMenu.font());
+		FontMetrics metrics = Box.metrics(ContextMenu.font());
 		for (int width : new int[] {10, 30, 60, 120, 400})
 		{
-			String clipped = PopupText.clip(LONG_PLUGIN, metrics, width);
+			String clipped = Box.clip(LONG_PLUGIN, metrics, width);
 			assertTrue(width + " '" + clipped + "'", metrics.stringWidth(clipped) <= width);
-			for (String line : PopupText.wrap(LONG_PLUGIN, metrics, Math.max(width, 20)))
+			for (String line : Box.wrap(LONG_PLUGIN, metrics, Math.max(width, 20)))
 			{
 				assertTrue(width + " '" + line + "'", metrics.stringWidth(line) <= Math.max(width, 20));
 			}
 		}
-		assertEquals("short", PopupText.clip("short", metrics, 200));
+		assertEquals("short", Box.clip("short", metrics, 200));
 	}
 }

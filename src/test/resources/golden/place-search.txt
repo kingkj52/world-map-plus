@@ -1,0 +1,1550 @@
+? region:varrock
+TELEPORT | Varrock tablet | uses charges | 0 | 3213.5,3424.5
+TELEPORT | Varrock Teleport | 25 Magic | 0 | 3213.5,3424.5
+QUEST | Romeo & Juliet | Quest start | 0 | 3210.5,3423.5
+SHOP | Speedrunning Reward Shop | Run by Eliza, Varrock | 0 | 3219.5,3425.5
+NPC | Eliza | Runs Speedrunning Reward Shop | 0 | 3219.5,3425.5
+ITEM | Giant stopwatch | Sold at Speedrunning Reward Shop for 1,200 speedrun points | 0 | 3219.5,3425.5
+ITEM | Speedy teleport scroll | Sold at Speedrunning Reward Shop for 600 speedrun points | 0 | 3219.5,3425.5
+ITEM | Adventurer's outfit (tier 1) | Sold at Speedrunning Reward Shop for 200 speedrun points | 0 | 3219.5,3425.5
+ITEM | Adventurer's outfit (tier 2) | Sold at Speedrunning Reward Shop for 600 speedrun points | 0 | 3219.5,3425.5
+ITEM | Adventurer's outfit (tier 3) | Sold at Speedrunning Reward Shop for 1,800 speedrun points | 0 | 3219.5,3425.5
+QUEST | Demon Slayer | Quest start | 0 | 3204.5,3424.5
+SHOP | Benny |  | 0 | 3220.5,3432.5
+SHOP | Baraek |  | 0 | 3216.5,3436.5
+ITEM | Bear fur | Sold at Baraek for 20 coins | 0 | 3216.5,3436.5
+ITEM | Newspaper | Sold at Benny for 50 coins | 0 | 3220.5,3432.5
+SHOP | Events Reward Shop | Run by Nevet, Varrock Square | 0 | 3209.5,3437.5
+NPC | Nevet | Runs Events Reward Shop | 0 | 3209.5,3437.5
+ITEM | Swords and emblem | Sold at Events Reward Shop for 1,100 event points | 0 | 3209.5,3437.5
+ITEM | Grid master tabard | Sold at Events Reward Shop for 750 event points | 0 | 3209.5,3437.5
+ITEM | Swords and emblem (b) | Sold at Events Reward Shop for 1,100 event points | 0 | 3209.5,3437.5
+ITEM | Swords and emblem (g) | Sold at Events Reward Shop for 1,100 event points | 0 | 3209.5,3437.5
+ITEM | Swords and emblem (p) | Sold at Events Reward Shop for 1,100 event points | 0 | 3209.5,3437.5
+ITEM | Grid master tabard (b) | Sold at Events Reward Shop for 750 event points | 0 | 3209.5,3437.5
+ITEM | Grid master tabard (g) | Sold at Events Reward Shop for 750 event points | 0 | 3209.5,3437.5
+ITEM | Grid master tabard (p) | Sold at Events Reward Shop for 750 event points | 0 | 3209.5,3437.5
+ITEM | Grid master torch scroll | Sold at Events Reward Shop for 6,000 event points | 0 | 3209.5,3437.5
+ITEM | Grid master altar icon scroll | Sold at Events Reward Shop for 6,000 event points | 0 | 3209.5,3437.5
+SHOP | Zaff's Superior Staffs! | Run by Zaff, Varrock | 0 | 3202.5,3437.5
+NPC | Zaff | Runs Zaff's Superior Staffs! | 0 | 3202.5,3437.5
+ITEM | Staff | Sold at Zaff's Superior Staffs! for 15 coins, 5 in stock | 0 | 3202.5,3437.5
+ITEM | Battlestaff | Sold at Zaff's Superior Staffs! for 7,000 coins, 5 in stock | 0 | 3202.5,3437.5
+ITEM | Magic staff | Sold at Zaff's Superior Staffs! for 200 coins, 5 in stock | 0 | 3202.5,3437.5
+ITEM | Staff of air | Sold at Zaff's Superior Staffs! for 1,500 coins, 2 in stock | 0 | 3202.5,3437.5
+ITEM | Staff of fire | Sold at Zaff's Superior Staffs! for 1,500 coins, 2 in stock | 0 | 3202.5,3437.5
+ITEM | Staff of earth | Sold at Zaff's Superior Staffs! for 1,500 coins, 2 in stock | 0 | 3202.5,3437.5
+ITEM | Staff of water | Sold at Zaff's Superior Staffs! for 1,500 coins, 2 in stock | 0 | 3202.5,3437.5
+SHOP | Thessalia |  | 0 | 3206.5,3416.5
+SHOP | Thessalia's Fine Clothes. | Run by Thessalia, Varrock | 0 | 3202.5,3416.5
+NPC | Thessalia | Runs Thessalia's Fine Clothes. | 0 | 3202.5,3416.5
+ITEM | Lamp | Sold at Thessalia for 1 frog token | 0 | 3206.5,3416.5
+? bank region:varrock
+POINT | Bank: Varrock | Bank (6 places) | 0 | 3251.5,3420.5
+? in:falador shop
+NPC | Shop keeper | Runs Falador General Store | 0 | 2955.5,3389.5
+SHOP | Dusuri's Star Shop | Run by Dusuri, Falador | 0 | 3022.5,3342.5
+SHOP | Cassie's Shield Shop. | Run by Cassie, Falador | 0 | 2976.5,3383.5
+SHOP | Sarah's Farming shop. | Run by Sarah, South Falador Farm | 0 | 3036.5,3293.5
+SHOP | Mahogany Homes Reward Shop | Run by Amy, Falador | 0 | 2991.5,3365.5
+SHOP | Falador General Store | Run by Shop keeper, Falador | 0 | 2955.5,3389.5
+NPC | Amy | Runs Mahogany Homes Reward Shop | 0 | 2991.5,3365.5
+NPC | Sarah | Runs Sarah's Farming shop. | 0 | 3036.5,3293.5
+NPC | Cassie | Runs Cassie's Shield Shop. | 0 | 2976.5,3383.5
+NPC | Dusuri | Runs Dusuri's Star Shop | 0 | 3022.5,3342.5
+ITEM | Rake | Sold at Sarah's Farming shop. for 6 coins, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Onion | Sold at Sarah's Farming shop. for 3 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Spade | Sold at Sarah's Farming shop. for 3 coins, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Barley | Sold at Sarah's Farming shop. for 4 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Basket | Sold at Sarah's Farming shop. for 1 coin, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Bucket | Sold at Sarah's Farming shop. for 2 coins, 100 in stock | 0 | 3036.5,3293.5
+ITEM | Potato | Sold at Sarah's Farming shop. for 1 coin, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Tomato | Sold at Sarah's Farming shop. for 4 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Cabbage | Sold at Sarah's Farming shop. for 1 coin, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Compost | Sold at Sarah's Farming shop. for 20 coins, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Secateurs | Sold at Sarah's Farming shop. for 5 coins, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Sweetcorn | Sold at Sarah's Farming shop. for 9 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Strawberry | Sold at Sarah's Farming shop. for 17 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Watermelon | Sold at Sarah's Farming shop. for 48 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Amy's saw | Sold at Mahogany Homes Reward Shop for 500 points | 0 | 2991.5,3365.5
+ITEM | Sack pack | Sold at Sarah's Farming shop. for 100 coins, 30 in stock | 0 | 3036.5,3293.5
+ITEM | Empty sack | Sold at Sarah's Farming shop. for 1 coin, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Jute fibre | Sold at Sarah's Farming shop. for 6 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Plank sack | Sold at Mahogany Homes Reward Shop for 350 points | 0 | 2991.5,3365.5
+ITEM | Plant cure | Sold at Sarah's Farming shop. for 40 coins, 100 in stock | 0 | 3036.5,3293.5
+ITEM | Basket pack | Sold at Sarah's Farming shop. for 100 coins, 30 in stock | 0 | 3036.5,3293.5
+ITEM | Seed dibber | Sold at Sarah's Farming shop. for 6 coins, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Compost pack | Sold at Sarah's Farming shop. for 2,000 coins, 10 in stock | 0 | 3036.5,3293.5
+ITEM | Watering can | Sold at Sarah's Farming shop. for 8 coins, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Star fragment | Sold at Dusuri's Star Shop for 3,000 stardust, 50 in stock | 0 | 3022.5,3342.5
+ITEM | Wooden shield | Sold at Cassie's Shield Shop. for 20 coins, 5 in stock | 0 | 2976.5,3383.5
+ITEM | Asgarnian hops | Sold at Sarah's Farming shop. for 5 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Wildblood hops | Sold at Sarah's Farming shop. for 15 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Yanillian hops | Sold at Sarah's Farming shop. for 7 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Iron kiteshield | Sold at Cassie's Shield Shop. for 238 coins, 0 in stock | 0 | 2976.5,3383.5
+? region:kandarin altar
+POINT | Altar: Camelot | Altar for praying | 0 | 2749.5,3497.5
+POINT | Altar: Witchaven | Altar for praying | 0 | 2727.5,3283.5
+POINT | Altar: Myths' Guild | Altar for praying | 0 | 2456.5,2839.5
+POINT | Altar: East Ardougne | Altar for praying | 0 | 2617.5,3309.5
+POINT | Altar: West Ardougne | Altar for praying | 0 | 2529.5,3286.5
+POINT | Altar: Seers' Village | Altar for praying | 0 | 2693.5,3460.5
+POINT | Altar: Ardougne Monastery | Altar for praying (2 places) | 0 | 2604.5,3208.5
+POINT | Wrath Altar | Runecrafting altar, level 95 | 0 | 2446.5,2825.5
+DOORWAY | Ourania Cave | Leads to Ourania Altar | 0 | 2452.5,3231.5
+TRANSPORT | Charter ship: Catherby | Aldarin, Brimhaven, Civitas illa Fortis, Corsair Cove, Deepfin Point, Shipyard, Land's End, Mos Le'Harmless, Musa Point, Port Khazard, Port Phasmatys, Port Piscarilius | 0 | 2791.5,3415.5
+TRANSPORT | Charter ship: Corsair Cove | Aldarin, Brimhaven, Catherby, Civitas illa Fortis, Deepfin Point, Shipyard, Land's End, Mos Le'Harmless, Musa Point, Port Khazard, Port Phasmatys, Port Piscarilius | 0 | 2589.5,2851.5
+TRANSPORT | Charter ship: Port Khazard | Aldarin, Brimhaven, Catherby, Civitas illa Fortis, Corsair Cove, Deepfin Point, Shipyard, Land's End, Mos Le'Harmless, Musa Point, Port Phasmatys, Port Piscarilius | 0 | 2673.5,3143.5
+? region:"kebos lowlands"
+MONSTER | Bear Cub | North of Land's End (2 spawns) | 0 | 1502.5,3452.5
+ITEM | Candle | Free to take. Land's End - north-western house (1 spawn) | 0 | 1500.5,3431.5
+MONSTER | Giant rat | North of Land's End (6 spawns) | 0 | 1497.5,3461.5
+POINT | Lands End West | Fishing: Lobster, Shark, Shrimp | 0 | 1484.5,3432.5
+NPC | Gull | 3 spawns | 0 | 1483.5,3464.5
+PLACE | Ruins of Morra | Area name | 0 | 1449.5,3514.5
+MONSTER | Imp | Outside the Chasm of Fire (6 spawns) | 0 | 1432.5,3672.5
+MONSTER | Soldier | Giant Pit (3 spawns) | 0 | 1430.5,3613.5
+MONSTER | Sergeant | Giant Pit (1 spawn) | 0 | 1429.5,3612.5
+ITEM | Burnt bones | Free to take. Shayzien - Secluded Chapel (1 spawn) | 0 | 1427.5,3593.5
+MONSTER | Soldier | Shayziens' Wall (6 spawns) | 0 | 1420.5,3535.5
+DOORWAY | Giants' Den | Leads to Kourend Underground | 0 | 1420.5,3588.5
+MONSTER | Sergeant | Shayziens' Wall (2 spawns) | 0 | 1418.5,3538.5
+TRANSPORT | Kourend minecart: Shayzien West | Arceuus, Farming Guild, Hosidius South, Hosidius West, Kingstown, Kourend Woodland, Lovakengj, Mount Quidamortem, Northern Tundras (Wintertodt), Port Piscarilius | 0 | 1413.5,3579.5
+TRANSPORT | Boat: Molch Island, Molch, Battlefront, Shayzien | Molch Island, Battlefront, Molch | 0 | 1405.5,3612.5
+TRANSPORT | Mountain guide: The Shayzien Outpost | Mount Quidamortem, South of Quidamortem | 0 | 1401.5,3536.5
+PLACE | Shayziens' Wall | Area name | 0 | 1395.5,3539.5
+PLACE | The Forsaken Tower | Area name | 0 | 1385.5,3830.5
+TRANSPORT | Boat: Molch Island, Molch, Battlefront, Shayzien | Molch Island, Molch, Shayzien | 0 | 1383.5,3663.5
+ITEM | Papyrus | Free to take. Kebos Lowlands - General Vir's tent in the Battlefront (1 spawn) | 0 | 1383.5,3766.5
+MUSIC | The Forsaken Tower | Music track unlock | 0 | 1382.5,3823.5
+PLACE | Lacerta Falls | Area name | 0 | 1381.5,3470.5
+DOORWAY | Forsaken Tower basement | Leads underground | 0 | 1381.5,3825.5
+ITEM | Burnt bones | Free to take. Kebos Lowlands - Battlefront (19 spawns) | 0 | 1380.5,3713.5
+ITEM | Damaged armour | Free to take. Kebos Lowlands - Battlefront (3 spawns) | 0 | 1377.5,3723.5
+ITEM | Raw shrimps | Free to take. Kebos Lowlands - Battlefront (1 spawn) | 0 | 1376.5,3749.5
+PLACE | Lake Molch | Area name | 0 | 1374.5,3650.5
+POINT | Magic tree | Woodcutting level 75 (26 places) | 0 | 1373.5,3821.5
+MONSTER | Lizardman | Shayziens' Wall (16 spawns) | 0 | 1372.5,3532.5
+NPC | Fishing spot | 20 spawns | 0 | 1371.5,3624.5
+POINT | Molch Island | Fishing: Common Tench | 0 | 1370.5,3632.5
+MONSTER | Lizardman brute | Shayzien's Wall (6 spawns) | 0 | 1369.5,3527.5
+ITEM | Knife | Free to take. Kebos Lowlands - Molch Island (1 spawn) | 0 | 1369.5,3635.5
+PLACE | Battlefront | Area name | 0 | 1368.5,3718.5
+TRANSPORT | Boat: Molch Island, Molch, Battlefront, Shayzien | Battlefront, Molch, Shayzien | 0 | 1368.5,3641.5
+ITEM | Broken arrow | Free to take. Kebos Lowlands - Battlefront (13 spawns) | 0 | 1368.5,3714.5
+SHOP | Alry the Angler's Angling Accessories | Run by Alry the Angler, Molch lake | 0 | 1367.5,3635.5
+NPC | Alry the Angler | Runs Alry the Angler's Angling Accessories | 0 | 1367.5,3635.5
+ITEM | Fish sack | Sold at Alry the Angler's Angling Accessories for 500 molch pearl, 1000 in stock | 0 | 1367.5,3635.5
+ITEM | Angler hat | Sold at Alry the Angler's Angling Accessories for 50 molch pearl, 1000 in stock | 0 | 1367.5,3635.5
+? near:lumbridge
+NPC | Duck | Seth Groats' farm (2 spawns) | 0 | 3226.5,3283.5
+NPC | Drake | Seth Groats' farm (1 spawn) | 0 | 3228.5,3282.5
+MONSTER | Cow calf | Lumbridge East farm (8 spawns) | 0 | 3257.5,3280.5
+MONSTER | Cow | Lumbridge East farm (21 spawns) | 0 | 3255.5,3278.5
+ITEM | Bronze axe | Free to take. Lumbridge - outside Fred the Farmer's house (1 spawn) | 0 | 3185.5,3277.5
+TELEPORT | Cowbell amulet | uses charges | 0 | 3259.5,3276.5
+QUEST | Sheep Shearer | Quest start | 0 | 3187.5,3272.5
+MONSTER | Duck | Along the River Lum north of Lumbridge (28 spawns) | 0 | 3231.5,3271.5
+MONSTER | Ram | Lumbridge (4 spawns) | 0 | 3199.5,3270.5
+NPC | Sheep | Fred the Farmer's farm (16 spawns) | 0 | 3198.5,3265.5
+NPC | Li'l lamb | Lumbridge pen (1 spawn) | 0 | 3206.5,3260.5
+MONSTER | Goblin | Lumbridge (100 spawns) | 0 | 3206.5,3252.5
+SHOP | Lumbridge General Store | Run by Shop keeper, Shop assistant, Lumbridge | 0 | 3211.5,3247.5
+NPC | Shop keeper | Runs Lumbridge General Store | 0 | 3211.5,3247.5
+ITEM | Jug | Sold at Lumbridge General Store for 1 coin, 2 in stock | 0 | 3211.5,3247.5
+ITEM | Pot | Sold at Lumbridge General Store for 1 coin, 5 in stock | 0 | 3211.5,3247.5
+ITEM | Bowl | Sold at Lumbridge General Store for 5 coins, 2 in stock | 0 | 3211.5,3247.5
+ITEM | Knife | Sold at Lumbridge General Store for 7 coins, 5 in stock | 0 | 3211.5,3247.5
+ITEM | Onion | Free to take. Lumbridge General Store - (1 spawn) | 0 | 3211.5,3247.5
+ITEM | Spade | Sold at Lumbridge General Store for 3 coins, 5 in stock | 0 | 3211.5,3247.5
+ITEM | Bucket | Sold at Lumbridge General Store for 2 coins, 3 in stock | 0 | 3211.5,3247.5
+ITEM | Chisel | Sold at Lumbridge General Store for 1 coin, 2 in stock | 0 | 3211.5,3247.5
+ITEM | Hammer | Sold at Lumbridge General Store for 1 coin, 5 in stock | 0 | 3211.5,3247.5
+ITEM | Shears | Sold at Lumbridge General Store for 1 coin, 2 in stock | 0 | 3211.5,3247.5
+ITEM | Cake tin | Sold at Lumbridge General Store for 13 coins, 2 in stock | 0 | 3211.5,3247.5
+ITEM | Tinderbox | Sold at Lumbridge General Store for 1 coin, 2 in stock | 0 | 3211.5,3247.5
+ITEM | Newcomer map | Sold at Lumbridge General Store for 1 coin, 5 in stock | 0 | 3211.5,3247.5
+ITEM | Security book | Sold at Lumbridge General Store for 2 coins, 5 in stock | 0 | 3211.5,3247.5
+ITEM | Empty jug pack | Sold at Lumbridge General Store for 182 coins, 5 in stock | 0 | 3211.5,3247.5
+ITEM | Empty bucket pack | Sold at Lumbridge General Store for 650 coins, 15 in stock | 0 | 3211.5,3247.5
+SHOP | Woodsman tutor |  | 0 | 3227.5,3246.5
+ITEM | Woodcut. cape(t) | Sold at Woodsman tutor for 99,000 coins | 0 | 3227.5,3246.5
+ITEM | Woodcutting cape | Sold at Woodsman tutor for 99,000 coins | 0 | 3227.5,3246.5
+ITEM | Iron dagger | Free to take. Lumbridge - Lozar's house (1 spawn) | 0 | 3248.5,3245.5
+QUEST | X Marks the Spot | Quest start | 0 | 3226.5,3242.5
+POINT | Lumbridge River | Fishing: Salmon (2 places) | 0 | 3238.5,3241.5
+MONSTER | Giant spider | East side of Lumbridge (6 spawns) | 0 | 3241.5,3241.5
+SHOP | The Sheared Ram | Run by Bartender, Lumbridge | 0 | 3231.5,3240.5
+NPC | Bartender | Runs The Sheared Ram | 0 | 3231.5,3240.5
+ITEM | Beer | Sold at The Sheared Ram for 2 coins | 0 | 3231.5,3240.5
+? type:place varrock
+PLACE | Varrock | Area name | 0 | 3211.5,3450.5
+PLACE | Varrock | Place | 12 | 3195.5,9821.5
+PLACE | Varrock Castle | Place | 0 | 3207.5,3476.5
+PLACE | Varrock Palace | Place | 0 | 3205.5,3487.5
+PLACE | Varrock Sewers | Place | 12 | 3210.5,9887.5
+PLACE | Varrock Square | Place | 0 | 3209.5,3437.5
+PLACE | Varrock Sawmill | Place | 0 | 3302.5,3507.5
+PLACE | Varrock Swordshop | Place | 0 | 3208.5,3395.5
+PLACE | Varrock Rat Pits | Map | 10172 | 2912.0,5088.0
+PLACE | Varrock estate agent | Place | 0 | 3241.5,3470.5
+PLACE | Varrock stone circle | Place | 0 | 3224.5,3370.5
+PLACE | Varrock General Store | Place | 0 | 3218.5,3412.5
+PLACE | Varrock south-east mine | Place | 0 | 3296.5,3347.5
+PLACE | Varrock Museum basement (lower) | Map | 10171 | 1632.0,4960.0
+PLACE | Varrock Museum basement (higher) | Map | 10170 | 1760.0,4960.0
+SHOP | Varrock Swordshop | Run by Shop keeper, Varrock | 0 | 3205.5,3399.5
+SHOP | Varrock General Store | Run by Shop keeper, Varrock | 0 | 3215.5,3415.5
+DOORWAY | Varrock Sewers | Leads to Misthalin Underground | 0 | 3230.5,3504.5
+DOORWAY | Varrock Sewers | Leads to Gielinor Surface | 12 | 3230.5,9904.5
+DOORWAY | Varrock Sewers | Leads to Misthalin Underground | 0 | 3237.5,3458.5
+DOORWAY | Varrock Sewers | Leads to Gielinor Surface | 12 | 3237.5,9858.5
+PLACE | Wild Varrock | Area name | 38 | 3552.5,6120.5
+PLACE | LMS Wild Varrock | Map | 38 | 3552.0,6120.0
+PLACE | South Varrock farm | Place | 0 | 3181.5,3293.5
+PLACE | Scattered around Varrock | Place | 0 | 3246.5,3458.5
+PLACE | Scattered around Varrock | Place | 0 | 3205.5,3355.5
+PLACE | South-east Varrock mine | Place | 0 | 3283.5,3355.5
+PLACE | South-west Varrock mine | Place | 0 | 3175.5,3361.5
+PLACE | House in South-East Varrock | Place | 0 | 3246.5,3384.5
+PLACE | Phoenix Gang Hideout under Varrock | Place | 12 | 3245.5,9769.5
+PLACE | Cage under the Varrock Castle stairs | Place | 0 | 3213.5,3476.5
+QUEST | Defender of Varrock | Quest start | 0 | 3280.5,3496.5
+SHOP | Ratpit bar (Varrock) | Run by Barman, Under Varrock | 10172 | 2909.5,5090.5
+PLACE | Phoenix Gang Hideout | Place in Varrock | 12 | 3237.5,9761.5
+PLACE | Ye olde Tea Shoppe | Place in Varrock | 0 | 3271.5,3413.5
+PLACE | Old Man Yarlo's house | Place in Varrock | 0 | 3244.5,3398.5
+PLACE | Phoenix Gang weapon storage | Place in Varrock | 0 | 3242.5,3383.5
+SHOP | Blue Moon Inn | Run by Bartender, Varrock | 0 | 3225.5,3397.5
+SHOP | Jolly Boar Inn | Run by Bartender, North-east of Varrock | 0 | 3280.5,3496.5
+SHOP | Dancing Donkey Inn | Run by Bartender, Varrock | 0 | 3267.5,3392.5
+? type:place region:misthalin
+QUEST | Romeo & Juliet | Quest start | 0 | 3210.5,3423.5
+PLACE | Speedrunning shop | Place | 0 | 3219.5,3425.5
+SHOP | Speedrunning Reward Shop | Run by Eliza, Varrock | 0 | 3219.5,3425.5
+QUEST | Demon Slayer | Quest start | 0 | 3204.5,3424.5
+SHOP | Benny |  | 0 | 3220.5,3432.5
+SHOP | Baraek |  | 0 | 3216.5,3436.5
+PLACE | Varrock Square | Place | 0 | 3209.5,3437.5
+SHOP | Events Reward Shop | Run by Nevet, Varrock Square | 0 | 3209.5,3437.5
+SHOP | Zaff's Superior Staffs! | Run by Zaff, Varrock | 0 | 3202.5,3437.5
+SHOP | Thessalia |  | 0 | 3206.5,3416.5
+SHOP | Thessalia's Fine Clothes. | Run by Thessalia, Varrock | 0 | 3202.5,3416.5
+SHOP | Varrock General Store | Run by Shop keeper, Varrock | 0 | 3215.5,3415.5
+PLACE | Varrock General Store | Place | 0 | 3218.5,3412.5
+SHOP | Horvik's Armour Shop. | Run by Horvik, Varrock | 0 | 3228.5,3440.5
+SHOP | Pelters' Veg Stall | Run by Tramp, Varrock | 0 | 3228.5,3411.5
+SHOP | Lowe's Archery Emporium | Run by Lowe, Varrock | 0 | 3232.5,3423.5
+PLACE | Varrock | Area name | 0 | 3211.5,3450.5
+SHOP | Cook (Blue Moon Inn) |  | 0 | 3230.5,3400.5
+SHOP | Varrock Swordshop | Run by Shop keeper, Varrock | 0 | 3205.5,3399.5
+DOORWAY | Varrock Sewers | Leads to Misthalin Underground | 0 | 3237.5,3458.5
+SHOP | Treznor |  | 0 | 3229.5,3459.5
+SHOP | Blue Moon Inn | Run by Bartender, Varrock | 0 | 3225.5,3397.5
+PLACE | Old Man Yarlo's house | Place in Varrock | 0 | 3244.5,3398.5
+PLACE | Blue Moon Inn | Place | 0 | 3223.5,3395.5
+PLACE | Varrock Swordshop | Place | 0 | 3208.5,3395.5
+PLACE | Scattered around Varrock | Place | 0 | 3246.5,3458.5
+QUEST | Shield of Arrav | Quest start | 0 | 3208.5,3392.5
+SHOP | Aubury's Rune Shop. | Run by Aubury, Varrock | 0 | 3252.5,3403.5
+PLACE | Varrock estate agent | Place | 0 | 3241.5,3470.5
+PLACE | Hairdresser | Place | 0 | 3255.5,3462.5
+PLACE | House in South-East Varrock | Place | 0 | 3246.5,3384.5
+PLACE | Clan Hub | Place | 0 | 3181.5,3473.5
+PLACE | Phoenix Gang weapon storage | Place in Varrock | 0 | 3242.5,3383.5
+QUEST | Priest in Peril | Quest start | 0 | 3219.5,3473.5
+DOORWAY | VTAM Corporation | Leads to Misthalin Underground | 0 | 3244.5,3383.5
+QUEST | Daddy's Home | Quest start | 0 | 3240.5,3474.5
+QUEST | Bone Voyage | Quest start | 0 | 3259.5,3450.5
+PLACE | Varrock Castle | Place | 0 | 3207.5,3476.5
+PLACE | Cage under the Varrock Castle stairs | Place | 0 | 3213.5,3476.5
+PLACE | Grand Exchange | Area name | 0 | 3168.5,3477.5
+? pub
+KIND | Pubs | Every pub: 55 places in 51 towns, marked on the map, nearest first | 0 | 1377.5,2927.5
+SHOP | Auburn Pub | Run by Bartender, Auburnvale | 0 | 1392.5,3354.5
+SHOP | Nemus Retreat (pub) | Run by Bartender, Nemus Retreat | 0 | 1365.5,3304.5
+SHOP | The Pandemonium (pub) | Run by 'Squawking' Steve Beanie, The Pandemonium | 0 | 3049.5,2970.5
+MONSTER | Galina | Canifis Pub (Upstairs) (1 spawn) | 0 | 3490.5,3472.5
+MONSTER | Ksenia | Canifis (Upstairs in the pub) (1 spawn) | 0 | 3498.5,3472.5
+MONSTER | Head Guard | Behind The Legless Faun pub (1 spawn) | 0 | 1757.5,3681.5
+NPC | Bartender | Runs Auburn Pub | 0 | 1392.5,3354.5
+NPC | Bartender | Runs Nemus Retreat (pub) | 0 | 1365.5,3304.5
+NPC | 'Squawking' Steve Beanie | Runs The Pandemonium (pub) | 0 | 3049.5,2970.5
+ITEM | Gin | Sold at Auburn Pub for 5 coins | 0 | 1392.5,3354.5
+ITEM | Gin | Sold at Nemus Retreat (pub) for 5 coins | 0 | 1365.5,3304.5
+ITEM | Gin | Sold at The Pandemonium (pub) for 5 coins | 0 | 3049.5,2970.5
+ITEM | Pot | Free to take. Keldagrim - Laughing Miner Pub (1 spawn) | 10 | 2918.5,10191.5
+ITEM | Rum | Sold at Auburn Pub for 5 coins | 0 | 1392.5,3354.5
+ITEM | Rum | Sold at Nemus Retreat (pub) for 5 coins | 0 | 1365.5,3304.5
+ITEM | Rum | Sold at The Pandemonium (pub) for 5 coins | 0 | 3049.5,2970.5
+ITEM | Beer | Sold at Auburn Pub for 2 coins | 0 | 1392.5,3354.5
+ITEM | Beer | Sold at Nemus Retreat (pub) for 2 coins | 0 | 1365.5,3304.5
+ITEM | Beer | Sold at The Pandemonium (pub) for 2 coins | 0 | 3049.5,2970.5
+ITEM | Beer | Free to take. Port Piscarilius - The Legless Faun pub (3 spawns) | 0 | 1773.5,3683.5
+ITEM | Beer | Free to take. Brimhaven - Dead Man's Chest pub (2 spawns) | 0 | 2796.5,3165.5
+ITEM | Beer | Free to take. Hosidius - The Golden Field pub (1 spawn) | 0 | 1730.5,3614.5
+ITEM | Beer | Free to take. Ferox Enclave - The Old Nite pub (Telegrab only) (1 spawn) | 0 | 3148.5,3645.5
+ITEM | Grog | Sold at The Pandemonium (pub) for 3 coins | 0 | 3049.5,2970.5
+ITEM | Stew | Sold at Auburn Pub for 20 coins | 0 | 1392.5,3354.5
+ITEM | Stew | Sold at Nemus Retreat (pub) for 20 coins | 0 | 1365.5,3304.5
+ITEM | Stew | Sold at The Pandemonium (pub) for 20 coins | 0 | 3049.5,2970.5
+ITEM | Cider | Sold at Auburn Pub for 2 coins | 0 | 1392.5,3354.5
+ITEM | Cider | Sold at Nemus Retreat (pub) for 2 coins | 0 | 1365.5,3304.5
+ITEM | Cider | Sold at The Pandemonium (pub) for 2 coins | 0 | 3049.5,2970.5
+ITEM | Vodka | Sold at Auburn Pub for 5 coins | 0 | 1392.5,3354.5
+ITEM | Vodka | Sold at Nemus Retreat (pub) for 5 coins | 0 | 1365.5,3304.5
+ITEM | Vodka | Sold at The Pandemonium (pub) for 5 coins | 0 | 3049.5,2970.5
+ITEM | Whisky | Sold at Auburn Pub for 5 coins | 0 | 1392.5,3354.5
+ITEM | Whisky | Sold at Nemus Retreat (pub) for 5 coins | 0 | 1365.5,3304.5
+ITEM | Whisky | Sold at The Pandemonium (pub) for 5 coins | 0 | 3049.5,2970.5
+ITEM | Meat pie | Sold at Auburn Pub for 15 coins | 0 | 1392.5,3354.5
+ITEM | Meat pie | Sold at The Pandemonium (pub) for 15 coins | 0 | 3049.5,2970.5
+ITEM | Moon-lite | Sold at Auburn Pub for 15 coins | 0 | 1392.5,3354.5
+? type:place pub
+PLACE | Pub | Place in Civitas illa Fortis | 0 | 1718.5,3120.5
+PLACE | Pub | Pub | 0 | 3662.5,2981.5
+PLACE | Pub | Pub | 0 | 3161.5,2983.5
+PLACE | Pub | Pub | 10 | 2838.5,10195.5
+PLACE | Pub | Pub | 20 | 2864.5,9876.5
+PLACE | Pub | Pub | 32 | 1827.5,10132.5
+PLACE | Pub | Pub | 41 | 2635.5,6427.5
+PLACE | Pub | Pub | 51 | 2527.5,10258.5
+PLACE | Pub | Pub | 10151 | 2030.5,5537.5
+PLACE | Pub | Pub | 10181 | 2939.5,4678.5
+PLACE | Pub in Aldarin | Pub | 0 | 1377.5,2927.5
+PLACE | Pub in Arceuus | Pub | 0 | 1689.5,3726.5
+PLACE | Pub in Falador | Pub | 0 | 2956.5,3368.5
+PLACE | Pub in Yanille | Pub | 0 | 2555.5,3078.5
+PLACE | Pub in Shayzien | Pub | 0 | 1550.5,3567.5
+PLACE | Pub in Burthorpe | Pub | 0 | 2911.5,3542.5
+PLACE | Pub in Lumbridge | Pub | 0 | 3231.5,3240.5
+PLACE | Pub in Auburnvale | Pub | 0 | 1392.5,3354.5
+PLACE | Pub in Pollnivneach | Pub | 0 | 3360.5,2955.5
+PLACE | Pub in Cam Torum | Pub | 44 | 1428.5,9585.5
+PLACE | Pub in Tal Teklan | Pub | 0 | 1223.5,3118.5
+PLACE | Pub in Port Roberts | Pub | 0 | 1891.5,3316.5
+PLACE | Pub in Auburn Valley | Pub | 0 | 1365.5,3304.5
+PLACE | Pub in Deepfin Point | Pub | 0 | 1938.5,2761.5
+PLACE | Pub in East Ardougne | Pub | 0 | 2574.5,3322.5
+PLACE | Pub in Shilo Village | Pub | 0 | 2862.5,2996.5
+PLACE | Pub in Port Phasmatys | Pub | 0 | 3679.5,3493.5
+PLACE | Pub in Seers' Village | Pub | 0 | 2690.5,3489.5
+PLACE | Pub in The Pandemonium | Pub | 0 | 3047.5,2971.5
+PLACE | Pub in Barbarian Village | Pub | 0 | 3078.5,3441.5
+PLACE | Pub in Quetzacalli Gorge | Pub | 0 | 1499.5,3226.5
+PLACE | Pub in Burgh de Rott | Pub | 0 | 3492.5,3230.5
+PLACE | Pub in Tree Gnome Village | Pub | 0 | 2565.5,3142.5
+PLACE | Pub in Civitas illa Fortis | Pub | 0 | 1723.5,3077.5
+PLACE | Pub in Tree Gnome Stronghold | Pub | 0 | 2478.5,3489.5
+PLACE | Canifis Pub | Place | 0 | 3490.5,3472.5
+PLACE | Rat & Bat pub | Place in Slepe | 0 | 3749.5,3295.5
+PLACE | The Crypt pub | Place in Darkmeyer | 0 | 3596.5,3388.5
+PLACE | The Burrow pub | Place in Hunter Guild | 43 | 1561.5,9452.5
+PLACE | Laughing Miner Pub | Place in Keldagrim | 10 | 2918.5,10191.5
+? inn region:ardougne
+SHOP | Flying Horse Inn | Run by Bartender, East Ardougne | 0 | 2575.5,3322.5
+NPC | Bartender | Runs Flying Horse Inn | 0 | 2575.5,3322.5
+ITEM | Beer | Sold at Flying Horse Inn for 2 coins | 0 | 2575.5,3322.5
+? region:"farming guild"
+MUSIC | Rose | Music track unlock | 0 | 1279.5,3763.5
+SHOP | Alan (Farming Guild) |  | 0 | 1264.5,3734.5
+ITEM | Rake | Sold at Alan (Farming Guild) for 6 coins | 0 | 1264.5,3734.5
+ITEM | Compost | Sold at Alan (Farming Guild) for 20 coins | 0 | 1264.5,3734.5
+ITEM | Plant cure | Sold at Alan (Farming Guild) for 40 coins | 0 | 1264.5,3734.5
+ITEM | Seed dibber | Sold at Alan (Farming Guild) for 6 coins | 0 | 1264.5,3734.5
+ITEM | Watering can | Sold at Alan (Farming Guild) for 8 coins | 0 | 1264.5,3734.5
+ITEM | Empty plant pot | Sold at Alan (Farming Guild) for 1 coin | 0 | 1264.5,3734.5
+ITEM | Gardening trowel | Sold at Alan (Farming Guild) for 12 coins | 0 | 1264.5,3734.5
+ITEM | Logs | Free to take. Kebos Lowlands - outside the Farming Guild (3 spawns) | 0 | 1261.5,3740.5
+POINT | Bush/Flower patch | Farming patch | 0 | 1259.5,3729.5
+SHOP | Latlink Fastbell |  | 0 | 1255.5,3753.5
+ITEM | Rake | Sold at Latlink Fastbell for 6 coins | 0 | 1255.5,3753.5
+ITEM | Compost | Sold at Latlink Fastbell for 20 coins | 0 | 1255.5,3753.5
+ITEM | Plant cure | Sold at Latlink Fastbell for 40 coins | 0 | 1255.5,3753.5
+ITEM | Seed dibber | Sold at Latlink Fastbell for 6 coins | 0 | 1255.5,3753.5
+ITEM | Watering can | Sold at Latlink Fastbell for 8 coins | 0 | 1255.5,3753.5
+ITEM | Empty plant pot | Sold at Latlink Fastbell for 1 coin | 0 | 1255.5,3753.5
+ITEM | Gardening trowel | Sold at Latlink Fastbell for 12 coins | 0 | 1255.5,3753.5
+POINT | Bank: Farming Guild | Bank (2 places) | 0 | 1252.5,3743.5
+NPC | Tool Leprechaun | Farming Guild (4 spawns) | 0 | 1252.5,3756.5
+ITEM | Spade | Free to take. Farming Guild (1 spawn) | 0 | 1251.5,3735.5
+SHOP | Allanna's Farming Shop | Run by Allanna, Farming Guild | 0 | 1250.5,3735.5
+NPC | Allanna | Runs Allanna's Farming Shop | 0 | 1250.5,3735.5
+ITEM | Rake | Sold at Allanna's Farming Shop for 6 coins, 5 in stock | 0 | 1250.5,3735.5
+ITEM | Spade | Sold at Allanna's Farming Shop for 3 coins, 5 in stock | 0 | 1250.5,3735.5
+ITEM | Basket | Sold at Allanna's Farming Shop for 1 coin, 100 in stock | 0 | 1250.5,3735.5
+ITEM | Bucket | Sold at Allanna's Farming Shop for 2 coins, 100 in stock | 0 | 1250.5,3735.5
+ITEM | Compost | Sold at Allanna's Farming Shop for 20 coins, 100 in stock | 0 | 1250.5,3735.5
+ITEM | Sack pack | Sold at Allanna's Farming Shop for 100 coins, 30 in stock | 0 | 1250.5,3735.5
+ITEM | Secateurs | Sold at Allanna's Farming Shop for 5 coins, 5 in stock | 0 | 1250.5,3735.5
+ITEM | Empty sack | Sold at Allanna's Farming Shop for 1 coin, 100 in stock | 0 | 1250.5,3735.5
+ITEM | Plant cure | Sold at Allanna's Farming Shop for 40 coins, 40 in stock | 0 | 1250.5,3735.5
+ITEM | Basket pack | Sold at Allanna's Farming Shop for 100 coins, 30 in stock | 0 | 1250.5,3735.5
+ITEM | Seed dibber | Sold at Allanna's Farming Shop for 6 coins, 5 in stock | 0 | 1250.5,3735.5
+ITEM | Compost pack | Sold at Allanna's Farming Shop for 2,000 coins, 10 in stock | 0 | 1250.5,3735.5
+ITEM | Watering can | Sold at Allanna's Farming Shop for 8 coins, 30 in stock | 0 | 1250.5,3735.5
+ITEM | Plant pot pack | Sold at Allanna's Farming Shop for 100 coins, 10 in stock | 0 | 1250.5,3735.5
+ITEM | Empty plant pot | Sold at Allanna's Farming Shop for 1 coin, 100 in stock | 0 | 1250.5,3735.5
+ITEM | Filled plant pot | Sold at Allanna's Farming Shop for 1 coin, 100 in stock | 0 | 1250.5,3735.5
+? -region:varrock bank
+KIND | Banks | Every bank: 153 places in 116 towns, marked on the map, nearest first | 0 | 3266.5,3166.5
+KIND | Bank Tutors | Every bank tutor: 2 places in 2 towns, marked on the map, nearest first | 0 | 3205.5,3221.5
+PLACE | Bank vault | Area name | 12 | 3196.5,9822.5
+PLACE | Bank vault | Area name | 31 | 2060.5,9006.5
+POINT | Bank: Lletya | Bank, needs Mourning's End Part I | 0 | 2352.5,3162.5
+POINT | Bank: Nardah | Bank (2 places) | 0 | 3427.5,2889.5
+POINT | Bank: Aldarin | Bank, needs Children of the Sun | 0 | 1400.5,2927.5
+POINT | Bank: Arceuus | Bank (8 places) | 0 | 1624.5,3741.5
+POINT | Bank: Canifis | Bank, needs Priest in Peril (2 places) | 0 | 3512.5,3478.5
+POINT | Bank: Falador | Bank (3 places) | 0 | 3011.5,3354.5
+POINT | Bank: Jatizso | Bank, needs The Fremennik Isles | 0 | 2416.5,3799.5
+POINT | Bank: Ourania | Bank | 16 | 3013.5,5625.5
+POINT | Bank: Yanille | Bank | 0 | 2613.5,3093.5
+POINT | Bank: Zanaris | Bank, needs Lost City (3 places) | 28 | 2381.5,4456.5
+POINT | Bank: Ardougne | Bank (3 places) | 0 | 2655.5,3280.5
+POINT | Bank: Catherby | Bank (2 places) | 0 | 2807.5,3442.5
+POINT | Bank: Hosidius | Bank | 0 | 1746.5,3600.5
+POINT | Bank: Mistrock | Bank, needs Children of the Sun | 0 | 1381.5,2865.5
+POINT | Bank: Shayzien | Bank (2 places) | 0 | 1486.5,3591.5
+POINT | Bank: Sophanem | Bank, needs Contact! (4 places) | 10142 | 2798.5,5169.5
+POINT | Bank: Bank Boat | Bank | 0 | 2280.5,2544.5
+POINT | Bank: Darkmeyer | Bank, needs Sins of the Father (2 places) | 0 | 3603.5,3369.5
+POINT | Bank: Edgeville | Bank (4 places) | 0 | 3094.5,3489.5
+POINT | Bank: Etceteria | Bank, needs Throne of Miscellania | 0 | 2619.5,3896.5
+POINT | Bank: Keldagrim | Bank, needs The Giant Dwarf | 10 | 2837.5,10207.5
+POINT | Bank: Lovakengj | Bank (14 places) | 0 | 1522.5,3738.5
+POINT | Bank: Neitiznot | Bank, needs The Fremennik Isles (2 places) | 0 | 2335.5,3809.5
+POINT | Bank: Auburnvale | Bank, needs Children of the Sun (4 places) | 0 | 1416.5,3350.5
+POINT | Bank: Piscatoris | Bank, needs Swan Song | 0 | 2330.5,3690.5
+POINT | Bank: Prifddinas | Bank, needs Song of the Elves (5 places) | 29 | 3295.5,6058.5
+POINT | Bank: Al Kharid | Bank (2 places) | 0 | 3266.5,3166.5
+POINT | Bank: Ape Atoll | Bank, needs Monkey Madness II | 0 | 2779.5,2782.5
+POINT | Bank: Cam Torum | Bank, needs Perilous Moons (3 places) | 44 | 1452.5,9567.5
+POINT | Bank: Soul Wars | Bank | 0 | 2211.5,2860.5
+POINT | Bank: Blast Mine | Bank (4 places) | 0 | 1479.5,3857.5
+POINT | Bank: Land's End | Bank | 0 | 1512.5,3421.5
+POINT | Bank: Lunar Isle | Bank, needs Lunar Diplomacy | 0 | 2097.5,3920.5
+POINT | Bank: Onyx Crest | Bank | 0 | 2984.5,2268.5
+POINT | Bank: Tal Teklan | Bank, needs Children of the Sun | 0 | 1244.5,3122.5
+POINT | Bank: Castle Wars | Bank | 0 | 2444.5,3082.5
+? region:wilderness type:place
+SHOP | Battle Runes | Run by Mage of Zamorak, Wilderness | 0 | 3105.5,3558.5
+DOORWAY | Edgeville Dungeon | Leads to Misthalin Underground | 0 | 3088.5,3571.5
+PLACE | Level 5-10 Wilderness | Place | 0 | 3175.5,3572.5
+SHOP | Simon's Wilderness Cape Shop. | Run by Simon, Chaos Temple | 0 | 3239.5,3609.5
+PLACE | Chaos Temple | Area name | 0 | 3238.5,3610.5
+PLACE | Pyre Cove | Area name | 0 | 3349.5,3618.5
+PLACE | Clan Wars building | Place in Ferox Enclave | 0 | 3129.5,3621.5
+PLACE | Black Knights' Fortress | Area name | 0 | 3018.5,3522.5
+PLACE | Clan Wars | Area name | 0 | 3129.5,3623.5
+PLACE | Bounty Hunter | Area name | 0 | 3141.5,3623.5
+PLACE | South-west Wilderness mine | Place | 0 | 3011.5,3590.5
+SHOP | Sam's Wilderness Cape Shop. | Run by Sam (merchant), East of Dark Warriors' Fortress | 0 | 3049.5,3630.5
+PLACE | Dark Warriors' Fortress | Area name | 0 | 3030.5,3633.5
+PLACE | Ferox Enclave | Area name | 0 | 3151.5,3635.5
+PLACE | Last Man Standing lobby | Place | 0 | 3142.5,3635.5
+SHOP | Justine's stuff for the Last Shopper Standing | Run by Justine, Last Man Standing lobby | 0 | 3142.5,3635.5
+DOORWAY | Ferox Enclave Dungeon | Leads to LMS Desert Island | 0 | 3142.5,3635.5
+SHOP | The Old Nite | Run by Camarst, Ferox Enclave | 0 | 3149.5,3643.5
+PLACE | The Old Nite pub | Place in Ferox Enclave | 0 | 3151.5,3644.5
+PLACE | Last Man Standing | Area name | 0 | 3142.5,3644.5
+DOORWAY | Revenant Caves | Leads to Wilderness Dungeons | 0 | 3075.5,3655.5
+DOORWAY | Wilderness Dungeons | Leads to Wilderness Dungeons | 0 | 3103.5,3655.5
+PLACE | Level 6 and 7 Wilderness | Place | 0 | 2984.5,3568.5
+PLACE | Wilderness | Place | 0 | 3111.5,3657.5
+PLACE | Larran's Chest | Area name | 0 | 3279.5,3659.5
+DOORWAY | Wilderness Slayer Cave | Leads to Wilderness Dungeons | 0 | 3260.5,3666.5
+PLACE | Bone Yard Hunter area | Place | 0 | 3298.5,3671.5
+PLACE | Graveyard of Shadows | Area name | 0 | 3167.5,3673.5
+PLACE | Hunter's End | Area name | 0 | 3116.5,3675.5
+DOORWAY | Hunter's End | Leads underground | 0 | 3115.5,3677.5
+DOORWAY | Corporeal Beast cave | Leads to Wilderness Dungeons | 0 | 3203.5,3681.5
+PLACE | Skeletal Tomb | Area name | 0 | 3181.5,3682.5
+DOORWAY | Skeletal Tomb | Leads underground | 0 | 3179.5,3684.5
+PLACE | Bandit Camp | Area name | 0 | 3036.5,3689.5
+PLACE | Ruins | Area name | 0 | 2966.5,3697.5
+SHOP | Bandit Duty Free | Run by Noterazzo, Wilderness Bandit Camp | 0 | 3026.5,3702.5
+PLACE | Wilderness Bandit Camp | Place | 0 | 3032.5,3703.5
+SHOP | Tony's Pizza Bases | Run by Fat Tony, Wilderness Bandit Camp | 0 | 3038.5,3707.5
+SHOP | Neil's Wilderness Cape Shop. | Run by Neil, Bandit Camp | 0 | 3026.5,3707.5
+PLACE | Graveyard of Shadows/Bone Yard | Place | 0 | 3205.5,3718.5
+? near:me bank
+POINT | Bank: Varrock | Bank (6 places) | 0 | 3251.5,3420.5
+POINT | Bank: Grand Exchange | Bank (4 places) | 0 | 3162.5,3489.5
+POINT | Bank: Cooks' Guild | Bank (2 places) | 0 | 3147.5,3450.5
+? loc:nearby
+TELEPORT | Varrock tablet | uses charges | 0 | 3213.5,3424.5
+TELEPORT | Varrock Teleport | 25 Magic | 0 | 3213.5,3424.5
+QUEST | Romeo & Juliet | Quest start | 0 | 3210.5,3423.5
+SHOP | Speedrunning Reward Shop | Run by Eliza, Varrock | 0 | 3219.5,3425.5
+NPC | Eliza | Runs Speedrunning Reward Shop | 0 | 3219.5,3425.5
+ITEM | Giant stopwatch | Sold at Speedrunning Reward Shop for 1,200 speedrun points | 0 | 3219.5,3425.5
+ITEM | Speedy teleport scroll | Sold at Speedrunning Reward Shop for 600 speedrun points | 0 | 3219.5,3425.5
+ITEM | Adventurer's outfit (tier 1) | Sold at Speedrunning Reward Shop for 200 speedrun points | 0 | 3219.5,3425.5
+ITEM | Adventurer's outfit (tier 2) | Sold at Speedrunning Reward Shop for 600 speedrun points | 0 | 3219.5,3425.5
+ITEM | Adventurer's outfit (tier 3) | Sold at Speedrunning Reward Shop for 1,800 speedrun points | 0 | 3219.5,3425.5
+QUEST | Demon Slayer | Quest start | 0 | 3204.5,3424.5
+SHOP | Benny |  | 0 | 3220.5,3432.5
+SHOP | Baraek |  | 0 | 3216.5,3436.5
+ITEM | Bear fur | Sold at Baraek for 20 coins | 0 | 3216.5,3436.5
+ITEM | Newspaper | Sold at Benny for 50 coins | 0 | 3220.5,3432.5
+SHOP | Events Reward Shop | Run by Nevet, Varrock Square | 0 | 3209.5,3437.5
+NPC | Nevet | Runs Events Reward Shop | 0 | 3209.5,3437.5
+ITEM | Swords and emblem | Sold at Events Reward Shop for 1,100 event points | 0 | 3209.5,3437.5
+ITEM | Grid master tabard | Sold at Events Reward Shop for 750 event points | 0 | 3209.5,3437.5
+ITEM | Swords and emblem (b) | Sold at Events Reward Shop for 1,100 event points | 0 | 3209.5,3437.5
+ITEM | Swords and emblem (g) | Sold at Events Reward Shop for 1,100 event points | 0 | 3209.5,3437.5
+ITEM | Swords and emblem (p) | Sold at Events Reward Shop for 1,100 event points | 0 | 3209.5,3437.5
+ITEM | Grid master tabard (b) | Sold at Events Reward Shop for 750 event points | 0 | 3209.5,3437.5
+ITEM | Grid master tabard (g) | Sold at Events Reward Shop for 750 event points | 0 | 3209.5,3437.5
+ITEM | Grid master tabard (p) | Sold at Events Reward Shop for 750 event points | 0 | 3209.5,3437.5
+ITEM | Grid master torch scroll | Sold at Events Reward Shop for 6,000 event points | 0 | 3209.5,3437.5
+ITEM | Grid master altar icon scroll | Sold at Events Reward Shop for 6,000 event points | 0 | 3209.5,3437.5
+SHOP | Zaff's Superior Staffs! | Run by Zaff, Varrock | 0 | 3202.5,3437.5
+NPC | Zaff | Runs Zaff's Superior Staffs! | 0 | 3202.5,3437.5
+ITEM | Staff | Sold at Zaff's Superior Staffs! for 15 coins, 5 in stock | 0 | 3202.5,3437.5
+ITEM | Battlestaff | Sold at Zaff's Superior Staffs! for 7,000 coins, 5 in stock | 0 | 3202.5,3437.5
+ITEM | Magic staff | Sold at Zaff's Superior Staffs! for 200 coins, 5 in stock | 0 | 3202.5,3437.5
+ITEM | Staff of air | Sold at Zaff's Superior Staffs! for 1,500 coins, 2 in stock | 0 | 3202.5,3437.5
+ITEM | Staff of fire | Sold at Zaff's Superior Staffs! for 1,500 coins, 2 in stock | 0 | 3202.5,3437.5
+ITEM | Staff of earth | Sold at Zaff's Superior Staffs! for 1,500 coins, 2 in stock | 0 | 3202.5,3437.5
+ITEM | Staff of water | Sold at Zaff's Superior Staffs! for 1,500 coins, 2 in stock | 0 | 3202.5,3437.5
+SHOP | Thessalia |  | 0 | 3206.5,3416.5
+SHOP | Thessalia's Fine Clothes. | Run by Thessalia, Varrock | 0 | 3202.5,3416.5
+NPC | Thessalia | Runs Thessalia's Fine Clothes. | 0 | 3202.5,3416.5
+ITEM | Lamp | Sold at Thessalia for 1 frog token | 0 | 3206.5,3416.5
+? region:"dwarven mines"
+PLACE | Boot | Area name | 6 | 2985.5,9806.5
+PLACE | Lower level | Area name | 6 | 3104.5,9727.5
+PLACE | Upper level | Area name | 6 | 3200.5,9727.5
+PLACE | Mining Guild | Area name | 6 | 3034.5,9736.5
+PLACE | Sourhog Cave | Area name | 6 | 3168.5,9696.5
+PLACE | Dwarven Mines | Map | 6 | 3040.0,9824.0
+PLACE | Motherlode Mine | Area name | 6 | 3168.5,9680.5
+PLACE | Watermill cellar | Area name | 6 | 3240.5,9704.5
+PLACE | Access to Falador | Area name | 6 | 3058.5,9776.5
+PLACE | Hammerspike's hangout | Area name | 6 | 2969.5,9819.5
+PLACE | Beware of the scorpions | Area name | 6 | 3052.5,9809.5
+POINT | Anvils | Smithing anvils (2 places) | 6 | 3011.5,9813.5
+POINT | Dwarven East Top | Mining: Clay x2, Tin x3, Iron x2 | 6 | 3051.5,9820.5
+POINT | Dwarven West Top | Mining: Copper x3, Tin x2, Iron x2 | 6 | 3031.5,9828.5
+POINT | Mining Guild West | Mining: Amethyst x36 | 6 | 3006.5,9711.5
+POINT | Bank: Mining Guild | Bank | 6 | 3010.5,9719.5
+POINT | Mining Guild North | Mining: Iron x4, Coal x37, Mithril x5, Adamantite x2 | 6 | 3040.5,9740.5
+POINT | Mining Guild South | Mining: Iron x8, Coal x20, Mithril x10, Adamantite x8, Runite x2 | 6 | 3032.5,9720.5
+POINT | Dwarven East Bottom | Mining: Tin x5, Iron x2, Coal x8, Gold x2, Adamantite x1 | 6 | 3039.5,9763.5
+POINT | Dwarven East Middle | Mining: Copper x4, Iron x3, Coal x3, Mithril x2, Adamantite x2 | 6 | 3037.5,9775.5
+POINT | Dwarven West Bottom | Mining: Clay x3, Copper x4 | 6 | 3028.5,9809.5
+POINT | Mining Guild Amethyst | Mining: Amethyst x26 | 6 | 3022.5,9704.5
+SHOP | Hendor's Awesome Ores | Run by Hendor, Mining Guild | 6 | 3032.5,9746.5
+SHOP | Dwarven shopping store | Run by Dwarf, Dwarven Mine | 6 | 2993.5,9828.5
+SHOP | Nurmof's Pickaxe Shop. | Run by Nurmof, Dwarven Mines | 6 | 2997.5,9844.5
+SHOP | Drogo's Mining Emporium. | Run by Drogo dwarf, Dwarven Mines | 6 | 3035.5,9846.5
+SHOP | Crossbow Shop (Dwarven Mine) | Run by Hura, Dwarven Mines | 6 | 3002.5,9799.5
+SHOP | Yarsul's Prodigious Pickaxes | Run by Yarsul, Mining Guild | 6 | 3030.5,9747.5
+SHOP | Cart conductor (Dwarven Mine) |  | 6 | 2996.5,9837.5
+SHOP | Mining Guild Mineral Exchange | Run by Belona, Mining Guild | 6 | 3018.5,9723.5
+SHOP | Prospector Percy's Nugget Shop | Run by Prospector Percy, Motherlode Mine | 6 | 3116.5,9698.5
+MONSTER | Dwarf | Dwarven Mine (36 spawns) | 6 | 3017.5,9819.5
+MONSTER | Scorpion | Dwarven Mine (13 spawns) | 6 | 3047.5,9784.5
+MONSTER | King Scorpion | Dwarven Mine (2 spawns) | 6 | 3040.5,9775.5
+MONSTER | Dwarf gang member | Dwarven Mine (3 spawns) | 6 | 2967.5,9813.5
+DOORWAY | Dwarven Mine | Leads to Gielinor Surface | 6 | 3019.5,9850.5
+DOORWAY | Dwarven Mine | Leads to Gielinor Surface | 6 | 3059.5,9778.5
+DOORWAY | Mining Guild basement | Leads to Gielinor Surface | 6 | 3019.5,9739.5
+NPC | Hura | Runs Crossbow Shop (Dwarven Mine) | 6 | 3002.5,9799.5
+NPC | Dwarf | Runs Dwarven shopping store | 6 | 2993.5,9828.5
+? region:keldagrim
+TRANSPORT | Fairy ring: DKS | BKS, AIQ, AIR, AIS, AJP, AJR, AJS, AKP, AKQ, AKR, AKS, ALP, ALQ, ALR, ALS, BIP, BIQ, BIS, BJP, BJS, BKP, BKR, BKS, BLP, BLR, BLS, CIP, CIQ, CIR, CIS, CJQ, CJR, CKQ | 0 | 2743.5,3721.5
+DOORWAY | Keldagrim Entrance | Leads to Keldagrim | 0 | 2731.5,3713.5
+PLACE | Keldagrim Entrance | Area name | 0 | 2728.5,3715.5
+QUEST | Olaf's Quest | Quest start | 0 | 2723.5,3729.5
+ITEM | Seaweed | Free to take. Fremennik Province - north of Keldagrim entrance (9 spawns) | 0 | 2712.5,3732.5
+PLACE | Jail | Area name | 10 | 2826.5,10076.5
+PLACE | Palace | Area name | 10 | 2879.5,10201.5
+PLACE | Trolls | Area name | 10 | 2846.5,10084.5
+PLACE | Brewery | Area name | 10 | 2914.5,10188.5
+PLACE | Library | Area name | 10 | 2862.5,10225.5
+PLACE | Keldagrim | Map | 10 | 2879.0,10176.0
+PLACE | Minecarts | Area name | 10 | 2928.5,10170.5
+PLACE | Pestilence | Area name | 18 | 1952.5,4992.5
+PLACE | River Kelda | Area name | 10 | 2842.5,10141.5
+PLACE | Blast Furnace | Area name | 10 | 2930.5,10194.5
+PLACE | Goutweed store | Area name | 10 | 2856.5,10084.5
+PLACE | Dondakan's rock | Area name | 10 | 2836.5,10166.5
+PLACE | Black Guard H.Q. | Area name | 10 | 2827.5,10213.5
+PLACE | Keldagrim Rat Pits | Map | 10088 | 1952.0,4704.0
+QUEST | The Giant Dwarf | Quest start | 10 | 2841.5,10129.5
+QUEST | Between a Rock... | Quest start | 10 | 2823.5,10168.5
+QUEST | Forgettable Tale... | Quest start | 10 | 2826.5,10215.5
+POINT | Rat Pits | Minigame | 10 | 2913.5,10188.5
+POINT | Bank: Keldagrim | Bank, needs The Giant Dwarf | 10 | 2837.5,10207.5
+POINT | Bank: Blast Furnace | Bank, needs The Giant Dwarf | 18 | 1948.5,4957.5
+POINT | Keldagrim North East | Mining: Coal x9 | 10 | 2937.5,10232.5
+POINT | Keldagrim South West Top | Mining: Tin x5 | 10 | 2864.5,10170.5
+POINT | Keldagrim South West Bottom | Mining: Copper x2, Coal x5 | 10 | 2872.5,10119.5
+POINT | Keldagrim South West Middle | Mining: Iron x4, Gold x1 | 10 | 2818.5,10156.5
+SHOP | Hirko |  | 10 | 2888.5,10202.5
+SHOP | Barmaid |  | 10 | 2915.5,10193.5
+SHOP | Blandebir |  | 10 | 2916.5,10194.5
+SHOP | Ore seller. | Run by Ordan, Blast Furnace in Keldagrim | 18 | 1936.5,4966.5
+SHOP | Armour store. | Run by Jorzik, Blast Furnace in Keldagrim | 18 | 1939.5,4968.5
+SHOP | Kjut's Kebabs | Run by Kjut, Keldagrim | 10 | 2905.5,10217.5
+SHOP | Cart conductor |  | 10 | 2921.5,10182.5
+SHOP | King's Axe Inn | Run by Barman, Western Keldagrim | 10 | 2838.5,10195.5
+SHOP | Pickaxe-Is-Mine | Run by Tati and Sune, Keldagrim | 10 | 2923.5,10211.5
+SHOP | Vigr's Warhammers | Run by Vigr, Keldagrim | 10 | 2872.5,10210.5
+SHOP | Green Gemstone Gems | Run by Hervi, Keldagrim | 10 | 2887.5,10211.5
+? type:place castle
+PLACE | Castle Wars | Area name | 0 | 2432.5,3111.5
+PLACE | Castle Drakan | Area name | 0 | 3553.5,3360.5
+PLACE | Castle Drakan | Area name | 52 | 2507.5,7841.5
+SHOP | Castle Wars Ticket Exchange | Run by Lanthus, Castle Wars | 0 | 2441.5,3089.5
+PLACE | Camelot Castle | Area name | 0 | 2763.5,3505.5
+PLACE | Kourend Castle | Area name | 0 | 1626.5,3676.5
+PLACE | Rogues' Castle | Area name | 0 | 3286.5,3931.5
+PLACE | Varrock Castle | Place | 0 | 3207.5,3476.5
+PLACE | Ardougne Castle | Place | 0 | 2588.5,3290.5
+PLACE | Burthorpe Castle | Place | 0 | 2903.5,3559.5
+PLACE | Lumbridge Castle | Place | 0 | 3209.5,3224.5
+PLACE | Miscellania Castle | Place | 0 | 2501.5,3868.5
+PLACE | Fenkenstrain's Castle | Area name | 0 | 3551.5,3551.5
+PLACE | White Knights' Castle | Area name | 0 | 2961.5,3345.5
+PLACE | Lumbridge Castle cellar | Area name | 12 | 3220.5,9620.5
+PLACE | Lumbridge Castle kitchen | Place | 0 | 3208.5,3214.5
+PLACE | Lumbridge Castle basement | Place | 12 | 3214.5,9620.5
+PLACE | Lumbridge Castle gatehouse | Place | 0 | 3229.5,3215.5
+PLACE | Miscellania Castle courtyard | Place | 0 | 2513.5,3865.5
+PLACE | Moat around Falador Castle | Place | 0 | 2978.5,3356.5
+PLACE | Walls surrounding Kourend Castle | Place | 0 | 1683.5,3699.5
+PLACE | Lumbridge Castle (Recipe for Disaster) | Map | 10103 | 1888.0,5344.0
+PLACE | Cage under the Varrock Castle stairs | Place | 0 | 3213.5,3476.5
+SHOP | Kourend Castle Gem Stall. | Run by Gem merchant, Kourend Castle | 0 | 1633.5,3685.5
+SHOP | Kourend Castle Baker's Stall. | Run by Baker, Kourend Castle | 0 | 1638.5,3685.5
+DOORWAY | Lumbridge Castle cellar | Leads to Misthalin Underground | 0 | 3209.5,3216.5
+DOORWAY | Lumbridge Castle cellar | Leads to Gielinor Surface | 12 | 3209.5,9616.5
+DOORWAY | Lumbridge Castle cellar | Leads to Gielinor Surface | 5 | 2751.5,5375.5
+DOORWAY | Ardougne Castle basement | Leads to Ardougne Underground | 0 | 2569.5,3296.5
+DOORWAY | Ardougne Castle basement | Leads to Gielinor Surface | 2 | 2569.5,9695.5
+DOORWAY | White Knights' Castle Crypt | Leads to Taverley Underground | 0 | 2965.5,3331.5
+DOORWAY | White Knights' Castle Crypt | Leads to Gielinor Surface | 20 | 2958.5,9737.5
+DOORWAY | White Knights' Castle Crypt | Leads to Mole Hole | 0 | 2986.5,3315.5
+DOORWAY | White Knights' Castle Crypt | Leads to Gielinor Surface | 13 | 1752.5,5136.5
+PLACE | Zamorakian's base | Place in Castle Wars | 0 | 2368.5,3135.5
+PLACE | Saradominist's base | Place in Castle Wars | 0 | 2431.5,3072.5
+SHOP | Culinaromancer's Chest | Run by None, Lumbridge Castle basement | 12 | 3214.5,9620.5
+SHOP | Leagues Reward Shop | Run by Leagues Tutor, Lumbridge Castle | 0 | 3226.5,3215.5
+SHOP | Edward's Wilderness Cape Shop. | Run by Edward, Around the Rogues' Castle | 0 | 3282.5,3934.5
+? slayer tower
+PLACE | Slayer Tower | Area name | 0 | 3429.5,3555.5
+PLACE | Slayer Tower | Area name | 14 | 3424.5,9924.5
+DOORWAY | Slayer Tower basement | Leads to Morytania Underground | 0 | 3417.5,3535.5
+DOORWAY | Slayer Tower basement | Leads to Gielinor Surface | 14 | 3412.5,9931.5
+TELEPORT | Slayer ring: Slayer Tower | uses charges | 0 | 3423.5,3536.5
+MONSTER | Bat | Slayer Tower Entrance (7 spawns) | 0 | 3425.5,3525.5
+MONSTER | Ghoul | South of the Slayer Tower (12 spawns) | 0 | 3414.5,3512.5
+MONSTER | Banshee | Slayer Tower (8 spawns) | 0 | 3433.5,3552.5
+MONSTER | Gargoyle | Slayer Tower basement (Slayer task only) (12 spawns) | 14 | 3432.5,9937.5
+MONSTER | Gargoyle | Slayer Tower top floor (8 spawns) | 0 | 3439.5,3542.5
+MONSTER | Bloodveld | Slayer Tower (15 spawns) | 0 | 3417.5,3565.5
+MONSTER | Bloodveld | Slayer Tower (basement) (12 spawns) | 14 | 3412.5,9935.5
+MONSTER | Nechryael | Slayer Tower Basement (12 spawns) | 14 | 3413.5,9965.5
+MONSTER | Nechryael | Slayer Tower Top Floor (11 spawns) | 0 | 3443.5,3570.5
+MONSTER | Abyssal demon | Slayer Tower (14 spawns) | 0 | 3415.5,3569.5
+MONSTER | Abyssal demon | Slayer Tower (basement) (14 spawns) | 14 | 3436.5,9964.5
+MONSTER | Crawling Hand | Slayer Tower (24 spawns) | 0 | 3424.5,3558.5
+MONSTER | Infernal Mage | Slayer Tower (15 spawns) | 0 | 3440.5,3564.5
+MONSTER | Aberrant spectre | Slayer Tower (14 spawns) | 0 | 3428.5,3543.5
+ITEM | Knife | Free to take. Slayer Tower basement (2 spawns) | 14 | 3411.5,9949.5
+ITEM | Spade | Free to take. Slayer Tower basement (requires Telekinetic Grab) (1 spawn) | 14 | 3426.5,9958.5
+ITEM | Hammer | Free to take. Slayer Tower basement (2 spawns) | 14 | 3429.5,9931.5
+ITEM | Tinderbox | Free to take. Slayer Tower basement (1 spawn) | 14 | 3405.5,9937.5
+ITEM | Iron sword | Free to take. Slayer Tower basement (1 spawn) | 14 | 3425.5,9951.5
+ITEM | Steel pickaxe | Free to take. Slayer Tower basement (inaccessible) (1 spawn) | 14 | 3428.5,9960.5
+MONSTER | Wyrm | Karuulm Slayer Dungeon - lower level (9 spawns) | 33 | 1270.5,10186.5
+MONSTER | Wyrm | Karuulm Slayer Dungeon - lower level (task-only) (7 spawns) | 33 | 1259.5,10154.5
+MONSTER | Alchemical Hydra | Karuulm Slayer Dungeon (lower level) (1 spawn) | 33 | 1364.5,10265.5
+? in:catherby fish
+ITEM | Fishing rod | Sold at Harry's Fishing Shop. for 5 coins, 5 in stock | 0 | 2832.5,3443.5
+ITEM | Fishing bait | Sold at Harry's Fishing Shop. for 3 coins, 1200 in stock | 0 | 2832.5,3443.5
+MUSIC | Fishing | Music track unlock | 0 | 2848.5,3424.5
+ITEM | Burnt fish | Free to take. Catherby - Caleb's house (1 spawn) | 0 | 2820.5,3453.5
+SHOP | Harry's Fishing Shop. | Run by Harry, Catherby | 0 | 2832.5,3443.5
+ITEM | Big fishing net | Sold at Harry's Fishing Shop. for 20 coins, 5 in stock | 0 | 2832.5,3443.5
+ITEM | Small fishing net | Sold at Harry's Fishing Shop. for 5 coins, 5 in stock | 0 | 2832.5,3443.5
+ITEM | Raw swordfish | Sold at Harry's Fishing Shop. for 80 coins, 0 in stock | 0 | 2832.5,3443.5
+POINT | Catherby | Fishing: Lobster, Shark, Shrimp (4 places) | 0 | 2836.5,3431.5
+POINT | Catherby Bay | Fishing: Lobster | 0 | 2827.5,3414.5
+NPC | Harry | Runs Harry's Fishing Shop. | 0 | 2832.5,3443.5
+ITEM | Harpoon | Sold at Harry's Fishing Shop. for 5 coins, 2 in stock | 0 | 2832.5,3443.5
+ITEM | Raw cod | Sold at Harry's Fishing Shop. for 10 coins, 0 in stock | 0 | 2832.5,3443.5
+ITEM | Raw bass | Sold at Harry's Fishing Shop. for 40 coins, 0 in stock | 0 | 2832.5,3443.5
+ITEM | Raw tuna | Sold at Harry's Fishing Shop. for 40 coins, 0 in stock | 0 | 2832.5,3443.5
+ITEM | Bait pack | Sold at Harry's Fishing Shop. for 300 coins, 80 in stock | 0 | 2832.5,3443.5
+ITEM | Raw shark | Sold at Harry's Fishing Shop. for 170 coins, 0 in stock | 0 | 2832.5,3443.5
+ITEM | Lobster pot | Sold at Harry's Fishing Shop. for 20 coins, 2 in stock | 0 | 2832.5,3443.5
+ITEM | Raw herring | Sold at Harry's Fishing Shop. for 10 coins, 0 in stock | 0 | 2832.5,3443.5
+ITEM | Raw lobster | Sold at Harry's Fishing Shop. for 70 coins, 0 in stock | 0 | 2832.5,3443.5
+ITEM | Raw sardine | Sold at Harry's Fishing Shop. for 10 coins, 0 in stock | 0 | 2832.5,3443.5
+ITEM | Raw shrimps | Sold at Harry's Fishing Shop. for 5 coins, 0 in stock | 0 | 2832.5,3443.5
+ITEM | Raw mackerel | Sold at Harry's Fishing Shop. for 15 coins, 0 in stock | 0 | 2832.5,3443.5
+ITEM | Raw anchovies | Sold at Harry's Fishing Shop. for 15 coins, 0 in stock | 0 | 2832.5,3443.5
+? region:"grand exchange"
+PLACE | Grand Exchange | Area name | 0 | 3168.5,3477.5
+TELEPORT | Varrock tablet: GE | uses charges | 0 | 3164.5,3478.5
+TELEPORT | Ring of wealth: Grand Exchange | uses charges | 0 | 3164.5,3478.5
+TELEPORT | Varrock Teleport: Grand Exchange | 25 Magic | 0 | 3164.5,3478.5
+TELEPORT | Teleport Menu Ornate Jewellery Box | player-owned house | 0 | 3164.5,3478.5
+POINT | Bank: Grand Exchange | Bank (4 places) | 0 | 3162.5,3489.5
+? type:place guild
+PLACE | Guildmaster Apatura's quarters | Place | 0 | 1555.5,3035.5
+PLACE | Cooks' Guild | Area name | 0 | 3137.5,3437.5
+PLACE | Hunter Guild | Area name | 0 | 1558.5,3048.5
+PLACE | Hunter Guild | Area name | 43 | 1558.5,9459.5
+PLACE | Mining Guild | Area name | 6 | 3034.5,9736.5
+PLACE | Mining Guild | Area name | 0 | 3020.5,3344.5
+PLACE | Myths' Guild | Area name | 0 | 2457.5,2848.5
+PLACE | Farming Guild | Area name | 0 | 1249.5,3739.5
+PLACE | Fishing Guild | Area name | 0 | 2599.5,3401.5
+PLACE | Heroes' Guild | Area name | 0 | 2894.5,3501.5
+PLACE | Ranging Guild | Area name | 0 | 2676.5,3436.5
+PLACE | Crafting Guild | Area name | 0 | 2921.5,3282.5
+PLACE | Hunters' Guild | Place | 43 | 1561.5,9421.5
+PLACE | Legends' Guild | Area name | 0 | 2737.5,3374.5
+PLACE | Wizards' Guild | Area name | 0 | 2589.5,3077.5
+PLACE | Wizards' Guild | Area name | 27 | 2586.5,9489.5
+PLACE | Warriors' Guild | Place | 20 | 2849.5,9995.5
+PLACE | Warriors' Guild | Area name | 0 | 2854.5,3564.5
+PLACE | Champions' Guild | Area name | 0 | 3201.5,3354.5
+PLACE | Woodcutting Guild | Area name | 0 | 1613.5,3490.5
+PLACE | Ranging Guild tower | Place | 0 | 2667.5,3427.5
+PLACE | Falador Mining Guild | Place | 0 | 3010.5,3341.5
+PLACE | Mining Guild building | Place | 0 | 3009.5,3342.5
+PLACE | Heroes' Guild Basement | Place | 20 | 2908.5,9905.5
+PLACE | Legends' Guild dungeon | Place | 2 | 2710.5,9753.5
+PLACE | Legends' Guild Basement | Place | 2 | 2731.5,9763.5
+PLACE | Surface of Mining Guild | Place | 0 | 3019.5,3333.5
+PLACE | Woodcutting Guild Ent Dungeon | Place | 32 | 1554.5,9892.5
+PLACE | 2nd floor of Myths' Guild | Place | 0 | 2461.5,2845.5
+PLACE | 1st floor of Legends' Guild | Place | 0 | 2729.5,3378.5
+PLACE | 2nd floor of Legends' Guild | Place | 0 | 2726.5,3381.5
+PLACE | 1st floor of Warriors' Guild | Place | 0 | 2854.5,3537.5
+PLACE | 1st floor of Champions' Guild | Place | 0 | 3191.5,3359.5
+PLACE | Field south of Champions' Guild | Place | 0 | 3173.5,3336.5
+PLACE | Corsair Cove Dungeon/Myths' Guild | Place | 31 | 1928.5,8973.5
+PLACE | 1st floor of the Heroes' Guild | Place | 0 | 2895.5,3511.5
+PLACE | Farm east of the Champions' Guild | Place | 0 | 3259.5,3355.5
+PLACE | Field south of the Champions' Guild | Place | 0 | 3162.5,3335.5
+SHOP | Fishing Guild Shop. | Run by Roachey, Fishing Guild | 0 | 2594.5,3401.5
+SHOP | Alan (Farming Guild) |  | 0 | 1264.5,3734.5
+? region:taverley
+TRANSPORT | Climbing rocks | Action, Requires, Takes, Direction | 0 | 2945.5,3439.5
+SHOP | Alain |  | 0 | 2937.5,3439.5
+ITEM | Rake | Sold at Alain for 6 coins | 0 | 2937.5,3439.5
+ITEM | Compost | Sold at Alain for 20 coins | 0 | 2937.5,3439.5
+ITEM | Plant cure | Sold at Alain for 40 coins | 0 | 2937.5,3439.5
+ITEM | Seed dibber | Sold at Alain for 6 coins | 0 | 2937.5,3439.5
+ITEM | Watering can | Sold at Alain for 8 coins | 0 | 2937.5,3439.5
+ITEM | Empty plant pot | Sold at Alain for 1 coin | 0 | 2937.5,3439.5
+ITEM | Gardening trowel | Sold at Alain for 12 coins | 0 | 2937.5,3439.5
+TRANSPORT | Hot air balloon: Taverley | Entrana, Crafting Guild, Varrock, Castle Wars, Grand Tree | 0 | 2936.5,3422.5
+ITEM | Ball | Free to take. Taverley - Nora T. Hagg's garden shed (1 spawn) | 0 | 2935.5,3460.5
+QUEST | Witch's House | Quest start | 0 | 2927.5,3456.5
+MONSTER | Druid | Druids' Circle (5 spawns) | 0 | 2927.5,3481.5
+SHOP | Kaqemeex |  | 0 | 2926.5,3484.5
+ITEM | Herblore cape | Sold at Kaqemeex for 99,000 coins | 0 | 2926.5,3484.5
+ITEM | Herblore cape(t) | Sold at Kaqemeex for 99,000 coins | 0 | 2926.5,3484.5
+PLACE | Druids' Circle | Area name | 0 | 2925.5,3473.5
+QUEST | Druidic Ritual | Quest start | 0 | 2916.5,3484.5
+ITEM | Shortbow | Free to take. Taverley - building directly west of the tree patch (1 spawn) | 0 | 2914.5,3439.5
+MONSTER | Druid | Taverley, long building (1 spawn) | 0 | 2906.5,3451.5
+ITEM | Door key | Free to take. Witch's house (1 spawn) | 0 | 2905.5,3475.5
+ITEM | Diary | Free to take. Taverley - Nora T. Hagg's house (1 spawn) | 0 | 2903.5,3471.5
+ITEM | Cup of tea | Free to take. Taverley - building directly west of the tree patch (1 spawn) | 0 | 2903.5,3441.5
+PLACE | Taverley | Area name | 0 | 2900.5,3458.5
+SHOP | Jatix's Herblore Shop. | Run by Jatix, Taverley | 0 | 2898.5,3428.5
+MONSTER | Druid | Jatix's Herblore Shop (1 spawn) | 0 | 2898.5,3432.5
+NPC | Jatix | Runs Jatix's Herblore Shop. | 0 | 2898.5,3428.5
+ITEM | Vial | Sold at Jatix's Herblore Shop. for 2 coins, 800 in stock | 0 | 2898.5,3428.5
+ITEM | Eye of newt | Sold at Jatix's Herblore Shop. for 3 coins, 800 in stock | 0 | 2898.5,3428.5
+ITEM | Vial of water | Sold at Jatix's Herblore Shop. for 2 coins, 750 in stock | 0 | 2898.5,3428.5
+ITEM | Empty vial pack | Sold at Jatix's Herblore Shop. for 200 coins, 800 in stock | 0 | 2898.5,3428.5
+ITEM | Eye of newt pack | Sold at Jatix's Herblore Shop. for 300 coins, 100 in stock | 0 | 2898.5,3428.5
+ITEM | Pestle and mortar | Sold at Jatix's Herblore Shop. for 4 coins, 3 in stock | 0 | 2898.5,3428.5
+ITEM | Water-filled vial pack | Sold at Jatix's Herblore Shop. for 201 coins, 750 in stock | 0 | 2898.5,3428.5
+MONSTER | Druid | Taverley (15 spawns) | 0 | 2897.5,3436.5
+QUEST | Eadgar's Ruse | Quest start | 0 | 2896.5,3426.5
+PLACE | Heroes' Guild | Area name | 0 | 2894.5,3501.5
+TELEPORT | Taverley tablet | uses charges | 0 | 2894.5,3465.5
+TELEPORT | Teleport to House | 40 Magic | 0 | 2894.5,3465.5
+TELEPORT | Max cape: Tele to POH | Max Total, no charges used | 0 | 2894.5,3465.5
+? region:"port sarim" shop
+SHOP | Wine Shop. | Run by Fortunato, Draynor Village | 0 | 3082.5,3253.5
+SHOP | Sarah's Farming shop. | Run by Sarah, South Falador Farm | 0 | 3036.5,3293.5
+NPC | Sarah | Runs Sarah's Farming shop. | 0 | 3036.5,3293.5
+NPC | Fortunato | Runs Wine Shop. | 0 | 3082.5,3253.5
+ITEM | Jug | Sold at Wine Shop. for 1 coin, 3 in stock | 0 | 3082.5,3253.5
+ITEM | Rake | Sold at Sarah's Farming shop. for 6 coins, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Onion | Sold at Sarah's Farming shop. for 3 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Spade | Sold at Sarah's Farming shop. for 3 coins, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Barley | Sold at Sarah's Farming shop. for 4 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Basket | Sold at Sarah's Farming shop. for 1 coin, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Bucket | Sold at Sarah's Farming shop. for 2 coins, 100 in stock | 0 | 3036.5,3293.5
+ITEM | Potato | Sold at Sarah's Farming shop. for 1 coin, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Tomato | Sold at Sarah's Farming shop. for 4 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Cabbage | Sold at Sarah's Farming shop. for 1 coin, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Compost | Sold at Sarah's Farming shop. for 20 coins, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Secateurs | Sold at Sarah's Farming shop. for 5 coins, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Sweetcorn | Sold at Sarah's Farming shop. for 9 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Strawberry | Sold at Sarah's Farming shop. for 17 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Watermelon | Sold at Sarah's Farming shop. for 48 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Sack pack | Sold at Sarah's Farming shop. for 100 coins, 30 in stock | 0 | 3036.5,3293.5
+ITEM | Empty sack | Sold at Sarah's Farming shop. for 1 coin, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Jute fibre | Sold at Sarah's Farming shop. for 6 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Plant cure | Sold at Sarah's Farming shop. for 40 coins, 100 in stock | 0 | 3036.5,3293.5
+ITEM | Basket pack | Sold at Sarah's Farming shop. for 100 coins, 30 in stock | 0 | 3036.5,3293.5
+ITEM | Seed dibber | Sold at Sarah's Farming shop. for 6 coins, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Compost pack | Sold at Sarah's Farming shop. for 2,000 coins, 10 in stock | 0 | 3036.5,3293.5
+ITEM | Watering can | Sold at Sarah's Farming shop. for 8 coins, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Asgarnian hops | Sold at Sarah's Farming shop. for 5 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Wildblood hops | Sold at Sarah's Farming shop. for 15 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Yanillian hops | Sold at Sarah's Farming shop. for 7 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Krandorian hops | Sold at Sarah's Farming shop. for 10 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Gardening trowel | Sold at Sarah's Farming shop. for 12 coins, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Hammerstone hops | Sold at Sarah's Farming shop. for 4 coins, 0 in stock | 0 | 3036.5,3293.5
+ITEM | Jug of wine | Sold at Wine Shop. for 1 coin, 5 in stock | 0 | 3082.5,3253.5
+ITEM | Bottle of wine | Sold at Wine Shop. for 500 coins, 2 in stock | 0 | 3082.5,3253.5
+ITEM | Empty jug pack | Sold at Wine Shop. for 140 coins, 5 in stock | 0 | 3082.5,3253.5
+ITEM | Jug of vinegar | Sold at Wine Shop. for 1 coin, 500 in stock | 0 | 3082.5,3253.5
+ITEM | Plant pot pack | Sold at Sarah's Farming shop. for 100 coins, 30 in stock | 0 | 3036.5,3293.5
+ITEM | Filled plant pot | Sold at Sarah's Farming shop. for 1 coin, 500 in stock | 0 | 3036.5,3293.5
+ITEM | Empty bucket pack | Sold at Sarah's Farming shop. for 500 coins, 15 in stock | 0 | 3036.5,3293.5
+? area:karamja
+SHOP | Brian's Battleaxe Bazaar. | Run by Brian, Port Sarim | 0 | 3025.5,3250.5
+NPC | Brian | Runs Brian's Battleaxe Bazaar. | 0 | 3025.5,3250.5
+ITEM | Iron battleaxe | Sold at Brian's Battleaxe Bazaar. for 182 coins, 3 in stock | 0 | 3025.5,3250.5
+ITEM | Black battleaxe | Sold at Brian's Battleaxe Bazaar. for 1,248 coins, 1 in stock | 0 | 3025.5,3250.5
+ITEM | Steel battleaxe | Sold at Brian's Battleaxe Bazaar. for 650 coins, 2 in stock | 0 | 3025.5,3250.5
+ITEM | Bronze battleaxe | Sold at Brian's Battleaxe Bazaar. for 52 coins, 4 in stock | 0 | 3025.5,3250.5
+ITEM | Adamant battleaxe | Sold at Brian's Battleaxe Bazaar. for 4,160 coins, 1 in stock | 0 | 3025.5,3250.5
+ITEM | Mithril battleaxe | Sold at Brian's Battleaxe Bazaar. for 1,690 coins, 1 in stock | 0 | 3025.5,3250.5
+DOORWAY | Port Sarim Rat Pits | Leads to Asgarnia Ice Cave | 0 | 3018.5,3232.5
+ITEM | Cheese | Free to take. Port Sarim - Rat Pits (in the rat trap next to the bar; deals 3 damage) (1 spawn) | 0 | 3018.5,3232.5
+ITEM | Bronze bolts | Free to take. Port Sarim - (2 spawns) | 0 | 3016.5,3244.5
+TELEPORT | Rat Pits Minigame Teleport: 4. Port Sarim | minigame teleport | 0 | 3018.5,3231.5
+MONSTER | Thief | Port Sarim (2 spawns) | 0 | 3014.5,3232.5
+SHOP | Betty |  | 0 | 3013.5,3261.5
+SHOP | Grum's Gold Exchange. | Run by Grum, Port Sarim | 0 | 3013.5,3248.5
+SHOP | Betty's Magic Emporium | Run by Betty, Port Sarim | 0 | 3013.5,3259.5
+NPC | Grum | Runs Grum's Gold Exchange. | 0 | 3013.5,3248.5
+NPC | Betty | Runs Betty's Magic Emporium | 0 | 3013.5,3259.5
+ITEM | Air rune | Sold at Betty's Magic Emporium for 4 coins, 5000 in stock | 0 | 3013.5,3259.5
+ITEM | Pink dye | Sold at Betty for 20 coins | 0 | 3013.5,3261.5
+ITEM | Body rune | Sold at Betty's Magic Emporium for 3 coins, 5000 in stock | 0 | 3013.5,3259.5
+ITEM | Fire rune | Sold at Betty's Magic Emporium for 4 coins, 5000 in stock | 0 | 3013.5,3259.5
+ITEM | Gold ring | Sold at Grum's Gold Exchange. for 350 coins, 0 in stock | 0 | 3013.5,3248.5
+ITEM | Mind rune | Sold at Betty's Magic Emporium for 3 coins, 5000 in stock | 0 | 3013.5,3259.5
+ITEM | Ruby ring | Sold at Grum's Gold Exchange. for 2,025 coins, 0 in stock | 0 | 3013.5,3248.5
+ITEM | Chaos rune | Sold at Betty's Magic Emporium for 90 coins, 250 in stock | 0 | 3013.5,3259.5
+ITEM | Death rune | Sold at Betty's Magic Emporium for 180 coins, 250 in stock | 0 | 3013.5,3259.5
+ITEM | Earth rune | Sold at Betty's Magic Emporium for 4 coins, 5000 in stock | 0 | 3013.5,3259.5
+ITEM | Water rune | Sold at Betty's Magic Emporium for 4 coins, 5000 in stock | 0 | 3013.5,3259.5
+ITEM | Wizard hat | Sold at Betty's Magic Emporium for 2 coins, 1 in stock | 0 | 3013.5,3259.5
+ITEM | Eye of newt | Sold at Betty's Magic Emporium for 3 coins, 300 in stock | 0 | 3013.5,3259.5
+ITEM | Gold amulet | Sold at Grum's Gold Exchange. for 350 coins, 0 in stock | 0 | 3013.5,3248.5
+ITEM | Ruby amulet | Sold at Grum's Gold Exchange. for 2,025 coins, 0 in stock | 0 | 3013.5,3248.5
+ITEM | White apron | Free to take. Port Sarim - Gerrant's Fishy Business (1 spawn) | 0 | 3016.5,3229.5
+ITEM | Diamond ring | Sold at Grum's Gold Exchange. for 3,525 coins, 0 in stock | 0 | 3013.5,3248.5
+ITEM | Emerald ring | Sold at Grum's Gold Exchange. for 1,275 coins, 0 in stock | 0 | 3013.5,3248.5
+ITEM | Air rune pack | Sold at Betty's Magic Emporium for 430 coins, 80 in stock | 0 | 3013.5,3259.5
+ITEM | Gold necklace | Sold at Grum's Gold Exchange. for 450 coins, 0 in stock | 0 | 3013.5,3248.5
+ITEM | Ruby necklace | Sold at Grum's Gold Exchange. for 2,175 coins, 0 in stock | 0 | 3013.5,3248.5
+ITEM | Sapphire ring | Sold at Grum's Gold Exchange. for 900 coins, 0 in stock | 0 | 3013.5,3248.5
+? region:"al kharid"
+PLACE | Toll Gate | Area name | 0 | 3275.5,3227.5
+TRANSPORT | Gnome glider: Kar-Hewo (Al-Kharid) | Ta Quir Priw (Gnome Stronghold), Gandius (Karamja), Sindarpos (White Wolf Mountain), Lemantolly Undri (Feldip Hills), Ookookolly Undri (Ape Atoll) | 0 | 3278.5,3213.5
+SHOP | Gem Trader. | Run by Gem trader, Al Kharid | 0 | 3286.5,3212.5
+NPC | Gem trader | Runs Gem Trader. | 0 | 3286.5,3212.5
+ITEM | Ruby | Sold at Gem Trader. for 1,000 coins, 0 in stock | 0 | 3286.5,3212.5
+ITEM | Diamond | Sold at Gem Trader. for 2,000 coins, 0 in stock | 0 | 3286.5,3212.5
+ITEM | Emerald | Sold at Gem Trader. for 500 coins, 1 in stock | 0 | 3286.5,3212.5
+ITEM | Sapphire | Sold at Gem Trader. for 250 coins, 1 in stock | 0 | 3286.5,3212.5
+ITEM | Uncut ruby | Sold at Gem Trader. for 100 coins, 0 in stock | 0 | 3286.5,3212.5
+ITEM | Uncut diamond | Sold at Gem Trader. for 200 coins, 0 in stock | 0 | 3286.5,3212.5
+ITEM | Uncut emerald | Sold at Gem Trader. for 50 coins, 1 in stock | 0 | 3286.5,3212.5
+ITEM | Uncut sapphire | Sold at Gem Trader. for 25 coins, 1 in stock | 0 | 3286.5,3212.5
+QUEST | The Feud | Quest start | 0 | 3301.5,3211.5
+SHOP | Ali's Discount Wares. | Run by Ali Morrisane, Al Kharid | 0 | 3302.5,3211.5
+NPC | Ali Morrisane | Runs Ali's Discount Wares. | 0 | 3302.5,3211.5
+ITEM | Fez | Sold at Ali's Discount Wares. for 20 coins, 25 in stock | 0 | 3302.5,3211.5
+ITEM | Jug | Sold at Ali's Discount Wares. for 1 coin, 2 in stock | 0 | 3302.5,3211.5
+ITEM | Pot | Sold at Ali's Discount Wares. for 1 coin, 3 in stock | 0 | 3302.5,3211.5
+ITEM | Knife | Sold at Ali's Discount Wares. for 6 coins, 5 in stock | 0 | 3302.5,3211.5
+ITEM | Bucket | Sold at Ali's Discount Wares. for 2 coins, 19 in stock | 0 | 3302.5,3211.5
+ITEM | Papyrus | Sold at Ali's Discount Wares. for 10 coins, 50 in stock | 0 | 3302.5,3211.5
+ITEM | Air rune | Sold at Ali's Discount Wares. for 5 coins, 20 in stock | 0 | 3302.5,3211.5
+ITEM | Law rune | Sold at Ali's Discount Wares. for 300 coins, 100 in stock | 0 | 3302.5,3211.5
+ITEM | Body rune | Sold at Ali's Discount Wares. for 3 coins, 100 in stock | 0 | 3302.5,3211.5
+ITEM | Fire rune | Sold at Ali's Discount Wares. for 5 coins, 20 in stock | 0 | 3302.5,3211.5
+ITEM | Mind rune | Sold at Ali's Discount Wares. for 3 coins, 100 in stock | 0 | 3302.5,3211.5
+ITEM | Soul rune | Sold at Ali's Discount Wares. for 375 coins, 100 in stock | 0 | 3302.5,3211.5
+ITEM | Tinderbox | Sold at Ali's Discount Wares. for 1 coin, 11 in stock | 0 | 3302.5,3211.5
+ITEM | Blood rune | Sold at Ali's Discount Wares. for 500 coins, 100 in stock | 0 | 3302.5,3211.5
+ITEM | Chaos rune | Sold at Ali's Discount Wares. for 112 coins, 100 in stock | 0 | 3302.5,3211.5
+ITEM | Death rune | Sold at Ali's Discount Wares. for 225 coins, 100 in stock | 0 | 3302.5,3211.5
+ITEM | Desert top | Sold at Ali's Discount Wares. for 15 coins, 25 in stock | 0 | 3302.5,3211.5
+ITEM | Earth rune | Sold at Ali's Discount Wares. for 5 coins, 20 in stock | 0 | 3302.5,3211.5
+ITEM | Fake beard | Sold at Ali's Discount Wares. for 1 coin, 11 in stock | 0 | 3302.5,3211.5
+ITEM | Water rune | Sold at Ali's Discount Wares. for 5 coins, 20 in stock | 0 | 3302.5,3211.5
+ITEM | Cosmic rune | Sold at Ali's Discount Wares. for 62 coins, 10 in stock | 0 | 3302.5,3211.5
+ITEM | Desert legs | Sold at Ali's Discount Wares. for 25 coins, 25 in stock | 0 | 3302.5,3211.5
+ITEM | Nature rune | Sold at Ali's Discount Wares. for 225 coins, 100 in stock | 0 | 3302.5,3211.5
+ITEM | Raw chicken | Sold at Ali's Discount Wares. for 1 coin, 15 in stock | 0 | 3302.5,3211.5
+ITEM | Desert boots | Sold at Ali's Discount Wares. for 20 coins, 2 in stock | 0 | 3302.5,3211.5
+? type:place cave
+PLACE | Cave crawlers | Area name | 17 | 2792.5,10001.5
+PLACE | Cave horrors & albino bats | Area name | 15 | 3775.5,9407.5
+PLACE | Cave in the Scorpion Pit | Place | 26 | 3233.5,10341.5
+DOORWAY | Cave passage | Leads underground | 0 | 1258.5,3431.5
+DOORWAY | Cave passage | Leads underground | 0 | 1270.5,3435.5
+PLACE | Fight Cave | Area name | 23 | 2400.5,5092.5
+PLACE | Genie Cave | Place in Nardah | 10070 | 3369.5,9317.5
+PLACE | Genie cave | Map | 10070 | 3360.0,9312.0
+PLACE | Goblin Cave | Place | 2 | 2588.5,9825.5
+PLACE | Saba's cave | Map | 10138 | 2272.0,4768.0
+PLACE | Wyvern Cave | Place | 30 | 3615.5,10249.5
+PLACE | Ourania Cave | Place | 16 | 3015.5,5583.5
+PLACE | Rantz's cave | Map | 10132 | 2656.0,9376.0
+PLACE | Sourhog Cave | Area name | 6 | 3168.5,9696.5
+PLACE | Kalphite Cave | Area name | 42 | 3362.5,9503.5
+PLACE | Kalphite Cave | Area name | 0 | 3331.5,3120.5
+PLACE | Revenant Cave | Place | 26 | 3214.5,10164.5
+PLACE | Sunbleak Cave | Area name | 48 | 2227.5,8738.5
+PLACE | Scorpia's Cave | Place | 26 | 3221.5,10340.5
+PLACE | Experiment cave | Place | 14 | 3525.5,9932.5
+PLACE | Brimstail's cave | Place | 19 | 2411.5,9818.5
+PLACE | Pandemonium Cave | Place | 46 | 3035.5,9376.5
+PLACE | Quidamortem Cave | Map | 10130 | 1184.0,9952.0
+PLACE | The Hollows cave | Place | 14 | 3467.5,9797.5
+PLACE | Asgarnia Ice Cave | Map | 3 | 2973.0,9568.0
+PLACE | The Kendal's cave | Map | 10152 | 2784.0,10080.0
+PLACE | Asgarnian Ice Cave | Place | 3 | 2976.5,9555.5
+PLACE | Mos Le'Harmless Cave | Map | 15 | 3775.0,9407.0
+PLACE | Mos Le'Harmless Cave | Place | 15 | 3779.5,9430.5
+PLACE | Fremennik Slayer Cave | Map | 17 | 2784.0,10016.0
+PLACE | Fremennik Slayer Cave | Place | 17 | 2760.5,10009.5
+PLACE | Morytania Spider Cave | Place | 14 | 3674.5,9834.5
+PLACE | Ourania Cave entrance | Place | 0 | 2457.5,3224.5
+PLACE | Stronghold Slayer Cave | Place | 19 | 2468.5,9802.5
+PLACE | Wilderness Slayer Cave | Place | 26 | 3396.5,10119.5
+PLACE | Tears of Guthix cave | Map | 10146 | 3232.0,9504.0
+PLACE | Morytania Spider Cave entrance | Place | 0 | 3657.5,3406.5
+DOORWAY | Zogre cave | Leads to Jiggig Dungeon | 0 | 2484.5,3043.5
+DOORWAY | Zogre cave | Leads to Gielinor Surface | 10084 | 2484.5,9443.5
+DOORWAY | Goblin Cave | Leads to Ardougne Underground | 0 | 2623.5,3393.5
+? region:morytania type:place
+PLACE | Pyre Cove | Area name | 0 | 3349.5,3618.5
+PLACE | River Salve | Area name | 0 | 3403.5,3437.5
+QUEST | Devious Minds | Quest start | 0 | 3405.5,3492.5
+DOORWAY | Paterdomus basement | Leads to Morytania Underground | 0 | 3405.5,3506.5
+PLACE | Paterdomus Temple | Area name | 0 | 3414.5,3489.5
+DOORWAY | Slayer Tower basement | Leads to Morytania Underground | 0 | 3417.5,3535.5
+DOORWAY | Paterdomus basement | Leads to Morytania Underground | 0 | 3422.5,3484.5
+PLACE | Slayer Tower Entrance | Place | 0 | 3425.5,3525.5
+PLACE | Slayer Tower | Area name | 0 | 3429.5,3555.5
+PLACE | Bleakwater Bay | Area name | 0 | 3429.5,3641.5
+PLACE | Nature Grotto | Place | 0 | 3437.5,3337.5
+DOORWAY | Abandoned Mine | Leads underground | 0 | 3439.5,3232.5
+QUEST | Haunted Mine | Quest start | 0 | 3443.5,3258.5
+PLACE | Abandoned Mine | Area name | 0 | 3444.5,3243.5
+PLACE | Slayer Tower Top Floor | Place | 0 | 3445.5,3560.5
+PLACE | Mort Myre Swamp | Area name | 0 | 3446.5,3385.5
+DOORWAY | Abandoned Mine (secret entrance) | Leads underground | 0 | 3452.5,3244.5
+QUEST | Shades of Mort'ton | Quest start | 0 | 3463.5,3308.5
+SHOP | General Store (Canifis) | Run by Fidelio, Canifis | 0 | 3475.5,3495.5
+PLACE | Taxidermist | Place | 0 | 3478.5,3484.5
+SHOP | Vasile |  | 0 | 3485.5,3237.5
+DOORWAY | Shade Catacombs | Leads to Morytania Underground | 0 | 3485.5,3321.5
+QUEST | Creature of Fenkenstrain | Quest start | 0 | 3487.5,3485.5
+SHOP | Razmire General Store. | Run by Razmire Keelgan, Mort'ton | 0 | 3489.5,3297.5
+SHOP | Razmire Builders Merchants. | Run by Razmire Keelgan, Mort'ton | 0 | 3489.5,3296.5
+DOORWAY | Myreque Hideout | Leads to Morytania Underground | 0 | 3489.5,3231.5
+PLACE | Canifis Pub | Place | 0 | 3490.5,3472.5
+PLACE | Canifis | Area name | 0 | 3491.5,3487.5
+PLACE | Mort'ton | Area name | 0 | 3491.5,3281.5
+PLACE | Pub in Burgh de Rott | Pub | 0 | 3492.5,3230.5
+SHOP | Myreque's Rest | Run by Veliaf Hurtz, Burgh de Rott | 0 | 3492.5,3230.5
+DOORWAY | Myreque Hideout | Leads to Morytania Underground | 0 | 3495.5,3464.5
+SHOP | Hair of the Dog | Run by Roavar, Canifis | 0 | 3496.5,3474.5
+PLACE | Burgh de Rott | Area name | 0 | 3497.5,3219.5
+PLACE | Hair of the Dog tavern | Place in Canifis | 0 | 3499.5,3474.5
+PLACE | The Hollows | Area name | 0 | 3500.5,3384.5
+PLACE | Mausoleum | Area name | 0 | 3502.5,3572.5
+QUEST | In Search of the Myreque | Quest start | 0 | 3502.5,3477.5
+SHOP | Barkers' Haberdashery | Run by Barker, Canifis | 0 | 3502.5,3505.5
+SHOP | Rufus' Meat Emporium | Run by Rufus, Canifis | 0 | 3508.5,3495.5
+? at:draynor
+ITEM | Bronze med helm | Free to take. Draynor Manor (1 spawn) | 0 | 3122.5,3360.5
+ITEM | Bucket | Free to take. Draynor Manor (1 spawn) | 0 | 3121.5,3359.5
+ITEM | Spade | Free to take. Draynor Manor (1 spawn) | 0 | 3120.5,3359.5
+DOORWAY | Draynor Manor basement | Leads to Misthalin Underground | 0 | 3115.5,3357.5
+ITEM | Tinderbox | Free to take. Draynor Manor (1 spawn) | 0 | 3112.5,3369.5
+ITEM | Rubber tube | Free to take. Draynor Manor (1 spawn) | 0 | 3111.5,3367.5
+TRANSPORT | Portal: Killerwatt plane | Interdimensional rift | 0 | 3110.5,3363.5
+QUEST | Ernest the Chicken | Quest start | 0 | 3109.5,3330.5
+ITEM | Fish food | Free to take. Draynor Manor - (1 spawn) | 0 | 3109.5,3357.5
+PLACE | Draynor Manor | Area name | 0 | 3108.5,3345.5
+MONSTER | Ghost | Draynor Manor (5 spawns) | 0 | 3108.5,3358.5
+NPC | Chair | 4 spawns | 0 | 3108.5,3359.5
+TELEPORT | Draynor Manor tablet | uses charges | 0 | 3108.5,3352.5
+TELEPORT | Draynor Manor Teleport | Arceuus spellbook, 17 Magic | 0 | 3108.5,3352.5
+NPC | Chair | 6 spawns | 0 | 3101.5,3369.5
+NPC | Chair | 14 spawns | 0 | 3100.5,3362.5
+QUEST | Animal Magnetism | Quest start | 0 | 3094.5,3360.5
+SHOP | Ava |  | 0 | 3094.5,3357.5
+SHOP | Ava's Odds and Ends | Run by Ava, Draynor Manor | 0 | 3094.5,3358.5
+NPC | Ava | Runs Ava's Odds and Ends | 0 | 3094.5,3358.5
+ITEM | Feather | Sold at Ava's Odds and Ends for 2 coins, 1000 in stock | 0 | 3094.5,3358.5
+ITEM | Iron arrow | Sold at Ava's Odds and Ends for 3 coins, 40 in stock | 0 | 3094.5,3358.5
+ITEM | Locator orb | Sold at Ava for 0 coins | 0 | 3094.5,3357.5
+ITEM | Steel arrow | Sold at Ava's Odds and Ends for 15 coins, 10 in stock | 0 | 3094.5,3358.5
+ITEM | Feather pack | Sold at Ava's Odds and Ends for 260 coins, 100 in stock | 0 | 3094.5,3358.5
+ITEM | Iron arrowtips | Sold at Ava's Odds and Ends for 2 coins, 30 in stock | 0 | 3094.5,3358.5
+ITEM | Ava's attractor | Sold at Ava for 999 coins | 0 | 3094.5,3357.5
+ITEM | Steel arrowtips | Sold at Ava's Odds and Ends for 7 coins, 20 in stock | 0 | 3094.5,3358.5
+DOORWAY | Draynor Manor basement | Leads to Misthalin Underground | 0 | 3092.5,3362.5
+POINT | Belladonna patch | Farming patch (2 places) | 0 | 3084.5,3356.5
+MONSTER | Highwayman | South of Draynor Manor (1 spawn) | 0 | 3110.5,3295.5
+MONSTER | Farmer | North-west of Lumbridge (1 spawn) | 0 | 3154.5,3293.5
+NPC | Farmer | Draynor farm (2 spawns) | 0 | 3119.5,3281.5
+POINT | Draynor Village Rooftop Course | Agility course | 0 | 3103.5,3279.5
+DOORWAY | Draynor Sewers | Leads to Misthalin Underground | 0 | 3084.5,3272.5
+PLACE | Draynor Village | Area name | 0 | 3120.5,3267.5
+QUEST | Vampyre Slayer | Quest start | 0 | 3096.5,3266.5
+ITEM | Logs | Free to take. Draynor Village - Spria's house (2 spawns) | 0 | 3089.5,3265.5
+SHOP | Leela |  | 0 | 3113.5,3262.5
+ITEM | Bronze key (Prince Ali Rescue) | Sold at Leela for 15 coins | 0 | 3113.5,3262.5
+? region:prifddinas
+PLACE | Prifddinas | Area name | 0 | 2240.5,3328.5
+PLACE | Elves | Area name | 34 | 3184.5,12405.5
+PLACE | Kurask | Area name | 34 | 3219.5,12369.5
+PLACE | Arandar | Area name | 29 | 3363.5,6047.5
+PLACE | Gwenith | Area name | 29 | 3223.5,6161.5
+PLACE | Zalcano | Area name | 34 | 3291.5,12451.5
+PLACE | Tirannwn | Area name | 29 | 3264.5,6016.5
+PLACE | Nechryael | Area name | 34 | 3223.5,12422.5
+PLACE | Bloodvelds | Area name | 34 | 3251.5,12421.5
+PLACE | Prifddinas | Map | 29 | 3263.0,6079.0
+PLACE | Dark beasts | Area name | 34 | 3227.5,12397.5
+PLACE | Lower level | Area name | 35 | 2623.5,6207.5
+PLACE | Moss giants | Area name | 34 | 3253.5,12468.5
+PLACE | Upper level | Area name | 35 | 3007.5,6207.5
+PLACE | Waterfiends | Area name | 34 | 3183.5,12456.5
+PLACE | Middle level | Area name | 35 | 2815.5,6207.5
+PLACE | The Gauntlet | Area name | 34 | 3225.5,12491.5
+PLACE | Iorwerth Camp | Area name | 29 | 3220.5,6009.5
+PLACE | Trahaearn Mine | Area name | 34 | 3298.5,12389.5
+PLACE | Prifddinas Underground | Map | 34 | 3263.0,12479.0
+PLACE | Prifddinas Grand Library | Map | 35 | 2623.0,6143.0
+PLACE | Prifddinas Grand Library (post-quest) | Map | 10183 | 3232.0,12512.0
+POINT | Anvils | Smithing anvils (3 places) | 29 | 3284.5,6055.5
+POINT | Trahearn | Mining: Iron x26, Silver x8, Coal x19, Gold x14, Mithril x7, Soft Clay x10, Adamantite x7, Runite x4 | 34 | 3295.5,12387.5
+POINT | Yew tree | Woodcutting level 60 (2 places) | 29 | 3288.5,6066.5
+POINT | Teak tree | Woodcutting level 35 | 29 | 3309.5,6123.5
+POINT | Magic tree | Woodcutting level 75 | 29 | 3229.5,6101.5
+POINT | Maple tree | Woodcutting level 45 | 29 | 3233.5,6179.5
+POINT | The Gauntlet | Minigame | 34 | 3223.5,12505.5
+POINT | Altar: Gorlah | Altar for praying | 29 | 3307.5,6179.5
+POINT | Altar: Lletya | Altar for praying | 35 | 2803.5,6115.5
+POINT | Mahogany tree | Woodcutting level 50 | 29 | 3301.5,6129.5
+POINT | Bank: Prifddinas | Bank, needs Song of the Elves (5 places) | 29 | 3295.5,6058.5
+POINT | Altar: Prifddinas | Altar for praying | 29 | 3245.5,6116.5
+POINT | Crystal Tree patch | Farming patch | 29 | 3292.5,6120.5
+POINT | Iorwerth Camp Inside | Fishing: Salmon | 29 | 3239.5,5997.5
+POINT | Allotment/Flower patch | Farming patch | 29 | 3289.5,6100.5
+POINT | Altar: Tower of Voices | Altar for praying | 29 | 3262.5,6091.5
+POINT | Arandar Prifddinas Map | Mining: Limestone x8 | 29 | 3346.5,6021.5
+POINT | Gwenith Prifddinas Map | Mining: Gold x10 | 29 | 3187.5,6167.5
+? region:varlamore
+PLACE | Crystal Sea | Area name | 0 | 1982.5,3247.5
+NPC | Capybara Pup | Minotaurs' Rest (1 spawn) | 0 | 1969.5,3103.5
+DOORWAY | Western Ocean Underground | Leads to Western Ocean Underground | 0 | 1967.5,3095.5
+NPC | Capybara | Minotaurs' Rest (1 spawn) | 0 | 1967.5,3103.5
+NPC | Tropical wagtail | Minotaurs' Rest (6 spawns) | 0 | 1967.5,3105.5
+PLACE | Minotaurs' Rest | Area name | 0 | 1965.5,3104.5
+POINT | Minotaurs' Rest | Mooring, Sailing level 54 | 0 | 1958.5,3117.5
+PLACE | Deepfin Point | Area name | 0 | 1949.5,2793.5
+POINT | Deepfin Point North | Mining: Tin x3, Copper x4, Iron x6, Mithril x5 | 0 | 1945.5,2805.5
+SHOP | Deepfin Point Ore Exchange | Run by Korgan, Deepfin Point | 0 | 1945.5,2762.5
+NPC | Korgan | Runs Deepfin Point Ore Exchange | 0 | 1945.5,2762.5
+ITEM | Coal | Sold at Deepfin Point Ore Exchange for 49 coins, 20 in stock | 0 | 1945.5,2762.5
+ITEM | Tin ore | Sold at Deepfin Point Ore Exchange for 3 coins, 40 in stock | 0 | 1945.5,2762.5
+ITEM | Gold ore | Sold at Deepfin Point Ore Exchange for 165 coins, 10 in stock | 0 | 1945.5,2762.5
+ITEM | Iron ore | Sold at Deepfin Point Ore Exchange for 18 coins, 20 in stock | 0 | 1945.5,2762.5
+ITEM | Lead ore | Sold at Deepfin Point Ore Exchange for 38 coins, 10 in stock | 0 | 1945.5,2762.5
+ITEM | Copper ore | Sold at Deepfin Point Ore Exchange for 3 coins, 40 in stock | 0 | 1945.5,2762.5
+ITEM | Nickel ore | Sold at Deepfin Point Ore Exchange for 440 coins, 0 in stock | 0 | 1945.5,2762.5
+ITEM | Runite ore | Sold at Deepfin Point Ore Exchange for 3,520 coins, 0 in stock | 0 | 1945.5,2762.5
+ITEM | Silver ore | Sold at Deepfin Point Ore Exchange for 82 coins, 10 in stock | 0 | 1945.5,2762.5
+ITEM | Mithril ore | Sold at Deepfin Point Ore Exchange for 178 coins, 5 in stock | 0 | 1945.5,2762.5
+ITEM | Iron pickaxe | Free to take. Deepfin Point (1 spawn) | 0 | 1945.5,2758.5
+ITEM | Adamantite ore | Sold at Deepfin Point Ore Exchange for 440 coins, 0 in stock | 0 | 1945.5,2762.5
+MONSTER | Giant wasp | Deepfin Point (11 spawns) | 0 | 1944.5,2780.5
+TELEPORT | Sailors' amulet: Deepfin Point | uses charges | 0 | 1943.5,2758.5
+TRANSPORT | Charter ship: Deepfin Point | Aldarin, Brimhaven, Catherby, Civitas illa Fortis, Corsair Cove, Shipyard, Land's End, Mos Le'Harmless, Musa Point, Port Khazard, Port Phasmatys, Port Piscarilius | 0 | 1943.5,2753.5
+SHOP | Deepfin Inn | Run by Brikka, Deepfin Point | 0 | 1940.5,2760.5
+DOORWAY | Shrouded Ocean Underground | Leads to Shrouded Ocean Underground | 0 | 1940.5,2806.5
+NPC | Brikka | Runs Deepfin Inn | 0 | 1940.5,2760.5
+ITEM | Beer | Sold at Deepfin Inn for 2 coins | 0 | 1940.5,2760.5
+ITEM | Bowl | Free to take. Deepfin Point (1 spawn) | 0 | 1940.5,2763.5
+ITEM | Stew | Sold at Deepfin Inn for 20 coins | 0 | 1940.5,2760.5
+ITEM | Cider | Sold at Deepfin Inn for 2 coins | 0 | 1940.5,2760.5
+ITEM | Kebab | Sold at Deepfin Inn for 3 coins | 0 | 1940.5,2760.5
+ITEM | Vodka | Sold at Deepfin Inn for 5 coins | 0 | 1940.5,2760.5
+ITEM | Whisky | Sold at Deepfin Inn for 5 coins | 0 | 1940.5,2760.5
+ITEM | Meat pie | Sold at Deepfin Inn for 15 coins | 0 | 1940.5,2760.5
+ITEM | Jug of wine | Sold at Deepfin Inn for 1 coin | 0 | 1940.5,2760.5
+ITEM | Dwarven stout | Sold at Deepfin Inn for 2 coins | 0 | 1940.5,2760.5
+ITEM | Dwarven stout | Free to take. Deepfin Point (1 spawn) | 0 | 1940.5,2757.5
+? type:place death's office
+PLACE | Death's Office | Place | 0 | 1652.5,3137.5
+PLACE | Death's Office | Place | 0 | 3237.5,3192.5
+PLACE | Death's Office | Place | 0 | 2712.5,3466.5
+PLACE | Death's Office | Place | 20 | 2977.5,9737.5
+PLACE | Death's Office | Place | 29 | 3255.5,6118.5
+? estate agent
+KIND | Estate Agents | Every estate agent: 7 places in 7 towns, marked on the map, nearest first | 0 | 1702.5,3103.5
+NPC | Estate agent | 1 spawn | 0 | 3240.5,3476.5
+NPC | Estate agent | 1 spawn | 0 | 2983.5,3369.5
+NPC | Estate agent | 1 spawn | 0 | 2737.5,3502.5
+NPC | Estate agent | 1 spawn | 0 | 2639.5,3291.5
+NPC | Estate agent | 1 spawn | 0 | 1781.5,3628.5
+NPC | Estate agent | 1 spawn | 0 | 1703.5,3101.5
+ITEM | Saw | Free to take. Varrock estate agent (1 spawn) | 0 | 3241.5,3470.5
+ITEM | Spade | Free to take. Falador - estate agent (1 spawn) | 0 | 2981.5,3370.5
+ITEM | Spade | Free to take. Prifddinas - west in Alwyn's house (estate agent) (1 spawn) | 29 | 3219.5,6058.5
+ITEM | Guide book | Free to take. East Ardougne - estate agent (1 spawn) | 0 | 2638.5,3292.5
+? region:aldarin
+DOORWAY | Backstage Entrance | Leads to Varlamore Underground | 0 | 1476.5,2927.5
+TRANSPORT | Charter ship: Aldarin | Brimhaven, Catherby, Civitas illa Fortis, Corsair Cove, Deepfin Point, Shipyard, Land's End, Mos Le'Harmless, Musa Point, Port Khazard, Port Phasmatys, Port Piscarilius | 0 | 1455.5,2968.5
+POINT | Aldarin | Mooring, Sailing level 46 | 0 | 1452.5,2970.5
+PLACE | Villa Lucens | Area name | 0 | 1448.5,2933.5
+DOORWAY | Wine Cellar | Leads to Varlamore Underground | 0 | 1448.5,2938.5
+NPC | Fisher | Aldarin (1 spawn) | 0 | 1445.5,2963.5
+MONSTER | Seagull | Aldarin (5 spawns) | 0 | 1443.5,2968.5
+TRANSPORT | Ship: Sunset Coast, Aldarin | Sunset Coast | 0 | 1443.5,2977.5
+NPC | Sailor | Aldarin (2 spawns) | 0 | 1442.5,2971.5
+MONSTER | Bird | Aldarin (6 spawns) | 0 | 1433.5,2953.5
+NPC | Green skink | Aldarin (7 spawns) | 0 | 1432.5,2952.5
+ITEM | Pot of flour | Free to take. Aldarin (1 spawn) | 0 | 1432.5,2960.5
+ITEM | Bowl | Free to take. Aldarin (1 spawn) | 0 | 1431.5,2962.5
+SHOP | Toci's Gem Store | Run by Toci, Aldarin | 0 | 1427.5,2973.5
+NPC | Toci | Runs Toci's Gem Store | 0 | 1427.5,2973.5
+ITEM | Ruby | Sold at Toci's Gem Store for 1,000 coins, 1 in stock | 0 | 1427.5,2973.5
+ITEM | Diamond | Sold at Toci's Gem Store for 2,000 coins, 0 in stock | 0 | 1427.5,2973.5
+ITEM | Emerald | Sold at Toci's Gem Store for 500 coins, 2 in stock | 0 | 1427.5,2973.5
+ITEM | Sapphire | Sold at Toci's Gem Store for 250 coins, 3 in stock | 0 | 1427.5,2973.5
+ITEM | Uncut ruby | Sold at Toci's Gem Store for 100 coins, 1 in stock | 0 | 1427.5,2973.5
+ITEM | Uncut diamond | Sold at Toci's Gem Store for 200 coins, 0 in stock | 0 | 1427.5,2973.5
+ITEM | Uncut emerald | Sold at Toci's Gem Store for 50 coins, 2 in stock | 0 | 1427.5,2973.5
+ITEM | Uncut sapphire | Sold at Toci's Gem Store for 25 coins, 3 in stock | 0 | 1427.5,2973.5
+TELEPORT | Pendant of ates: 4. North Aldarin | uses charges | 0 | 1425.5,2995.5
+NPC | Tourist | Aldarin (4 spawns) | 0 | 1423.5,2969.5
+NPC | Child | Aldarin - market (2 spawns) | 0 | 1422.5,2967.5
+TELEPORT | Teleport to House | 40 Magic | 0 | 1422.5,2966.5
+TELEPORT | Max cape: Tele to POH | Max Total, no charges used | 0 | 1422.5,2966.5
+TELEPORT | Construction cape: Home | 99 Construction, no charges used | 0 | 1422.5,2966.5
+TELEPORT | Teleport to House tablet | uses charges | 0 | 1422.5,2966.5
+TELEPORT | Teleport to House (Outside) | 40 Magic | 0 | 1422.5,2966.5
+TELEPORT | Teleport to House tablet (Outside) | uses charges | 0 | 1422.5,2966.5
+TRANSPORT | Portal: Aldarin | Home Portal | 0 | 1422.5,2963.5
+NPC | Chiribaya | Aldarin (2 spawns) | 0 | 1421.5,2973.5
+SHOP | Faustus' Fruit and Veg | Run by Faustus, Aldarin | 0 | 1418.5,2980.5
+NPC | Faustus | Runs Faustus' Fruit and Veg | 0 | 1418.5,2980.5
+ITEM | Lime | Sold at Faustus' Fruit and Veg for 2 coins, 10 in stock | 0 | 1418.5,2980.5
+ITEM | Lemon | Sold at Faustus' Fruit and Veg for 2 coins, 10 in stock | 0 | 1418.5,2980.5
+ITEM | Onion | Sold at Faustus' Fruit and Veg for 3 coins, 10 in stock | 0 | 1418.5,2980.5
+ITEM | Banana | Sold at Faustus' Fruit and Veg for 2 coins, 10 in stock | 0 | 1418.5,2980.5
+? type:place alchemical society
+PLACE | Alchemical Society | Place in Aldarin | 0 | 1393.5,2917.5
+PLACE | Alchemical Society | Area name | 43 | 1394.5,9327.5
+DOORWAY | Alchemical Society | Leads to Varlamore Underground | 0 | 1389.5,2916.5
+DOORWAY | Alchemical Society | Leads to Gielinor Surface | 43 | 1389.5,9316.5
+? region:yanille
+MONSTER | Jungle spider | Yanille Chain (21 spawns) | 0 | 2678.5,3091.5
+PLACE | Yanille Chain | Area name | 0 | 2664.5,3102.5
+SHOP | Magic Guild Store (Mystic Robes) | Run by Wizard Sinina, Wizards' Guild | 0 | 2595.5,3089.5
+SHOP | Magic Guild Store (Runes and Staves) | Run by Wizard Akutha, Wizards' Guild | 0 | 2595.5,3088.5
+NPC | Wizard Akutha | Runs Magic Guild Store (Runes and Staves) | 0 | 2595.5,3088.5
+NPC | Wizard Sinina | Runs Magic Guild Store (Mystic Robes) | 0 | 2595.5,3089.5
+ITEM | Air rune | Sold at Magic Guild Store (Runes and Staves) for 4 coins, 5000 in stock | 0 | 2595.5,3088.5
+ITEM | Law rune | Sold at Magic Guild Store (Runes and Staves) for 240 coins, 250 in stock | 0 | 2595.5,3088.5
+ITEM | Body rune | Sold at Magic Guild Store (Runes and Staves) for 3 coins, 5000 in stock | 0 | 2595.5,3088.5
+ITEM | Fire rune | Sold at Magic Guild Store (Runes and Staves) for 4 coins, 5000 in stock | 0 | 2595.5,3088.5
+ITEM | Mind rune | Sold at Magic Guild Store (Runes and Staves) for 3 coins, 5000 in stock | 0 | 2595.5,3088.5
+ITEM | Soul rune | Sold at Magic Guild Store (Runes and Staves) for 300 coins, 250 in stock | 0 | 2595.5,3088.5
+ITEM | Blood rune | Sold at Magic Guild Store (Runes and Staves) for 400 coins, 250 in stock | 0 | 2595.5,3088.5
+ITEM | Chaos rune | Sold at Magic Guild Store (Runes and Staves) for 90 coins, 250 in stock | 0 | 2595.5,3088.5
+ITEM | Death rune | Sold at Magic Guild Store (Runes and Staves) for 180 coins, 250 in stock | 0 | 2595.5,3088.5
+ITEM | Earth rune | Sold at Magic Guild Store (Runes and Staves) for 4 coins, 5000 in stock | 0 | 2595.5,3088.5
+ITEM | Magic cape | Sold at Magic Guild Store (Mystic Robes) for 99,000 coins, 1 in stock | 0 | 2595.5,3089.5
+ITEM | Mystic hat | Sold at Magic Guild Store (Mystic Robes) for 15,000 coins, 1000 in stock | 0 | 2595.5,3089.5
+ITEM | Water rune | Sold at Magic Guild Store (Runes and Staves) for 4 coins, 5000 in stock | 0 | 2595.5,3088.5
+ITEM | Battlestaff | Sold at Magic Guild Store (Runes and Staves) for 7,000 coins, 5 in stock | 0 | 2595.5,3088.5
+ITEM | Nature rune | Sold at Magic Guild Store (Runes and Staves) for 180 coins, 250 in stock | 0 | 2595.5,3088.5
+ITEM | Mystic boots | Sold at Magic Guild Store (Mystic Robes) for 10,000 coins, 1000 in stock | 0 | 2595.5,3089.5
+ITEM | Staff of air | Sold at Magic Guild Store (Runes and Staves) for 1,500 coins, 2 in stock | 0 | 2595.5,3088.5
+ITEM | Air rune pack | Sold at Magic Guild Store (Runes and Staves) for 430 coins, 80 in stock | 0 | 2595.5,3088.5
+ITEM | Magic cape(t) | Sold at Magic Guild Store (Mystic Robes) for 99,000 coins, 1 in stock | 0 | 2595.5,3089.5
+ITEM | Mystic gloves | Sold at Magic Guild Store (Mystic Robes) for 10,000 coins, 1000 in stock | 0 | 2595.5,3089.5
+ITEM | Staff of fire | Sold at Magic Guild Store (Runes and Staves) for 1,500 coins, 2 in stock | 0 | 2595.5,3088.5
+ITEM | Fire rune pack | Sold at Magic Guild Store (Runes and Staves) for 430 coins, 80 in stock | 0 | 2595.5,3088.5
+ITEM | Mind rune pack | Sold at Magic Guild Store (Runes and Staves) for 330 coins, 40 in stock | 0 | 2595.5,3088.5
+ITEM | Staff of earth | Sold at Magic Guild Store (Runes and Staves) for 1,500 coins, 2 in stock | 0 | 2595.5,3088.5
+ITEM | Staff of water | Sold at Magic Guild Store (Runes and Staves) for 1,500 coins, 2 in stock | 0 | 2595.5,3088.5
+ITEM | Chaos rune pack | Sold at Magic Guild Store (Runes and Staves) for 9,950 coins, 35 in stock | 0 | 2595.5,3088.5
+ITEM | Earth rune pack | Sold at Magic Guild Store (Runes and Staves) for 430 coins, 80 in stock | 0 | 2595.5,3088.5
+ITEM | Mystic robe top | Sold at Magic Guild Store (Mystic Robes) for 120,000 coins, 1000 in stock | 0 | 2595.5,3089.5
+ITEM | Water rune pack | Sold at Magic Guild Store (Runes and Staves) for 430 coins, 80 in stock | 0 | 2595.5,3088.5
+ITEM | Mystic robe bottom | Sold at Magic Guild Store (Mystic Robes) for 80,000 coins, 1000 in stock | 0 | 2595.5,3089.5
+DOORWAY | Wizards' Guild basement | Leads to Yanille Underground | 0 | 2594.5,3085.5
+MONSTER | Wizard | Wizards' Guild (3 spawns) | 0 | 2593.5,3084.5
+ITEM | Cup of tea | Free to take. Yanille - building north of the Wizards' Guild (1 spawn) | 0 | 2593.5,3103.5
+TRANSPORT | Portal: Wizards' Guild | Magic Portal | 0 | 2592.5,3089.5
+? dungeon region:edgeville
+DOORWAY | Edgeville Dungeon | Leads to Misthalin Underground | 0 | 3097.5,3468.5
+DOORWAY | Edgeville Dungeon | Leads to Misthalin Underground | 0 | 3116.5,3452.5
+? near:"slayer tower"
+MONSTER | Abyssal demon | Slayer Tower (14 spawns) | 0 | 3415.5,3569.5
+MONSTER | Bloodveld | Slayer Tower (15 spawns) | 0 | 3417.5,3565.5
+DOORWAY | Slayer Tower basement | Leads to Morytania Underground | 0 | 3417.5,3535.5
+TRANSPORT | Spikey chain | Action, Requires, Direction | 0 | 3421.5,3550.5
+TELEPORT | Slayer ring: Slayer Tower | uses charges | 0 | 3423.5,3536.5
+MONSTER | Crawling Hand | Slayer Tower (24 spawns) | 0 | 3424.5,3558.5
+MONSTER | Aberrant spectre | Slayer Tower (14 spawns) | 0 | 3428.5,3543.5
+PLACE | Slayer Tower | Area name | 0 | 3429.5,3555.5
+MONSTER | Banshee | Slayer Tower (8 spawns) | 0 | 3433.5,3552.5
+MONSTER | Gargoyle | Slayer Tower top floor (8 spawns) | 0 | 3439.5,3542.5
+MONSTER | Infernal Mage | Slayer Tower (15 spawns) | 0 | 3440.5,3564.5
+MONSTER | Nechryael | Slayer Tower Top Floor (11 spawns) | 0 | 3443.5,3570.5
+PLACE | Slayer Tower | Area name | 14 | 3424.5,9924.5
+MONSTER | Gargoyle | Slayer Tower basement (Slayer task only) (12 spawns) | 14 | 3432.5,9937.5
+MONSTER | Bloodveld | Slayer Tower (basement) (12 spawns) | 14 | 3412.5,9935.5
+DOORWAY | Slayer Tower basement | Leads to Gielinor Surface | 14 | 3412.5,9931.5
+ITEM | Hammer | Free to take. Slayer Tower basement (2 spawns) | 14 | 3429.5,9931.5
+? region:"jolly boar"
+? type:place inn
+PLACE | Hefin Inn | Place in Prifddinas | 29 | 3238.5,6119.5
+PLACE | Blue Moon Inn | Place | 0 | 3223.5,3395.5
+PLACE | Jolly Boar Inn | Place | 0 | 3278.5,3502.5
+PLACE | Rusty Anchor Inn | Place in Port Sarim | 0 | 3049.5,3257.5
+PLACE | Stick Your Ore Inn | Place | 0 | 1388.5,2859.5
+SHOP | Hefin Inn | Run by Eira, Prifddinas | 29 | 3237.5,6126.5
+SHOP | Dragon Inn | Run by Bartender, Yanille | 0 | 2555.5,3078.5
+SHOP | Deepfin Inn | Run by Brikka, Deepfin Point | 0 | 1940.5,2760.5
+SHOP | Paramaya Inn | Run by Kaleb Paramaya, Shilo Village | 0 | 2861.5,2997.5
+SHOP | Blue Moon Inn | Run by Bartender, Varrock | 0 | 3225.5,3397.5
+SHOP | Jolly Boar Inn | Run by Bartender, North-east of Varrock | 0 | 3280.5,3496.5
+SHOP | King's Axe Inn | Run by Barman, Western Keldagrim | 10 | 2838.5,10195.5
+SHOP | Rising Sun Inn | Run by Kaylee, Emily, Tina, Falador | 0 | 2956.5,3368.5
+SHOP | The King's Inn | Run by King, Tal Teklan | 0 | 1223.5,3118.5
+SHOP | The Other Inn. | Run by Mama, Mos Le'Harmless | 0 | 3662.5,2981.5
+SHOP | Flying Horse Inn | Run by Bartender, East Ardougne | 0 | 2575.5,3322.5
+SHOP | Rusty Anchor Inn | Run by Bartender (Rusty Anchor Inn), Port Sarim | 0 | 3047.5,3257.5
+SHOP | Dancing Donkey Inn | Run by Bartender, Varrock | 0 | 3267.5,3392.5
+SHOP | Stick Your Ore Inn | Run by Bartender, Mistrock | 0 | 1389.5,2858.5
+SHOP | Cook (Blue Moon Inn) |  | 0 | 3230.5,3400.5
+SHOP | Kylie Minnow |  | 0 | 2599.5,3426.5
+SHOP | Miscellanian General Store | Run by Finn, Miscellania Expansion | 51 | 2508.5,10258.5
+? region:canifis
+TRANSPORT | Fairy ring: CKS | BKS, AIQ, AIR, AIS, AJP, AJR, AJS, AKP, AKQ, AKR, AKS, ALP, ALQ, ALR, ALS, BIP, BIQ, BIS, BJP, BJS, BKP, BKR, BKS, BLP, BLR, BLS, CIP, CIQ, CIR, CIS, CJQ, CJR, CKQ | 0 | 3446.5,3472.5
+POINT | Mushroom patch | Farming patch | 0 | 3449.5,3471.5
+TELEPORT | Achievement diary cape: C. Le-sabrè | no charges used | 0 | 3465.5,3477.5
+MONSTER | Joseph | Canifis (1 spawn) | 0 | 3474.5,3474.5
+SHOP | General Store (Canifis) | Run by Fidelio, Canifis | 0 | 3475.5,3495.5
+NPC | Fidelio | Runs General Store (Canifis) | 0 | 3475.5,3495.5
+ITEM | Jug | Sold at General Store (Canifis) for 2 coins, 2 in stock | 0 | 3475.5,3495.5
+ITEM | Pot | Sold at General Store (Canifis) for 2 coins, 3 in stock | 0 | 3475.5,3495.5
+ITEM | Knife | Sold at General Store (Canifis) for 12 coins, 2 in stock | 0 | 3475.5,3495.5
+ITEM | Bucket | Sold at General Store (Canifis) for 4 coins, 2 in stock | 0 | 3475.5,3495.5
+ITEM | Chisel | Sold at General Store (Canifis) for 2 coins, 2 in stock | 0 | 3475.5,3495.5
+ITEM | Hammer | Sold at General Store (Canifis) for 2 coins, 5 in stock | 0 | 3475.5,3495.5
+ITEM | Needle | Sold at General Store (Canifis) for 2 coins, 2 in stock | 0 | 3475.5,3495.5
+ITEM | Thread | Sold at General Store (Canifis) for 2 coins, 50 in stock | 0 | 3475.5,3495.5
+ITEM | Tinderbox | Sold at General Store (Canifis) for 2 coins, 2 in stock | 0 | 3475.5,3495.5
+ITEM | Sample bottle | Sold at General Store (Canifis) for 10 coins, 10 in stock | 0 | 3475.5,3495.5
+ITEM | Blood talisman | Sold at General Store (Canifis) for 8 coins, 1 in stock | 0 | 3475.5,3495.5
+ITEM | Empty jug pack | Sold at General Store (Canifis) for 280 coins, 6 in stock | 0 | 3475.5,3495.5
+ITEM | Empty bucket pack | Sold at General Store (Canifis) for 1,000 coins, 15 in stock | 0 | 3475.5,3495.5
+MONSTER | Liliya | Canifis (1 spawn) | 0 | 3479.5,3498.5
+MONSTER | Nikita | Canifis (1 spawn) | 0 | 3479.5,3498.5
+MONSTER | Yadviga | Canifis (1 spawn) | 0 | 3479.5,3492.5
+MONSTER | Georgy | Canifis (1 spawn) | 0 | 3483.5,3478.5
+MONSTER | Sofiya | Canifis (1 spawn) | 0 | 3483.5,3495.5
+MONSTER | Irina | Canifis (1 spawn) | 0 | 3485.5,3488.5
+QUEST | Creature of Fenkenstrain | Quest start | 0 | 3487.5,3485.5
+MONSTER | Boris | Canifis (1 spawn) | 0 | 3489.5,3490.5
+MONSTER | Imre | Canifis (1 spawn) | 0 | 3490.5,3474.5
+MONSTER | Vera | Canifis (1 spawn) | 0 | 3490.5,3473.5
+MONSTER | Galina | Canifis Pub (Upstairs) (1 spawn) | 0 | 3490.5,3472.5
+PLACE | Canifis | Area name | 0 | 3491.5,3487.5
+TELEPORT | Kharyrll tablet | uses charges | 0 | 3494.5,3473.5
+TELEPORT | Kharyrll Teleport | Ancient spellbook, 66 Magic | 0 | 3494.5,3473.5
+MONSTER | Nikolai | Canifis (1 spawn) | 0 | 3495.5,3476.5
+DOORWAY | Myreque Hideout | Leads to Morytania Underground | 0 | 3495.5,3464.5
+SHOP | Hair of the Dog | Run by Roavar, Canifis | 0 | 3496.5,3474.5
+NPC | Roavar | Runs Hair of the Dog | 0 | 3496.5,3474.5
+ITEM | Pickled brain | Sold at Hair of the Dog for 50 coins | 0 | 3496.5,3474.5
+ITEM | Moonlight mead | Sold at Hair of the Dog for 5 coins | 0 | 3496.5,3474.5
+MONSTER | Yuri | Canifis (1 spawn) | 0 | 3497.5,3497.5
+? near:varrock type:place
+QUEST | Romeo & Juliet | Quest start | 0 | 3210.5,3423.5
+PLACE | Speedrunning shop | Place | 0 | 3219.5,3425.5
+SHOP | Speedrunning Reward Shop | Run by Eliza, Varrock | 0 | 3219.5,3425.5
+QUEST | Demon Slayer | Quest start | 0 | 3204.5,3424.5
+SHOP | Benny |  | 0 | 3220.5,3432.5
+SHOP | Baraek |  | 0 | 3216.5,3436.5
+PLACE | Varrock Square | Place | 0 | 3209.5,3437.5
+SHOP | Events Reward Shop | Run by Nevet, Varrock Square | 0 | 3209.5,3437.5
+SHOP | Zaff's Superior Staffs! | Run by Zaff, Varrock | 0 | 3202.5,3437.5
+SHOP | Thessalia |  | 0 | 3206.5,3416.5
+SHOP | Thessalia's Fine Clothes. | Run by Thessalia, Varrock | 0 | 3202.5,3416.5
+SHOP | Varrock General Store | Run by Shop keeper, Varrock | 0 | 3215.5,3415.5
+PLACE | Varrock General Store | Place | 0 | 3218.5,3412.5
+SHOP | Horvik's Armour Shop. | Run by Horvik, Varrock | 0 | 3228.5,3440.5
+SHOP | Pelters' Veg Stall | Run by Tramp, Varrock | 0 | 3228.5,3411.5
+SHOP | Lowe's Archery Emporium | Run by Lowe, Varrock | 0 | 3232.5,3423.5
+PLACE | Varrock | Area name | 0 | 3211.5,3450.5
+SHOP | Cook (Blue Moon Inn) |  | 0 | 3230.5,3400.5
+SHOP | Varrock Swordshop | Run by Shop keeper, Varrock | 0 | 3205.5,3399.5
+DOORWAY | Varrock Sewers | Leads to Misthalin Underground | 0 | 3237.5,3458.5
+SHOP | Treznor |  | 0 | 3229.5,3459.5
+SHOP | Blue Moon Inn | Run by Bartender, Varrock | 0 | 3225.5,3397.5
+PLACE | Old Man Yarlo's house | Place in Varrock | 0 | 3244.5,3398.5
+PLACE | Blue Moon Inn | Place | 0 | 3223.5,3395.5
+PLACE | Varrock Swordshop | Place | 0 | 3208.5,3395.5
+PLACE | Scattered around Varrock | Place | 0 | 3246.5,3458.5
+QUEST | Shield of Arrav | Quest start | 0 | 3208.5,3392.5
+SHOP | Aubury's Rune Shop. | Run by Aubury, Varrock | 0 | 3252.5,3403.5
+PLACE | Varrock estate agent | Place | 0 | 3241.5,3470.5
+PLACE | Hairdresser | Place | 0 | 3255.5,3462.5
+PLACE | House in South-East Varrock | Place | 0 | 3246.5,3384.5
+PLACE | Clan Hub | Place | 0 | 3181.5,3473.5
+PLACE | Phoenix Gang weapon storage | Place in Varrock | 0 | 3242.5,3383.5
+QUEST | Priest in Peril | Quest start | 0 | 3219.5,3473.5
+DOORWAY | VTAM Corporation | Leads to Misthalin Underground | 0 | 3244.5,3383.5
+QUEST | Daddy's Home | Quest start | 0 | 3240.5,3474.5
+QUEST | Bone Voyage | Quest start | 0 | 3259.5,3450.5
+PLACE | Varrock Castle | Place | 0 | 3207.5,3476.5
+PLACE | Cage under the Varrock Castle stairs | Place | 0 | 3213.5,3476.5
+PLACE | Grand Exchange | Area name | 0 | 3168.5,3477.5
+? region:tirannwn
+PLACE | Observatory | Area name | 0 | 2440.5,3151.5
+DOORWAY | Observatory Dungeon | Leads underground | 0 | 2436.5,3163.5
+DOORWAY | Brimstail's Cave | Leads to Stronghold Underground | 0 | 2403.5,3419.5
+MONSTER | Gnome | West of the Outpost (3 spawns) | 0 | 2400.5,3356.5
+MONSTER | Grizzly bear | South-west of Tree Gnome Stronghold (4 spawns) | 0 | 2398.5,3366.5
+MONSTER | Duck | Tree Gnome Stronghold (6 spawns) | 0 | 2395.5,3412.5
+MONSTER | Wolf | Arandar entrance (4 spawns) | 0 | 2395.5,3340.5
+NPC | Ducklings | Tree Gnome Stronghold (1 spawn) | 0 | 2393.5,3412.5
+POINT | Tree Gnome Stronghold | Fishing: Salmon (2 places) | 0 | 2389.5,3422.5
+MONSTER | Giant spider | South-west of Tree Gnome Stronghold (10 spawns) | 0 | 2387.5,3370.5
+NPC | Rod Fishing spot | 7 spawns | 0 | 2383.5,3418.5
+MONSTER | Terrorbird | Tree Gnome Stronghold (9 spawns) | 0 | 2380.5,3436.5
+PLACE | River Crannmor | Area name | 0 | 2379.5,3458.5
+ITEM | Tinderbox | Free to take. Castle Wars - Zamorakian's base (1 spawn) | 0 | 2376.5,3127.5
+MONSTER | Hill Giant | South-west of Tree Gnome Stronghold (6 spawns) | 0 | 2371.5,3398.5
+ITEM | Tinderbox | Free to take. Castle Wars - Zamorakian's base (1 spawn) | 0 | 2368.5,3135.5
+POINT | Altar: Lletya | Altar for praying | 0 | 2355.5,3172.5
+QUEST | Mourning's End Part II | Quest start | 0 | 2352.5,3172.5
+POINT | Bank: Lletya | Bank, needs Mourning's End Part I | 0 | 2352.5,3162.5
+SHOP | Liliwen |  | 0 | 2347.5,3162.5
+ITEM | Rake | Sold at Liliwen for 6 coins | 0 | 2347.5,3162.5
+ITEM | Compost | Sold at Liliwen for 20 coins | 0 | 2347.5,3162.5
+ITEM | Plant cure | Sold at Liliwen for 40 coins | 0 | 2347.5,3162.5
+ITEM | Seed dibber | Sold at Liliwen for 6 coins | 0 | 2347.5,3162.5
+ITEM | Watering can | Sold at Liliwen for 8 coins | 0 | 2347.5,3162.5
+ITEM | Empty plant pot | Sold at Liliwen for 1 coin | 0 | 2347.5,3162.5
+ITEM | Gardening trowel | Sold at Liliwen for 12 coins | 0 | 2347.5,3162.5
+PLACE | Lletya | Area name | 0 | 2346.5,3180.5
+NPC | Tool Leprechaun | Lletya (1 spawn) | 0 | 2346.5,3164.5
+TRANSPORT | Rocks | Action, Requires, Takes, Direction | 0 | 2345.5,3300.5
+MONSTER | Deadly red spider | Arandar (10 spawns) | 0 | 2342.5,3311.5
+MUSIC | Eagles' Peak | Music track unlock | 0 | 2340.5,3477.5
+PLACE | Arandar | Area name | 0 | 2339.5,3295.5
+TRANSPORT | Spirit tree: Poison Waste | Tree Gnome Village, Gnome Stronghold, Battlefield of Khazard, Grand Exchange, Feldip Hills, Prifddinas, Port Sarim, Etceteria, Brimhaven, Hosidius, Farming Guild | 0 | 2338.5,3111.5
+PLACE | Eagles' Peak | Area name | 0 | 2337.5,3486.5
+TRANSPORT | Rocks | Action, Requires, Takes, Direction | 0 | 2337.5,3253.5
+TRANSPORT | Rocks | Action, Requires, Takes, Direction | 0 | 2337.5,3288.5
+SHOP | Lletya Food Store | Run by Gethin, Lletya | 0 | 2336.5,3159.5
+MONSTER | Elf Archer | Lletya (1 spawn) | 0 | 2336.5,3167.5
+NPC | Gethin | Runs Lletya Food Store | 0 | 2336.5,3159.5
+? type:place region:asgarnia
+PLACE | Pricing expert | Place | 0 | 3151.5,3489.5
+DOORWAY | Edgeville Dungeon | Leads to Misthalin Underground | 0 | 3116.5,3452.5
+SHOP | Richard's Wilderness Cape Shop. | Run by Richard, Edgeville | 0 | 3099.5,3518.5
+PLACE | Edgeville | Area name | 0 | 3098.5,3488.5
+DOORWAY | Edgeville Dungeon | Leads to Misthalin Underground | 0 | 3097.5,3468.5
+PLACE | Bounty Hunter trader | Place | 0 | 3095.5,3506.5
+QUEST | Animal Magnetism | Quest start | 0 | 3094.5,3360.5
+SHOP | Ava |  | 0 | 3094.5,3357.5
+SHOP | Ava's Odds and Ends | Run by Ava, Draynor Manor | 0 | 3094.5,3358.5
+DOORWAY | Draynor Manor basement | Leads to Misthalin Underground | 0 | 3092.5,3362.5
+SHOP | Battle Runes | Run by Mage of Zamorak, Wilderness | 0 | 3105.5,3558.5
+DOORWAY | Stronghold of Security | Leads to Stronghold of Security | 0 | 3081.5,3420.5
+SHOP | Edgeville General Store | Run by Shop keeper, Edgeville | 0 | 3080.5,3510.5
+PLACE | Pub in Barbarian Village | Pub | 0 | 3078.5,3441.5
+SHOP | Helmet Shop. | Run by Peksa, Barbarian Village | 0 | 3073.5,3429.5
+SHOP | Oziach (shop) | Run by Oziach, Edgeville | 0 | 3069.5,3517.5
+DOORWAY | Edgeville Dungeon | Leads to Misthalin Underground | 0 | 3088.5,3571.5
+PLACE | Level 5-10 Wilderness | Place | 0 | 3175.5,3572.5
+PLACE | Barbarian Village | Area name | 0 | 3063.5,3416.5
+DOORWAY | Dwarven Mine | Leads to Dwarven Mines | 0 | 3059.5,3377.5
+SHOP | Elstan |  | 0 | 3053.5,3305.5
+PLACE | Monastery | Area name | 0 | 3052.5,3477.5
+SHOP | Brother Jered |  | 0 | 3052.5,3491.5
+PLACE | Edgeville Monastery | Place | 0 | 3050.5,3491.5
+PLACE | Party Room | Area name | 0 | 3046.5,3380.5
+SHOP | Falador Party Room | Run by Lucy, Megan, Falador | 0 | 3046.5,3378.5
+SHOP | Frizzy Skernip |  | 0 | 3057.5,3259.5
+PLACE | Rusty Anchor Inn | Place in Port Sarim | 0 | 3049.5,3257.5
+SHOP | Rusty Anchor Inn | Run by Bartender (Rusty Anchor Inn), Port Sarim | 0 | 3047.5,3257.5
+PLACE | South Falador Farm | Area name | 0 | 3038.5,3294.5
+QUEST | Pirate's Treasure | Quest start | 0 | 3051.5,3252.5
+SHOP | Sarah's Farming shop. | Run by Sarah, South Falador Farm | 0 | 3036.5,3293.5
+QUEST | The Corsair Curse | Quest start | 0 | 3029.5,3273.5
+SHOP | Wyson the gardener |  | 0 | 3027.5,3379.5
+SHOP | Brian's Battleaxe Bazaar. | Run by Brian, Port Sarim | 0 | 3025.5,3250.5
+SHOP | Dusuri's Star Shop | Run by Dusuri, Falador | 0 | 3022.5,3342.5
+SHOP | Gadrin |  | 0 | 3021.5,3339.5
+PLACE | Mining Guild | Area name | 0 | 3020.5,3344.5
+PLACE | Surface of Mining Guild | Place | 0 | 3019.5,3333.5
+DOORWAY | Mining Guild basement | Leads to Dwarven Mines | 0 | 3019.5,3339.5
+? type:place sawmill
+PLACE | Sawmill | Place | 0 | 1394.5,3369.5
+PLACE | Sawmill | Place | 0 | 3300.5,3494.5
+PLACE | Sawmill | Place | 0 | 1620.5,3500.5
+PLACE | Sawmill | Place | 29 | 3315.5,6117.5
+PLACE | Varrock Sawmill | Place | 0 | 3302.5,3507.5
+SHOP | Construction supplies | Run by Sawmill Operator, Auburnvale | 0 | 1394.5,3369.5
+? rune region:"varrock"
+ITEM | Runecraft cape | Sold at Aubury's Rune Shop. for 99,000 coins, 1 in stock | 0 | 3252.5,3403.5
+ITEM | Runecraft cape(t) | Sold at Aubury's Rune Shop. for 99,000 coins, 1 in stock | 0 | 3252.5,3403.5
+SHOP | Aubury's Rune Shop. | Run by Aubury, Varrock | 0 | 3252.5,3403.5
+ITEM | Air rune | Sold at Aubury's Rune Shop. for 4 coins, 5000 in stock | 0 | 3252.5,3403.5
+ITEM | Body rune | Sold at Aubury's Rune Shop. for 3 coins, 5000 in stock | 0 | 3252.5,3403.5
+ITEM | Fire rune | Sold at Aubury's Rune Shop. for 4 coins, 5000 in stock | 0 | 3252.5,3403.5
+ITEM | Mind rune | Sold at Aubury's Rune Shop. for 3 coins, 5000 in stock | 0 | 3252.5,3403.5
+ITEM | Chaos rune | Sold at Aubury's Rune Shop. for 90 coins, 250 in stock | 0 | 3252.5,3403.5
+ITEM | Death rune | Sold at Aubury's Rune Shop. for 180 coins, 250 in stock | 0 | 3252.5,3403.5
+ITEM | Earth rune | Sold at Aubury's Rune Shop. for 4 coins, 5000 in stock | 0 | 3252.5,3403.5
+ITEM | Water rune | Sold at Aubury's Rune Shop. for 4 coins, 5000 in stock | 0 | 3252.5,3403.5
+ITEM | Air rune pack | Sold at Aubury's Rune Shop. for 430 coins, 80 in stock | 0 | 3252.5,3403.5
+ITEM | Fire rune pack | Sold at Aubury's Rune Shop. for 430 coins, 80 in stock | 0 | 3252.5,3403.5
+ITEM | Mind rune pack | Sold at Aubury's Rune Shop. for 330 coins, 40 in stock | 0 | 3252.5,3403.5
+ITEM | Chaos rune pack | Sold at Aubury's Rune Shop. for 9,950 coins, 35 in stock | 0 | 3252.5,3403.5
+ITEM | Earth rune pack | Sold at Aubury's Rune Shop. for 430 coins, 80 in stock | 0 | 3252.5,3403.5
+ITEM | Water rune pack | Sold at Aubury's Rune Shop. for 430 coins, 80 in stock | 0 | 3252.5,3403.5
+NPC | Aubury | Runs Aubury's Rune Shop. | 0 | 3252.5,3403.5
+POINT | Earth Altar | Runecrafting altar, level 9 | 0 | 3306.5,3474.5
+ITEM | Leather body | Free to take. Varrock - building next to Aubury's Rune Shop (1 spawn) | 0 | 3247.5,3407.5
+? region:"lumbridge swamp"
+PLACE | Lumbridge Swamp | Area name | 0 | 3195.5,3183.5
+MONSTER | Frog | Lumbridge Swamp (45 spawns) | 0 | 3192.5,3179.5
+MONSTER | Giant frog | Lumbridge Swamp (8 spawns) | 0 | 3200.5,3177.5
+MONSTER | Big frog | Lumbridge Swamp (29 spawns) | 0 | 3203.5,3176.5
+MONSTER | Giant rat | Lumbridge Swamp (27 spawns) | 0 | 3200.5,3174.5
+DOORWAY | Zanaris | Leads to Zanaris | 0 | 3203.5,3169.5
+POINT | Water Altar | Runecrafting altar, level 5 | 0 | 3185.5,3165.5
+? region:civitas
+NPC | Fisher | Fortis Cothon (4 spawns) | 0 | 1749.5,3164.5
+NPC | Worker | Fortis Cothon (6 spawns) | 0 | 1748.5,3160.5
+ITEM | Empty sack | Free to take. Civitas illa Fortis (1 spawn) | 0 | 1744.5,3172.5
+NPC | Squirrel | 7 spawns | 0 | 1743.5,3090.5
+TRANSPORT | Charter ship: Civitas illa Fortis | Aldarin, Brimhaven, Catherby, Corsair Cove, Deepfin Point, Shipyard, Land's End, Mos Le'Harmless, Musa Point, Port Khazard, Port Phasmatys, Port Piscarilius, Port Roberts | 0 | 1743.5,3136.5
+ITEM | Logs | Free to take. Civitas illa Fortis (3 spawns) | 0 | 1743.5,3167.5
+NPC | Trader Crewmember | Civitas illa Fortis (2 spawns) | 0 | 1742.5,3133.5
+PLACE | Park | Area name | 0 | 1737.5,3105.5
+POINT | Civitas Illa Fortis Park | Fishing: Civitas Illa Fortis Park | 0 | 1737.5,3101.5
+ITEM | Jug | Free to take. Civitas illa Fortis (1 spawn) | 0 | 1737.5,3168.5
+ITEM | Tinderbox | Free to take. Civitas illa Fortis (1 spawn) | 0 | 1737.5,3169.5
+ITEM | Snape grass | Free to take. Civitas illa Fortis (1 spawn) | 0 | 1736.5,3168.5
+NPC | Ducklings | Civitas illa Fortis (2 spawns) | 0 | 1735.5,3104.5
+NPC | Citizen | Grand Museum - (2 spawns) | 0 | 1720.5,3166.5
+NPC | Tourist | Civitas illa Fortis (12 spawns) | 0 | 1720.5,3138.5
+NPC | Academic | Grand Museum - (2 spawns) | 0 | 1719.5,3164.5
+ITEM | Black robe | Free to take. Civitas illa Fortis - Pub (1 spawn) | 0 | 1718.5,3120.5
+ITEM | Leather gloves | Free to take. Civitas illa Fortis (1 spawn) | 0 | 1718.5,3115.5
+ITEM | Iron axe | Free to take. Civitas illa Fortis (1 spawn) | 0 | 1717.5,3119.5
+ITEM | Sunbeam ale | Free to take. Civitas illa Fortis - The Flaming Arrow (1 spawn) | 0 | 1716.5,3117.5
+PLACE | Grand Museum | Area name | 0 | 1713.5,3165.5
+PLACE | Civitas illa Fortis | Area name | 0 | 1713.5,3127.5
+SHOP | The Flaming Arrow | Run by Bartender, Civitas illa Fortis | 0 | 1712.5,3116.5
+NPC | Tourist | Grand Museum - (2 spawns) | 0 | 1712.5,3160.5
+NPC | Bartender | Runs The Flaming Arrow | 0 | 1712.5,3116.5
+ITEM | Gin | Sold at The Flaming Arrow for 5 coins | 0 | 1712.5,3116.5
+ITEM | Rum | Sold at The Flaming Arrow for 5 coins | 0 | 1712.5,3116.5
+ITEM | Beer | Sold at The Flaming Arrow for 2 coins | 0 | 1712.5,3116.5
+ITEM | Stew | Sold at The Flaming Arrow for 20 coins | 0 | 1712.5,3116.5
+ITEM | Cider | Sold at The Flaming Arrow for 2 coins | 0 | 1712.5,3116.5
+ITEM | Vodka | Sold at The Flaming Arrow for 5 coins | 0 | 1712.5,3116.5
+ITEM | Whisky | Sold at The Flaming Arrow for 5 coins | 0 | 1712.5,3116.5
+ITEM | Meat pie | Sold at The Flaming Arrow for 15 coins | 0 | 1712.5,3116.5
+ITEM | Moon-lite | Sold at The Flaming Arrow for 15 coins | 0 | 1712.5,3116.5
+ITEM | Cup of tea | Sold at The Flaming Arrow for 10 coins | 0 | 1712.5,3116.5
+ITEM | Eclipse red | Sold at The Flaming Arrow for 1,000 coins | 0 | 1712.5,3116.5
+ITEM | Jug of wine | Sold at The Flaming Arrow for 1 coin | 0 | 1712.5,3116.5
+ITEM | Jug of wine | Free to take. Civitas illa Fortis (1 spawn) | 0 | 1712.5,3115.5
+ITEM | Sunbeam ale | Sold at The Flaming Arrow for 8 coins | 0 | 1712.5,3116.5
+ITEM | Blackbird red | Sold at The Flaming Arrow for 300 coins | 0 | 1712.5,3116.5
+? region:"fossil island"
+PLACE | Wyvern's Wake | Area name | 0 | 3546.5,3776.5
+TRANSPORT | Boat: Fossil Island, Lithkren | Tile 3583, 3973 | 0 | 3659.5,3849.5
+POINT | Sulliuscep | Woodcutting level 65 (6 places) | 0 | 3662.5,3802.5
+MONSTER | Hoop Snake | Tar Swamp (12 spawns) | 0 | 3666.5,3780.5
+TRANSPORT | Magic mushtree: Mushroom Meadow | House on the Hill, Verdant Valley, Sticky Swamp | 0 | 3674.5,3871.5
+TRANSPORT | Magic mushtree: Sticky Swamp | House on the Hill, Verdant Valley, Mushroom Meadow | 0 | 3676.5,3755.5
+DOORWAY | Wyvern Cave (task only) | Leads to Fossil Island Underground | 0 | 3678.5,3854.5
+PLACE | Tar Swamp | Area name | 0 | 3680.5,3781.5
+MONSTER | Deranged archaeologist | Fossil Island – South end of the Tar Swamp (1 spawn) | 0 | 3683.5,3706.5
+POINT | Fossil Island5 | Hunting: Herbiboar | 0 | 3684.5,3870.5
+MONSTER | Ancient Zygomite | Fossil Island (27 spawns) | 0 | 3689.5,3857.5
+PLACE | Mushroom Forest | Area name | 0 | 3690.5,3861.5
+POINT | Fossil Island1 | Hunting: Herbiboar | 0 | 3693.5,3800.5
+PLACE | Untamed Ocean | Area name | 0 | 3575.5,3911.5
+POINT | Fossil Island2 | Hunting: Herbiboar | 0 | 3701.5,3809.5
+POINT | Fossil Island3 | Hunting: Herbiboar | 0 | 3703.5,3829.5
+POINT | Hardwood patch | Farming patch (3 places) | 0 | 3707.5,3838.5
+SHOP | Squirrel (Fossil Island) |  | 0 | 3710.5,3837.5
+ITEM | Rake | Sold at Squirrel (Fossil Island) for 6 coins | 0 | 3710.5,3837.5
+ITEM | Compost | Sold at Squirrel (Fossil Island) for 20 coins | 0 | 3710.5,3837.5
+ITEM | Plant cure | Sold at Squirrel (Fossil Island) for 40 coins | 0 | 3710.5,3837.5
+ITEM | Seed dibber | Sold at Squirrel (Fossil Island) for 6 coins | 0 | 3710.5,3837.5
+ITEM | Watering can | Sold at Squirrel (Fossil Island) for 8 coins | 0 | 3710.5,3837.5
+ITEM | Empty plant pot | Sold at Squirrel (Fossil Island) for 1 coin | 0 | 3710.5,3837.5
+ITEM | Gardening trowel | Sold at Squirrel (Fossil Island) for 12 coins | 0 | 3710.5,3837.5
+TRANSPORT | through Hole | Action, Requires, Takes, Direction | 0 | 3714.5,3816.5
+NPC | Herbiboar | Mushroom Forest on Fossil Island (9 spawns) | 0 | 3717.5,3840.5
+PLACE | Fossil Island | Area name | 0 | 3721.5,3781.5
+PLACE | Echoing Rift | Area name | 0 | 3723.5,3694.5
+TRANSPORT | Boat: Fossil Island, Underwater | Tile 3734, 3893 | 0 | 3723.5,3807.5
+TRANSPORT | Ship: Digsite, Fossil Island | Tile 3362, 3445 | 0 | 3724.5,3807.5
+SHOP | Fossil Island General Store | Run by Shop keeper, Museum Camp | 0 | 3726.5,3817.5
+NPC | Gull | 27 spawns | 0 | 3726.5,3859.5
+NPC | Shop keeper | Runs Fossil Island General Store | 0 | 3726.5,3817.5
+ITEM | Jug | Sold at Fossil Island General Store for 1 coin, 2 in stock | 0 | 3726.5,3817.5
+ITEM | Pot | Sold at Fossil Island General Store for 1 coin, 5 in stock | 0 | 3726.5,3817.5
+ITEM | Bowl | Sold at Fossil Island General Store for 5 coins, 2 in stock | 0 | 3726.5,3817.5
+ITEM | Rope | Sold at Fossil Island General Store for 23 coins, 5 in stock | 0 | 3726.5,3817.5
+ITEM | Bucket | Sold at Fossil Island General Store for 2 coins, 3 in stock | 0 | 3726.5,3817.5
+ITEM | Chisel | Sold at Fossil Island General Store for 1 coin, 2 in stock | 0 | 3726.5,3817.5
+suggest var: [Varrock, Varlamore, Varrock Square, Varrock Rat Pits, Varlamore Underground, Varrock Museum basement (lower), Varrock Museum basement (higher), Elvarg, Silvarea, River Varla, Wild Varrock, Under Varrock, LMS Wild Varrock, Kingdom of Varlamore, North-east of Varrock]
+suggest lum: [Lumbridge, Lumber Yard, Lumbridge Basin, Lumbridge Swamp, Lumbridge Castle, Lumbridge graveyard, Lumbridge Castle cellar, Lumbridge Castle basement, Lumbridge Castle (Recipe for Disaster), River Lum]
+suggest guild: [Cooks' Guild, Hunter Guild, Mining Guild, Myths' Guild, Farming Guild, Fishing Guild, Heroes' Guild, Ranging Guild, Crafting Guild, Legends' Guild, Wizards' Guild, Warriors' Guild, Champions' Guild, Woodcutting Guild, Myths' Guild, 1st floor, 2nd floor of Myths' Guild, 1st floor of Legends' Guild, 1st floor of Warriors' Guild, 1st floor of Champions' Guild, 1st floor of the Heroes' Guild, Ground floor of Warriors' Guild, ground floor of the Warriors' Guild, 2nd floor of Legends' Guild (west side)]
+suggest k: [Kovac, Kurask, Karamja, Kastori, Kandarin, Keldagrim, Kingstown, Key Master, Kebos Swamp, Kraken Cove, Kurask Lair, Keep Le Faye, Kalphite Cave, Kalphite Lair, Kiss the frog, Kebos Lowlands, Kharazi Jungle, Kourend Castle, Kruk's Dungeon, Karamja Volcano, Karamjan Temple, Keldagrim Palace, Kharidian Desert, Killerwatt Plane, Kourend Woodland, Kebos Underground, King Black Dragon, Klenter's Pyramid, Keldagrim Entrance, Keldagrim Rat Pits]
+suggest west: [Western Gate, West Ardougne, Western Graveyard, Western Keldagrim, Western Ocean Underground, North-west corner of Keldagrim, 2nd floor of Legends' Guild (west side), South-western corner of the Fight Arena]
+suggest the: [The Node, The Abyss, The Dibber, The Teomat, The Hollows, The Inferno, The Warrens, The Everdeep, The Gauntlet, The Mountain, The Blue Moon, The Darkfrost, The Nightmare, The Precipice, The Blood Moon, The Onyx Crest, The Proudspire, The Skullhorde, The Wintertodt, The Crown Jewel, The Great Conch, The Pandemonium, The Cinderwaters, The Eclipse Moon, The Little Pearl, The Sacred Grove, The Storm Tempor, The Stranglewood, The Summer Shore, Theatre of Blood]
+suggest port: [Port Sarim, Port Tyras, Port Khazard, Port Roberts, Porth Neigwl, Porth Gwenith, Port Phasmatys, Port Piscarilius, Port Phasmatys docks, Under Port Sarim, Oldak's teleportation laboratory]
+suggest isle: [Isle of Bones, Isle of Souls, Isle of Serpents, Cairn Isle, Lunar Isle, Brittle Isle, Crabclaw Isle, Drumstick Isle, Fremennik Isles, Lava Dragon Isle]
+suggest mount: [Mount Karuulm, Mountain Camp, Mountain dwarves, Mount Quidamortem, Ice Mountain, The Mountain, Custodia Mountains, Trollweiss Mountain, White Wolf Mountain, Ice Mountain workshop]
+suggest swamp: [Tar Swamp, Kebos Swamp, Lumbridge Swamp, Mort Myre Swamp, Underground Pass - swamp fail and final area]

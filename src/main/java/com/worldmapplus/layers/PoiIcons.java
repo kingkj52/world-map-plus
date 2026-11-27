@@ -12,8 +12,8 @@ import lombok.extern.slf4j.*;
 /**
  * The small pictures drawn for points of interest, read from the plugin jar on first use and kept.
  * <p>
- * The pictures are RuneLite's own world map icons, copied into the plugin at build time and kept together in icons.pack. A name with
- * no picture returns null and the caller draws a lettered disc instead.
+ * The pictures are RuneLite's own world map icons, copied into the plugin at build time as plain PNG files ({@code poi-icons/}, by
+ * {@code tools/build_pois.py}). A name with no picture returns null and the caller draws a lettered disc instead.
  */
 @Slf4j
 public final class PoiIcons
@@ -22,9 +22,6 @@ public final class PoiIcons
 	private static final int PRELOAD_BATCH = 6;
 
 	private final Map<String, BufferedImage> cache = new HashMap<>();
-
-	/** The pictures, read from icons.pack the first time one is asked for. */
-	private IconPack pack;
 
 	/**
 	 * Reads the named icons on the executor, a few at a time, each task queueing the next, so the first frame that draws points of
@@ -72,7 +69,7 @@ public final class PoiIcons
 			return cache.get(name);
 		}
 		BufferedImage image = null;
-		try (InputStream in = pack().open(name))
+		try (InputStream in = PoiIcons.class.getResourceAsStream("/com/worldmapplus/poi-icons/" + name))
 		{
 			if (in != null)
 			{
@@ -85,24 +82,6 @@ public final class PoiIcons
 		}
 		cache.put(name, image);
 		return image;
-	}
-
-	/** The bundled pictures. A missing or damaged pack is logged once and gives no pictures. */
-	private IconPack pack()
-	{
-		if (pack == null)
-		{
-			try
-			{
-				pack = IconPack.bundled();
-			}
-			catch (IOException | RuntimeException e)
-			{
-				log.warn("World Map Plus: could not read the point of interest pictures: {}", e.toString());
-				pack = IconPack.empty();
-			}
-		}
-		return pack;
 	}
 
 	/**

@@ -11,6 +11,9 @@ import lombok.*;
  * the same in the detail for much less. An exact name, or the name's words in another order, beats a name that merely starts with
  * the query. Kinds break ties, so a place beats an item of the same name; then fewer words of its own come first.
  * <p>
+ * The places of a kind in a town (from the kind index) are found only by words that fit both the kind and the town, so
+ * {@code shark catherby} finds Catherby's shark fishing spots and {@code catherby} alone does not list everything there.
+ * <p>
  * Linear over the entries, which is fine for the ten thousand or so that are bundled: a lookup is
  * well under a millisecond per thousand entries.
  */
@@ -20,6 +23,8 @@ public final class SearchIndex
 	private static final int[] NAME_POINTS = {0, 200, 300, 600, 700};
 	/** The same for the detail, which counts less. */
 	private static final int[] DETAIL_POINTS = {0, 30, 50, 100, 120};
+	/** Added for the places of a kind in a town when the words fit both, which is exactly what was asked for. */
+	private static final int KIND_AT_PLACE = 500;
 	private static final int EXACT_NAME = 1000;
 	private static final int NAME_STARTS_WITH_QUERY = 400;
 
@@ -32,7 +37,8 @@ public final class SearchIndex
 		for (SearchEntry entry : entries)
 		{
 			String key = entry.getKind() + "|" + entry.normalizedName() + "|"
-				+ Math.round(entry.getX() / 8) + "|" + Math.round(entry.getY() / 8) + "|" + entry.getMapId() + "|" + entry.getOwnId();
+				+ Math.round(entry.getX() / 8) + "|" + Math.round(entry.getY() / 8) + "|" + entry.getMapId() + "|" + entry.getPrice()
+				+ "|" + entry.getOwnId();
 			if (seen.add(key))
 			{
 				unique.add(entry);
@@ -173,6 +179,12 @@ public final class SearchIndex
 			{
 				continue;
 			}
+			if (entry.isKindAtPlace() && words.length == 0 || entry.getKind() == SearchKind.KIND && !entry.isKindAtPlace()
+				&& (query.getMaxDistance() >= 0 || !query.getRegions().isEmpty() || !query.getMaps().isEmpty()))
+			{
+				// Every place of a kind is not one place, so a filter by where does not fit it; a town's list needs words.
+				continue;
+			}
 			if (!passes(entry, query, context))
 			{
 				continue;
@@ -194,6 +206,9 @@ public final class SearchIndex
 			case DISTANCE:
 				return Comparator.<Scored>comparingDouble(s -> distanceOrFar(context, s.entry))
 					.thenComparing(s -> -s.score);
+			case COST:
+				return Comparator.<Scored>comparingLong(s -> s.entry.getPrice() < 0 ? Long.MAX_VALUE : s.entry.getPrice())
+					.thenComparing(s -> -s.score);
 			case NAME:
 				return Comparator.<Scored, String>comparing(s -> s.entry.getName().toLowerCase(Locale.ROOT));
 			default:
@@ -207,43 +222,6 @@ public final class SearchIndex
 	{
 		double d = context.distanceTo(entry);
 		return d < 0 ? Double.MAX_VALUE : d;
-	}
-
-	/**
-	 * True when a spot is where the query's filters of a place allow: inside every region (also {@code near:} a name) and map it names,
-	 * and in none that it leaves out. Partners' results are judged by it too.
-	 */
-	public static boolean inPlace(int mapId, double x, double y, SearchQuery query, Gazetteer places)
-	{
-		for (String region : query.getRegions())
-		{
-			if (!places.contains(region, mapId, x, y))
-			{
-				return false;
-			}
-		}
-		for (String region : query.getExcludedRegions())
-		{
-			if (places.contains(region, mapId, x, y))
-			{
-				return false;
-			}
-		}
-		for (String map : query.getExcludedMaps())
-		{
-			if (places.isMapNamed(map, mapId))
-			{
-				return false;
-			}
-		}
-		for (String map : query.getMaps())
-		{
-			if (!places.isMapNamed(map, mapId))
-			{
-				return false;
-			}
-		}
-		return true;
 	}
 
 	/** True when an entry satisfies every filter of the query. */
@@ -268,13 +246,37 @@ public final class SearchIndex
 		{
 			return false;
 		}
-		if (!inPlace(entry.getMapId(), entry.getX(), entry.getY(), query, context.getGazetteer()))
+		for (String region : query.getRegions())
 		{
-			return false;
+			if (!context.getGazetteer().contains(region, entry.getMapId(), entry.getX(), entry.getY()))
+			{
+				return false;
+			}
+		}
+		for (String region : query.getExcludedRegions())
+		{
+			if (context.getGazetteer().contains(region, entry.getMapId(), entry.getX(), entry.getY()))
+			{
+				return false;
+			}
+		}
+		for (String map : query.getExcludedMaps())
+		{
+			if (context.getGazetteer().isMapNamed(map, entry.getMapId()))
+			{
+				return false;
+			}
 		}
 		for (String kind : query.getExcludedKinds())
 		{
 			if (hasKind(entry, kind))
+			{
+				return false;
+			}
+		}
+		for (String map : query.getMaps())
+		{
+			if (!context.getGazetteer().isMapNamed(map, entry.getMapId()))
 			{
 				return false;
 			}
@@ -291,10 +293,19 @@ public final class SearchIndex
 				return false;
 			}
 		}
+		if (query.hasCost())
+		{
+			long price = entry.getPrice();
+			if (price < 0 || query.getMinCost() >= 0 && price < query.getMinCost()
+				|| query.getMaxCost() >= 0 && price > query.getMaxCost())
+			{
+				return false;
+			}
+		}
 		return true;
 	}
 
-	/** True when an entry is of a kind of result (the kinds of item are the Helper's, which gives the items). */
+	/** True when an entry is of a kind: a kind of result, or a kind of item. */
 	static boolean hasKind(SearchEntry entry, String kind)
 	{
 		if (isPlaceWord(kind) && isPlaceLike(entry.getKind()))
@@ -306,6 +317,13 @@ public final class SearchIndex
 		{
 			return true;
 		}
+		for (String own : entry.getCategory().split(","))
+		{
+			if (own.equals(kind) || own.equals(kind + "_weapon") || kind.equals("weapon") && own.endsWith("_weapon"))
+			{
+				return true;
+			}
+		}
 		return false;
 	}
 
@@ -314,10 +332,10 @@ public final class SearchIndex
 		return kind.equals("place") || kind.equals("places") || kind.equals("location") || kind.equals("locations");
 	}
 
-	/** The kinds that are somewhere to go: named places and entrances. */
+	/** The kinds that are somewhere to go: named places, and also shops, quest starts and entrances. */
 	private static boolean isPlaceLike(SearchKind kind)
 	{
-		return kind == SearchKind.PLACE || kind == SearchKind.DOORWAY;
+		return kind == SearchKind.PLACE || kind == SearchKind.SHOP || kind == SearchKind.QUEST || kind == SearchKind.DOORWAY;
 	}
 
 	/** The result kind a plural or a near word stands for. */
@@ -325,6 +343,16 @@ public final class SearchIndex
 	{
 		switch (kind)
 		{
+			case "shops":
+				return "shop";
+			case "npcs":
+				return "npc";
+			case "monsters":
+				return "monster";
+			case "items":
+				return "item";
+			case "quests":
+				return "quest";
 			case "transports":
 				return "transport";
 			case "teleports":
@@ -353,6 +381,10 @@ public final class SearchIndex
 
 	static int score(SearchEntry entry, String query, String[] words)
 	{
+		if (entry.isKindAtPlace())
+		{
+			return kindAtPlaceScore(entry, words);
+		}
 		String name = entry.normalizedName();
 		String[] aliases = entry.normalizedAliases();
 		String detail = entry.normalizedDetail();
@@ -376,7 +408,7 @@ public final class SearchIndex
 			total += best;
 		}
 		int score = total / words.length;
-		boolean exact = name.equals(query) || Arrays.asList(aliases).contains(query) || sameWords(name, words);
+		boolean exact = name.equals(query) || equalsAny(aliases, query) || sameWords(name, words);
 		if (exact)
 		{
 			score += EXACT_NAME;
@@ -386,6 +418,62 @@ public final class SearchIndex
 			score += NAME_STARTS_WITH_QUERY;
 		}
 		return score + entry.getKind().weight(exact);
+	}
+
+	/**
+	 * The places of a kind in one town: every word has to fit the kind or the town, and at least one word has to fit each, so a town's
+	 * name alone does not list everything in it and a kind alone does not list every town.
+	 */
+	private static int kindAtPlaceScore(SearchEntry entry, String[] words)
+	{
+		if (words.length < 2)
+		{
+			return 0;
+		}
+		String[] aliases = entry.normalizedAliases();
+		String place = entry.normalizedPlace();
+		int total = 0;
+		int kindWords = 0;
+		int placeWords = 0;
+		for (String word : words)
+		{
+			int kind = 0;
+			for (String alias : aliases)
+			{
+				kind = Math.max(kind, match(alias, word));
+			}
+			int town = match(place, word);
+			if (kind == NONE && town == NONE)
+			{
+				return 0;
+			}
+			if (kind > NONE)
+			{
+				kindWords++;
+			}
+			if (town > NONE)
+			{
+				placeWords++;
+			}
+			total += NAME_POINTS[Math.max(kind, town)];
+		}
+		if (kindWords == 0 || placeWords == 0)
+		{
+			return 0;
+		}
+		return total / words.length + KIND_AT_PLACE + entry.getKind().weight();
+	}
+
+	private static boolean equalsAny(String[] texts, String query)
+	{
+		for (String text : texts)
+		{
+			if (text.equals(query))
+			{
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private static boolean startsAny(String[] texts, String query)

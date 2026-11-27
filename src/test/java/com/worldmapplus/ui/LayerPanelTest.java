@@ -65,25 +65,26 @@ public class LayerPanelTest
 	{
 		LayerPanel panel = new LayerPanel(categories(3));
 		List<LayerPanel.Row> rows = panel.getRows();
-		assertEquals(8 + 1 + 3, rows.size());
-		assertEquals("showNpcs", rows.get(0).getKey());
-		assertTrue(rows.get(8).isHeading());
-		assertEquals("showPins", rows.get(7).getKey());
-		assertEquals("showLabels", rows.get(6).getKey());
-		assertEquals("poi:c0", rows.get(9).getKey());
+		assertEquals(5 + 1 + 3, rows.size());
+		assertEquals("showHotspots", rows.get(0).getKey());
+		assertTrue(rows.get(5).isHeading());
+		assertEquals("showOtherPluginPoints", rows.get(4).getKey());
+		assertEquals("showPins", rows.get(3).getKey());
+		assertEquals("showLabels", rows.get(2).getKey());
+		assertEquals("poi:c0", rows.get(6).getKey());
 	}
 
 	@Test
 	public void noPointKindsMeansNoHeading()
 	{
-		assertEquals(8, new LayerPanel(new ArrayList<>()).getRows().size());
+		assertEquals(5, new LayerPanel(new ArrayList<>()).getRows().size());
 	}
 
 	@Test
 	public void togglingAPointKindRewritesTheLayerList()
 	{
 		LayerPanel panel = new LayerPanel(categories(3));
-		LayerPanel.Row row = panel.getRows().get(10);
+		LayerPanel.Row row = panel.getRows().get(7);
 		assertEquals("poi:c1", row.getKey());
 		WorldMapPlusConfig on = config("c0,c1");
 		assertTrue(row.isOn(on));
@@ -101,10 +102,10 @@ public class LayerPanelTest
 	{
 		LayerPanel panel = new LayerPanel(categories(2), java.util.Arrays.asList("Bank", "Water source"));
 		List<LayerPanel.Row> rows = panel.getRows();
-		// Eight settings, the heading and two point kinds, then the heading of the icons and a row each.
-		assertEquals(8 + 1 + 2 + 1 + 2, rows.size());
-		assertTrue(rows.get(11).isHeading());
-		LayerPanel.Row water = rows.get(13);
+		// Five settings, the heading and two point kinds, then the heading of the icons and a row each.
+		assertEquals(5 + 1 + 2 + 1 + 2, rows.size());
+		assertTrue(rows.get(8).isHeading());
+		LayerPanel.Row water = rows.get(10);
 		assertEquals("gameicon:Water source", water.getKey());
 		WorldMapPlusConfig shown = new WorldMapPlusConfig()
 		{
@@ -115,10 +116,10 @@ public class LayerPanelTest
 			}
 		};
 		assertTrue("a kind that is not in the hidden list is on", water.isOn(shown));
-		assertFalse(rows.get(12).isOn(shown));
+		assertFalse(rows.get(9).isOn(shown));
 		water.toggle(settings, shown);
 		assertEquals("Bank|Water source", written.get("hiddenGameIcons"));
-		rows.get(12).toggle(settings, shown);
+		rows.get(9).toggle(settings, shown);
 		assertEquals("", written.get("hiddenGameIcons"));
 	}
 
@@ -126,10 +127,10 @@ public class LayerPanelTest
 	public void togglingASettingFlipsIt()
 	{
 		LayerPanel panel = new LayerPanel(categories(0));
-		LayerPanel.Row wilderness = panel.getRows().get(2);
-		assertEquals("showWilderness", wilderness.getKey());
-		wilderness.toggle(settings, config(""));
-		assertEquals(Boolean.TRUE, written.get("showWilderness"));
+		LayerPanel.Row grid = panel.getRows().get(1);
+		assertEquals("showGrid", grid.getKey());
+		grid.toggle(settings, config(""));
+		assertEquals(Boolean.TRUE, written.get("showGrid"));
 	}
 
 	@Test
@@ -139,7 +140,7 @@ public class LayerPanelTest
 		panel.toggle();
 		panel.layout(ANCHOR, new Rectangle(0, 0, 900, 700));
 		Rectangle b = panel.getBounds();
-		int headingY = b.y + LayerPanel.PADDING + LayerPanel.TITLE_HEIGHT + 8 * LayerPanel.ROW_HEIGHT + 4;
+		int headingY = b.y + LayerPanel.PADDING + LayerPanel.TITLE_HEIGHT + 5 * LayerPanel.ROW_HEIGHT + 4;
 		assertNull(panel.hit(b.x + 20, headingY));
 		assertNotNull(panel.hit(b.x + 20, headingY + LayerPanel.ROW_HEIGHT));
 	}

@@ -143,9 +143,12 @@ public class InjectionTest
 	}
 
 	@Test
-	public void theWindowPartsCanBeBuilt() throws Exception
+	public void theShareAndWindowPartsCanBeBuilt() throws Exception
 	{
 		Injector injector = injector();
-		assertNotNull(injector.getInstance(com.worldmapplus.ui.MapWindows.class));
+		assertNotNull(injector.getInstance(com.worldmapplus.share.ShareInbox.class));
+		assertSame(injector.getInstance(com.worldmapplus.share.ShareInbox.class),
+			injector.getInstance(com.worldmapplus.share.ShareInbox.class));
+		assertNotNull(injector.getInstance(com.worldmapplus.bridge.ShareChat.class));
 	}
 }

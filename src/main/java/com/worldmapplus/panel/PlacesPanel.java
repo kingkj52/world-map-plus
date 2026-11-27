@@ -1,8 +1,13 @@
 package com.worldmapplus.panel;
 
+import static com.worldmapplus.theme.Palette.colour;
+
 import com.worldmapplus.bridge.*;
+import com.worldmapplus.map.*;
 import com.worldmapplus.pins.*;
+import com.worldmapplus.share.*;
 import com.worldmapplus.theme.*;
+import com.worldmapplus.typing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
@@ -13,15 +18,16 @@ import javax.annotation.*;
 import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.event.*;
+import javax.swing.text.*;
+import lombok.*;
 import net.runelite.client.callback.*;
 import net.runelite.client.ui.*;
 import net.runelite.client.ui.components.*;
 
 /**
  * The side panel: the player's saved places and routes, with a filter, a type filter and a sort for each,
- * the way Inventory Setups lists its setups. The Share and Import buttons are this panel's, and what they do belongs to the
- * World Map Plus Helper plugin, which puts its own sections (the share box, Shared with you, the import box) at the top of this
- * panel through the plugin API.
+ * the way Inventory Setups lists its setups, the shares other players sent, and the box that shows a share's
+ * messages for the player to type (with the typing guide).
  * <p>
  * Everything here is the plugin's own list. Go asks Shortest Path for a route, Show brings the map to the
  * place, and routes are walked leg by leg by {@link RouteRunner}. The panel has no controls that act in the
@@ -32,7 +38,7 @@ public class PlacesPanel extends PluginPanel
 	private static final long REFRESH_MILLIS = 400;
 
 	/** The width text wraps to inside a card. */
-	private static final int TEXT_WIDTH = 140;
+	static final int TEXT_WIDTH = 140;
 
 	/** The width text wraps to across the page. Swing's html widths come out wider than asked, so these are below the room. */
 	private static final int PAGE_TEXT_WIDTH = 160;
@@ -41,9 +47,12 @@ public class PlacesPanel extends PluginPanel
 	private final RouteStore routes;
 	private final RouteRunner runner;
 	private final MapActions actions;
-	private final ExternalOverlays external;
+	final ExternalOverlays external;
 	private final ClientThread clientThread;
 	private final IntFunction<String> areaName;
+	private final ShareImport importer;
+	/** The share box, the import box and Shared with you. */
+	final ShareBoxes shares;
 
 	/** The newest saved place already listed, so one that appears later can glow for a moment. */
 	private long newestPin = -1;
@@ -53,17 +62,6 @@ public class PlacesPanel extends PluginPanel
 	private final JPanel placesBody = column();
 	private final JPanel routesBody = column();
 	private final PanelTheme.Segments tabs = new PanelTheme.Segments("Places", "Routes");
-	private final CardLayout pages = new ShownPageLayout();
-	private final JPanel display = PanelTheme.clear(pages);
-
-	/** What other plugins put in the side panel: sections at the foot of each page, and pages of their own (see {@link Partners}). */
-	private final Partners partners;
-	private final JPanel topExtra = column();
-	private final JPanel placesExtra = column();
-	private final JPanel routesExtra = column();
-	private final List<JPanel> partnerPages = new ArrayList<>();
-	private final List<String> pageNames = new ArrayList<>(Arrays.asList("places", "routes"));
-	private int shownPartners = -1;
 
 	private final IconTextField placeFilter = searchField("Filter by name, type or area");
 	private final JComboBox<String> typeBox = new JComboBox<>();
@@ -71,10 +69,9 @@ public class PlacesPanel extends PluginPanel
 	private final PanelTheme.Pill makeRoute = PanelTheme.pill("New route from ticked places");
 	private final PanelTheme.Pill sharePlaces = PanelTheme.pill("Share ticked");
 	private final PanelTheme.Pill importCode = PanelTheme.pill("Import a code");
-
 	private final IconTextField routeFilter = searchField("Filter by route name or by the name of a stop");
 	private final JComboBox<RouteList.Sort> routeSort = new JComboBox<>(RouteList.Sort.values());
-	private final JCheckBox loopsOnly = PanelTheme.style(new JCheckBox("Loops only"), PanelTheme.SMALL, PanelTheme.TEXT_DIM);
+	private final JCheckBox loopsOnly = PanelTheme.style(new JCheckBox("Loops only"), PanelTheme.SMALL, colour("TEXT_DIM"));
 	private final PanelTheme.Pill newRoute = PanelTheme.pill("New route");
 
 	/** How many stops a route card lists before "+ more". */
@@ -89,45 +86,52 @@ public class PlacesPanel extends PluginPanel
 	private final Timer refresher;
 	private int shownPins = -1;
 	private int shownRoutes = -1;
-	private int shownOrder = -1;
 	private boolean updating;
 
 	public PlacesPanel(PinStore pins, RouteStore routes, RouteRunner runner, MapActions actions,
 		ExternalOverlays external, ClientThread clientThread, IntFunction<String> areaName)
 	{
+		this(pins, routes, runner, actions, external, clientThread, areaName, new ShareInbox(), null);
+	}
+
+	public PlacesPanel(PinStore pins, RouteStore routes, RouteRunner runner, MapActions actions,
+		ExternalOverlays external, ClientThread clientThread, IntFunction<String> areaName, ShareInbox inbox,
+		ShareImport importer)
+	{
 		super(true);
+		this.importer = importer;
+		shares = new ShareBoxes(this, inbox, importer);
 		this.pins = pins;
 		this.routes = routes;
 		this.runner = runner;
 		this.actions = actions;
 		this.external = external;
-		this.partners = external.partners();
 		this.clientThread = clientThread;
 		this.areaName = areaName;
 
 		setLayout(new BorderLayout(0, PanelTheme.GAP));
-		setBackground(PanelTheme.PAGE);
+		setBackground(colour("PAGE"));
 		setBorder(PanelTheme.pad(8, 6, 8, 6));
 
 		status.setFont(PanelTheme.SMALL);
-		status.setForeground(PanelTheme.TEXT_DIM);
+		status.setForeground(colour("TEXT_DIM"));
 		status.setVisible(false);
 
 		JPanel places = PanelTheme.clear(new BorderLayout(0, PanelTheme.GAP));
 		places.add(placeControls(), BorderLayout.NORTH);
 		places.add(placesBody, BorderLayout.CENTER);
-		places.add(placesExtra, BorderLayout.SOUTH);
 
 		JPanel routePage = PanelTheme.clear(new BorderLayout(0, PanelTheme.GAP));
 		routePage.add(routeControls(), BorderLayout.NORTH);
 		routePage.add(routesBody, BorderLayout.CENTER);
-		routePage.add(routesExtra, BorderLayout.SOUTH);
 
+		CardLayout pages = new ShownPageLayout();
+		JPanel display = PanelTheme.clear(pages);
 		display.add(places, "places");
 		display.add(routePage, "routes");
 		tabs.onChoose(i ->
 		{
-			pages.show(display, pageNames.get(i));
+			pages.show(display, i == 0 ? "places" : "routes");
 			// The page area is as tall as the page shown, so the panel lays itself out again.
 			revalidate();
 			repaint();
@@ -137,7 +141,9 @@ public class PlacesPanel extends PluginPanel
 		header.add(brand());
 		header.add(gap(PanelTheme.GAP));
 		header.add(status);
-		header.add(topExtra);
+		header.add(shares.shareBody);
+		header.add(shares.importBody);
+		header.add(shares.inboxBody);
 		header.add(tabs);
 		add(header, BorderLayout.NORTH);
 		add(display, BorderLayout.CENTER);
@@ -146,85 +152,6 @@ public class PlacesPanel extends PluginPanel
 		refresher = new Timer((int) REFRESH_MILLIS, e -> refreshIfChanged());
 		refresher.setRepeats(true);
 		rebuildAll();
-		rebuildPartners();
-	}
-
-	/**
-	 * Puts the sections other plugins registered at the foot of the Places and Routes pages, or on a page of their own for any
-	 * other tab name. Interface thread only. A section that fails while it is drawn is reported, and gone at the next look.
-	 */
-	private void rebuildPartners()
-	{
-		shownPartners = partners.version();
-		topExtra.removeAll();
-		placesExtra.removeAll();
-		routesExtra.removeAll();
-		Map<String, JPanel> named = new LinkedHashMap<>();
-		for (Partners.Slot slot : partners.slots(Partners.Kind.SECTION))
-		{
-			if (slot.isOff())
-			{
-				continue;
-			}
-			JPanel box = new JPanel(new BorderLayout(0, 2))
-			{
-				@Override
-				protected void paintChildren(Graphics g)
-				{
-					try
-					{
-						super.paintChildren(g);
-					}
-					catch (RuntimeException e)
-					{
-						partners.fail(slot, e);
-					}
-				}
-			};
-			box.setOpaque(false);
-			box.setAlignmentX(Component.LEFT_ALIGNMENT);
-			String tab = slot.tab;
-			boolean top = Partners.TOP.equalsIgnoreCase(tab);
-			if (!top)
-			{
-				box.add(PanelTheme.header(slot.title, -1), BorderLayout.NORTH);
-			}
-			box.add(slot.component(), BorderLayout.CENTER);
-			JPanel into = top ? topExtra : "places".equalsIgnoreCase(tab) ? placesExtra : "routes".equalsIgnoreCase(tab) ? routesExtra
-				: named.computeIfAbsent(tab, t -> column());
-			into.add(box);
-			if (!top)
-			{
-				into.add(gap(PanelTheme.GAP));
-			}
-		}
-		// An empty column takes no room, so a panel with no partner is laid out exactly as before.
-		topExtra.setVisible(topExtra.getComponentCount() > 0);
-		placesExtra.setVisible(placesExtra.getComponentCount() > 0);
-		routesExtra.setVisible(routesExtra.getComponentCount() > 0);
-		partnerPages.forEach(display::remove);
-		partnerPages.clear();
-		pageNames.subList(2, pageNames.size()).clear();
-		for (Map.Entry<String, JPanel> page : named.entrySet())
-		{
-			display.add(page.getValue(), page.getKey());
-			partnerPages.add(page.getValue());
-			pageNames.add(page.getKey());
-		}
-		tabs.setNames(pageNames.stream().map(n -> n.equals("places") ? "Places" : n.equals("routes") ? "Routes" : n).toArray(String[]::new));
-		tabs.choose(tabs.chosen());
-	}
-
-	/** Makes a button send an action to the plugins that handle it, with the payload made when it is pressed, or say what is missing. */
-	void bindAction(AbstractButton button, String action, Supplier<Map<String, Object>> payload)
-	{
-		button.addActionListener(e ->
-		{
-			if (!partners.act(action, payload))
-			{
-				setStatus(Partners.INSTALL);
-			}
-		});
 	}
 
 	/** The toolbar icon. */
@@ -263,7 +190,7 @@ public class PlacesPanel extends PluginPanel
 	}
 
 	/** A transparent panel that stacks its pieces top to bottom. */
-	private static JPanel column()
+	static JPanel column()
 	{
 		JPanel panel = new JPanel();
 		panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -275,10 +202,10 @@ public class PlacesPanel extends PluginPanel
 	/** The panel's title: the plugin's name in the map's gold, with the toolbar icon. */
 	private static JComponent brand()
 	{
-		JLabel title = PanelTheme.label("World Map Plus", PanelTheme.TITLE, PanelTheme.ACCENT);
+		JLabel title = PanelTheme.label("World Map Plus", PanelTheme.TITLE, colour("ACCENT"));
 		title.setIcon(new ImageIcon(PanelIcon.create()));
 		title.setIconTextGap(6);
-		JLabel sub = PanelTheme.label("Places, routes and shares", PanelTheme.SMALL, PanelTheme.TEXT_FAINT);
+		JLabel sub = PanelTheme.label("Places, routes and shares", PanelTheme.SMALL, colour("TEXT_FAINT"));
 		JPanel box = PanelTheme.clear(new BorderLayout(0, 1));
 		box.add(title, BorderLayout.NORTH);
 		box.add(sub, BorderLayout.SOUTH);
@@ -294,7 +221,7 @@ public class PlacesPanel extends PluginPanel
 		placeSort.setToolTipText("Sort the places");
 		PanelTheme.style(typeBox);
 		PanelTheme.style(placeSort);
-		PanelTheme.Card box = new PanelTheme.Card(null, PanelTheme.CARD, null);
+		PanelTheme.Card box = new PanelTheme.Card(null, colour("CARD"), null);
 		box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
 		box.add(fill(placeFilter));
 		box.add(gap(5));
@@ -320,7 +247,7 @@ public class PlacesPanel extends PluginPanel
 		routeFilter.setToolTipText("Filter by route name or by the name of a stop");
 		routeSort.setToolTipText("Sort the routes");
 		PanelTheme.style(routeSort);
-		PanelTheme.Card box = new PanelTheme.Card(null, PanelTheme.CARD, null);
+		PanelTheme.Card box = new PanelTheme.Card(null, colour("CARD"), null);
 		box.setLayout(new BoxLayout(box, BoxLayout.Y_AXIS));
 		box.add(fill(routeFilter));
 		box.add(gap(5));
@@ -337,13 +264,13 @@ public class PlacesPanel extends PluginPanel
 	private static JComponent captioned(String caption, Component field)
 	{
 		JPanel box = PanelTheme.clear(new BorderLayout(0, 2));
-		box.add(PanelTheme.label(caption, PanelTheme.SMALL, PanelTheme.TEXT_FAINT), BorderLayout.NORTH);
+		box.add(PanelTheme.label(caption, PanelTheme.SMALL, colour("TEXT_FAINT")), BorderLayout.NORTH);
 		box.add(field, BorderLayout.CENTER);
 		return box;
 	}
 
 	/** Lets a piece take the whole width of a column. */
-	private static JComponent fill(Component piece)
+	static JComponent fill(Component piece)
 	{
 		JPanel holder = PanelTheme.clear(new BorderLayout());
 		holder.add(piece, BorderLayout.CENTER);
@@ -361,16 +288,16 @@ public class PlacesPanel extends PluginPanel
 		IconTextField field = new IconTextField();
 		field.setIcon(IconTextField.Icon.SEARCH);
 		field.setPreferredSize(new Dimension(0, 28));
-		field.setBackground(PanelTheme.FIELD);
-		field.setHoverBackgroundColor(PanelTheme.CARD_HOVER);
+		field.setBackground(colour("FIELD"));
+		field.setHoverBackgroundColor(colour("CARD_HOVER"));
 		field.setToolTipText(tooltip);
 		return field;
 	}
 
 	/** A row card with an accent bar of colour down its left edge, that warms under the pointer and glows when it is new. */
-	private static FadeRow newRow(Color idle, Color bar, boolean fresh)
+	static FadeRow newRow(Color idle, Color bar, boolean fresh)
 	{
-		FadeRow row = new FadeRow(new BorderLayout(0, 4), idle, PanelTheme.CARD_HOVER, PanelTheme.ACCENT_DEEP, bar);
+		FadeRow row = new FadeRow(new BorderLayout(0, 4), idle, colour("CARD_HOVER"), colour("ACCENT_DEEP"), bar);
 		if (fresh)
 		{
 			row.flash();
@@ -379,37 +306,55 @@ public class PlacesPanel extends PluginPanel
 	}
 
 	/** Warms a row while the pointer is anywhere over it or what it holds. */
-	private static void lightOnHover(FadeRow row)
+	static void lightOnHover(FadeRow row)
 	{
-		MouseAdapter listener = new MouseAdapter()
+		whileOver(row, row::hover);
+	}
+
+	/** Tells when the pointer comes over a row or what it holds, and when it leaves the row. */
+	private static void whileOver(JPanel row, Consumer<Boolean> over)
+	{
+		attach(row, new MouseAdapter()
 		{
 			@Override
 			public void mouseEntered(MouseEvent e)
 			{
-				row.hover(true);
+				over.accept(true);
 			}
 
 			@Override
 			public void mouseExited(MouseEvent e)
 			{
-				Point inRow = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), row);
-				if (!row.contains(inRow))
+				if (!row.contains(SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), row)))
 				{
-					row.hover(false);
+					over.accept(false);
 				}
 			}
-		};
-		attach(row, listener);
+		});
 	}
 
 	/** A small pill button, for the rows. */
-	private static PanelTheme.Pill small(String text)
+	static PanelTheme.Pill small(String text)
 	{
 		return PanelTheme.pill(text);
 	}
 
+	/** A small pill button with its tip (null for none) and what it does. */
+	static JButton small(String text, @Nullable String tip, ActionListener action)
+	{
+		return act(PanelTheme.pill(text), tip, action);
+	}
+
+	/** Gives a button its tip (null for none) and what it does. */
+	static JButton act(JButton button, @Nullable String tip, ActionListener action)
+	{
+		button.setToolTipText(tip);
+		button.addActionListener(action);
+		return button;
+	}
+
 	/** Buttons in equal cells, so the rows of a list line up. */
-	private static JPanel buttonGrid(int columns, JComponent... buttons)
+	static JPanel buttonGrid(int columns, JComponent... buttons)
 	{
 		JPanel grid = PanelTheme.clear(new GridLayout(0, columns, 4, 4));
 		for (JComponent button : buttons)
@@ -448,8 +393,8 @@ public class PlacesPanel extends PluginPanel
 		routeSort.addActionListener(e -> rebuildAll());
 		loopsOnly.addActionListener(e -> rebuildAll());
 		makeRoute.addActionListener(e -> routeFromTicked());
-		bindAction(sharePlaces, Partners.ACTION_SHARE_PLACES, () -> partners.payload(new ArrayList<>(ticked), Collections.emptyList()));
-		bindAction(importCode, Partners.ACTION_IMPORT, HashMap::new);
+		sharePlaces.addActionListener(e -> shareTicked());
+		importCode.addActionListener(e -> shares.showImport(!shares.importBody.isVisible()));
 		newRoute.addActionListener(e -> RouteEditor.show(this, pins, routes, null, new ArrayList<>()));
 	}
 
@@ -509,18 +454,11 @@ public class PlacesPanel extends PluginPanel
 		{
 			setStatus(problem);
 		}
-		if (partners.version() != shownPartners)
-		{
-			rebuildPartners();
-		}
-		if (partners.takeNotice())
-		{
-			setStatus(Partners.INSTALL);
-		}
-		if (pins.getVersion() != shownPins || routes.getVersion() != shownRoutes || partners.orderVersion() != shownOrder)
+		if (pins.getVersion() != shownPins || routes.getVersion() != shownRoutes)
 		{
 			rebuildAll();
 		}
+		shares.refresh();
 	}
 
 	/** Opens the rename box for a saved place, for the map's Rename item. */
@@ -551,7 +489,6 @@ public class PlacesPanel extends PluginPanel
 		{
 			shownPins = pins.getVersion();
 			shownRoutes = routes.getVersion();
-			shownOrder = partners.orderVersion();
 			List<Pin> all = pins.all();
 			ticked.removeIf(id -> pins.get(id) == null);
 			rebuildTypeBox(all);
@@ -560,6 +497,7 @@ public class PlacesPanel extends PluginPanel
 			updateTickedButtons();
 			tabs.setCount(0, all.size());
 			tabs.setCount(1, routes.all().size());
+			shares.rebuildInbox();
 		}
 		finally
 		{
@@ -652,7 +590,7 @@ public class PlacesPanel extends PluginPanel
 		return pin == null ? "" : pin.getName();
 	}
 
-	private static Component gap(int height)
+	static Component gap(int height)
 	{
 		return Box.createRigidArea(new Dimension(0, height));
 	}
@@ -660,8 +598,8 @@ public class PlacesPanel extends PluginPanel
 	/** A short message in a quiet card, for an empty list. */
 	private static JComponent note(String text)
 	{
-		PanelTheme.Card card = new PanelTheme.Card(new BorderLayout(), PanelTheme.CARD, null);
-		card.add(PanelTheme.wrapped(text, PanelTheme.SMALL, PanelTheme.TEXT_DIM, TEXT_WIDTH), BorderLayout.CENTER);
+		PanelTheme.Card card = new PanelTheme.Card(new BorderLayout(), colour("CARD"), null);
+		card.add(PanelTheme.wrapped(text, PanelTheme.SMALL, colour("TEXT_DIM"), TEXT_WIDTH), BorderLayout.CENTER);
 		return card;
 	}
 
@@ -673,10 +611,10 @@ public class PlacesPanel extends PluginPanel
 	private JPanel placeRow(Pin pin)
 	{
 		Color bar = pin.isHidden() ? HIDDEN_PIN : pin.getColor() == 0 ? DEFAULT_PIN : new Color(pin.getColor());
-		FadeRow row = newRow(PanelTheme.CARD, bar, flashAfterPin >= 0 && pin.getId() > flashAfterPin);
+		FadeRow row = newRow(colour("CARD"), bar, flashAfterPin >= 0 && pin.getId() > flashAfterPin);
 
 		JCheckBox pick = PanelTheme.style(plainCheck(pin.getName(), ticked.contains(pin.getId())), PanelTheme.BODY_BOLD,
-			PanelTheme.TEXT);
+			colour("TEXT"));
 		pick.setToolTipText(pin.getName());
 		pick.addActionListener(e ->
 		{
@@ -694,24 +632,17 @@ public class PlacesPanel extends PluginPanel
 		JLabel detail = plainLabel(PlaceList.typeLabel(pin.getKind()) + "  ·  " + areaName.apply(pin.getMap())
 			+ (pin.isHidden() ? "  ·  hidden" : ""));
 		detail.setFont(PanelTheme.SMALL);
-		detail.setForeground(PanelTheme.TEXT_DIM);
+		detail.setForeground(colour("TEXT_DIM"));
 		detail.setBorder(PanelTheme.pad(0, 20, 0, 0));
 
-		JButton go = small("Go");
-		go.setToolTipText("Ask Shortest Path for a route here");
-		go.addActionListener(e -> goTo(pin));
-		JButton show = small("Show");
-		show.setToolTipText("Centre the map here the next time it is open");
-		show.addActionListener(e ->
+		JButton go = small("Go", "Ask Shortest Path for a route here", e -> goTo(pin));
+		JButton show = small("Show", "Centre the map here the next time it is open", e ->
 		{
 			external.focusOn(RouteNavigator.pointOf(pin), pin.getName());
 			setStatus("The map will centre on " + pin.getName() + " when it is open.");
 		});
-		JButton rename = small("Edit");
-		rename.setToolTipText("Change the name, the colour and the size, or hide it on the map");
-		rename.addActionListener(e -> rename(pin));
-		JButton delete = small("Delete");
-		delete.addActionListener(e ->
+		JButton rename = small("Edit", "Change the name, the colour and the size, or hide it on the map", e -> rename(pin));
+		JButton delete = small("Delete", null, e ->
 		{
 			int answer = JOptionPane.showConfirmDialog(this, "Delete " + pin.getName() + "?", "Delete saved place",
 				JOptionPane.YES_NO_OPTION);
@@ -732,15 +663,15 @@ public class PlacesPanel extends PluginPanel
 
 	private JPanel routeRow(SavedRoute route, boolean following)
 	{
-		FadeRow row = newRow(following ? PanelTheme.CARD_ACTIVE : PanelTheme.CARD,
-			following ? PanelTheme.GOOD : PanelTheme.ACCENT, false);
+		FadeRow row = newRow(following ? colour("CARD_ACTIVE") : colour("CARD"),
+			following ? colour("GOOD") : colour("ACCENT"), false);
 
-		JLabel name = PanelTheme.label(route.getName(), PanelTheme.BODY_BOLD, PanelTheme.TEXT);
+		JLabel name = PanelTheme.label(route.getName(), PanelTheme.BODY_BOLD, colour("TEXT"));
 		name.setToolTipText(route.getName());
 		int count = route.getStops().size();
 		JLabel detail = PanelTheme.label(count + (count == 1 ? " stop" : " stops") + (following ? "  ·  following" : ""),
-			PanelTheme.SMALL, following ? PanelTheme.GOOD : PanelTheme.TEXT_DIM);
-		JCheckBox loop = PanelTheme.style(new JCheckBox("Loop", route.isLoop()), PanelTheme.SMALL, PanelTheme.TEXT_DIM);
+			PanelTheme.SMALL, following ? colour("GOOD") : colour("TEXT_DIM"));
+		JCheckBox loop = PanelTheme.style(new JCheckBox("Loop", route.isLoop()), PanelTheme.SMALL, colour("TEXT_DIM"));
 		loop.setToolTipText("Start again after the last stop");
 		loop.addActionListener(e -> routes.update(route.getId(), route.getName(), route.getStops(), loop.isSelected()));
 
@@ -752,40 +683,16 @@ public class PlacesPanel extends PluginPanel
 		top.add(facts, BorderLayout.SOUTH);
 
 		List<JComponent> buttons = new ArrayList<>();
-		JButton toggle = following ? small("Stop") : PanelTheme.primary("Start");
-		toggle.setToolTipText(following ? "Stop following this route" : "Walk this route with Shortest Path, stop by stop");
-		toggle.addActionListener(e -> toggle(route, following));
-		buttons.add(toggle);
+		buttons.add(act(following ? small("Stop") : PanelTheme.primary("Start"),
+			following ? "Stop following this route" : "Walk this route with Shortest Path, stop by stop", e -> toggle(route, following)));
 		if (following)
 		{
-			JButton skip = small("Skip");
-			skip.setToolTipText("Move on to the next stop");
-			skip.addActionListener(e -> clientThread.invokeLater(runner::skip));
-			buttons.add(skip);
+			buttons.add(small("Skip", "Move on to the next stop", e -> clientThread.invokeLater(runner::skip)));
 		}
-		JButton edit = small("Edit");
-		edit.addActionListener(e -> RouteEditor.show(this, pins, routes, route, new ArrayList<>()));
-		buttons.add(edit);
-		JButton share = small("Share");
-		share.setToolTipText("Make a !wmp code for this route's stops, in order, to type into chat");
-		bindAction(share, Partners.ACTION_SHARE_ROUTE, () -> partners.payload(route.getStops(), Collections.singletonList(route.getId())));
-		buttons.add(share);
-		if (count >= 3)
-		{
-			JButton fastest = small("Order");
-			fastest.setToolTipText("Put the stops in the fastest order");
-			bindAction(fastest, Partners.ACTION_ORDER, () -> partners.payload(route.getStops(), Collections.singletonList(route.getId())));
-			buttons.add(fastest);
-		}
-		if (partners.undoable(route.getId(), route.getStops()))
-		{
-			JButton undo = small("Undo order");
-			undo.setToolTipText("Put the stops back in the order they had before");
-			bindAction(undo, Partners.ACTION_UNDO_ORDER, () -> partners.payload(Collections.emptyList(), Collections.singletonList(route.getId())));
-			buttons.add(undo);
-		}
-		JButton delete = small("Delete");
-		delete.addActionListener(e ->
+		buttons.add(small("Edit", null, e -> RouteEditor.show(this, pins, routes, route, new ArrayList<>())));
+		buttons.add(small("Share", "Make a !wmp code for this route's stops, in order, to type into chat",
+			e -> shares.show(ShareBuilder.ofRoute(route, pins, this::autoMap))));
+		JButton delete = small("Delete", null, e ->
 		{
 			int answer = JOptionPane.showConfirmDialog(this, "Delete the route " + route.getName() + "?", "Delete route",
 				JOptionPane.YES_NO_OPTION);
@@ -806,7 +713,8 @@ public class PlacesPanel extends PluginPanel
 			row.add(stopList(route), BorderLayout.CENTER);
 		}
 		row.add(buttonGrid(3, buttons.toArray(new JComponent[0])), BorderLayout.SOUTH);
-		highlightWhileOver(row, route.getId());
+		// The route is drawn on the map while the mouse is over its row.
+		whileOver(row, on -> routes.setHighlighted(on ? route.getId() : 0));
 		lightOnHover(row);
 		return row;
 	}
@@ -832,7 +740,7 @@ public class PlacesPanel extends PluginPanel
 		if (foldable)
 		{
 			String text = open ? "Show fewer" : "+" + (stops.size() - shown) + " more";
-			JLabel toggle = PanelTheme.label(text, PanelTheme.SMALL_BOLD, PanelTheme.ACCENT_DEEP);
+			JLabel toggle = PanelTheme.label(text, PanelTheme.SMALL_BOLD, colour("ACCENT_DEEP"));
 			toggle.setBorder(PanelTheme.pad(2, numberWidth + 6, 0, 0));
 			toggle.setToolTipText(open ? "Show only the first " + FOLDED_STOPS + " stops" : "Show every stop of this route");
 			toggle.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -865,11 +773,11 @@ public class PlacesPanel extends PluginPanel
 	private JComponent stopRow(int number, long stop, int numberWidth)
 	{
 		Pin pin = pins.get(stop);
-		JLabel index = PanelTheme.label(String.valueOf(number), PanelTheme.SMALL_BOLD, PanelTheme.ACCENT_DEEP);
+		JLabel index = PanelTheme.label(String.valueOf(number), PanelTheme.SMALL_BOLD, colour("ACCENT_DEEP"));
 		index.setHorizontalAlignment(SwingConstants.RIGHT);
 		index.setPreferredSize(new Dimension(numberWidth, index.getPreferredSize().height));
 		String text = pin == null ? "A place that is no longer saved" : pin.getName();
-		JLabel name = PanelTheme.label(text, PanelTheme.SMALL, pin == null ? PanelTheme.TEXT_FAINT : PanelTheme.TEXT_DIM);
+		JLabel name = PanelTheme.label(text, PanelTheme.SMALL, pin == null ? colour("TEXT_FAINT") : colour("TEXT_DIM"));
 		name.setToolTipText(pin == null ? text : pin.getName() + "  ·  " + areaName.apply(pin.getMap()));
 		// Its width comes from the card, so a long name is cut short instead of widening the panel.
 		name.setMinimumSize(new Dimension(0, name.getPreferredSize().height));
@@ -880,29 +788,7 @@ public class PlacesPanel extends PluginPanel
 		return row;
 	}
 
-	/** The route is drawn on the map while the mouse is over its row. */
-	private void highlightWhileOver(JPanel row, long routeId)
-	{
-		MouseAdapter listener = new MouseAdapter()
-		{
-			@Override
-			public void mouseEntered(MouseEvent e)
-			{
-				routes.setHighlighted(routeId);
-			}
 
-			@Override
-			public void mouseExited(MouseEvent e)
-			{
-				Point inRow = SwingUtilities.convertPoint(e.getComponent(), e.getPoint(), row);
-				if (!row.contains(inRow))
-				{
-					routes.setHighlighted(0);
-				}
-			}
-		};
-		attach(row, listener);
-	}
 
 	private static void attach(Component component, MouseAdapter listener)
 	{
@@ -920,21 +806,22 @@ public class PlacesPanel extends PluginPanel
 	// What the buttons do
 	// ------------------------------------------------------------------
 
-	/** Shows a line on the status line at the top, as a partner plugin asks. Interface thread. */
-	public void showStatus(String text)
-	{
-		setStatus(text);
-	}
-
-	private void setStatus(String text)
+	void setStatus(String text)
 	{
 		status.setText("<html><body style='width:" + PAGE_TEXT_WIDTH + "px'>" + escape(text) + "</body></html>");
 		status.setBorder(PanelTheme.pad(0, 2, PanelTheme.GAP, 0));
 		status.setVisible(true);
 	}
 
+	/** Lays the panel out again after a box in it changed. */
+	void relayout()
+	{
+		revalidate();
+		repaint();
+	}
+
 	/** Reports a missing Shortest Path in words. Returns true when it can be asked. */
-	private boolean shortestPathReady()
+	boolean shortestPathReady()
 	{
 		MapActions.Status state = actions.shortestPathStatus();
 		if (state == MapActions.Status.MISSING)
@@ -1009,6 +896,54 @@ public class PlacesPanel extends PluginPanel
 		rebuildAll();
 	}
 
+	/** Shares the ticked places: one place as a pin code, more as a set of places. */
+	private void shareTicked()
+	{
+		if (ticked.isEmpty())
+		{
+			return;
+		}
+		shares.show(ShareBuilder.ofIds(new ArrayList<>(ticked), pins, this::autoMap));
+	}
+
+	/** The map this version shows a tile on, so a place's own map is only put in a code when it is another one. */
+	private int autoMap(int x, int y)
+	{
+		return importer == null ? MapInfo.SURFACE : importer.autoMap(x, y);
+	}
+
+	/** Lets the plugin say how a share is shown on the map and how the way to it is asked for. */
+	public void setShareHandlers(Consumer<Share> viewer, Consumer<Share> goer)
+	{
+		shares.viewer = viewer == null ? s -> { } : viewer;
+		shares.goer = goer == null ? s -> { } : goer;
+	}
+
+	/** Lets the plugin hand over the typing guide and its setting. Without them the share box offers no guide. */
+	public void setTypingGuide(@Nullable TypingGuide guide, @Nullable BooleanSupplier enabled)
+	{
+		shares.setTypingGuide(guide, enabled);
+	}
+
+	/** What a share holds, point by point, so the sender can check it before typing it. */
+	static String summary(Share share)
+	{
+		StringBuilder text = new StringBuilder();
+		List<SharePoint> points = share.getPoints();
+		if (share.getKind() == Share.Kind.PIN)
+		{
+			SharePoint p = points.get(0);
+			return "Pin at " + p.describe() + " (region " + p.regionId() + ", local " + p.localX() + ", " + p.localY() + ")";
+		}
+		text.append(share.getKind() == Share.Kind.ROUTE ? points.size() + " stops in this order" + (share.loops() ? ", then back to 1" : "")
+			: points.size() + " places").append(": ");
+		for (int i = 0; i < points.size(); i++)
+		{
+			text.append(i == 0 ? "" : "; ").append(i + 1).append(". ").append(points.get(i).describe());
+		}
+		return text.toString();
+	}
+
 	/** Shows the Routes page, for tests and pictures. */
 	void selectRoutes()
 	{
@@ -1017,12 +952,13 @@ public class PlacesPanel extends PluginPanel
 
 	/**
 	 * Moves the panel from one theme to another: colours already on built pieces are mapped role by role, and the lists
-	 * are built again in the new colours. The theme must already be in use ({@code Look.use}). Interface thread only.
+	 * are built again in the new colours. The theme must already be in use ({@code Palette.use}). Interface thread only.
 	 */
 	public void restyle(Palette from, Palette to)
 	{
 		Recolour.apply(this, from, to);
 		rebuildAll();
+		shares.rebuildShare();
 		revalidate();
 		repaint();
 	}
@@ -1031,6 +967,12 @@ public class PlacesPanel extends PluginPanel
 	void refreshNow()
 	{
 		refreshIfChanged();
+	}
+
+	/** Called when the player chose Open in World Map Plus on a chat line: the share is listed and marked. */
+	public void showOpenedShare()
+	{
+		shares.showOpenedShare();
 	}
 
 	/** Sizes a pin can be, as percentages of the usual one. */

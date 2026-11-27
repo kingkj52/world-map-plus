@@ -2,15 +2,10 @@ package com.worldmapplus.ui;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
 
 import com.worldmapplus.game.PlayerPosition;
-import com.worldmapplus.layers.Hotspot;
-import com.worldmapplus.layers.HoverCard;
 import com.worldmapplus.search.SearchEntry;
 import com.worldmapplus.search.SearchKind;
-import com.worldmapplus.search.SearchSources;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import net.runelite.api.coords.WorldPoint;
@@ -54,22 +49,5 @@ public class NearestResultTest
 	{
 		SearchEntry entry = banks();
 		assertSame(entry, MapSurface.nearestTo(entry, at(3255, 3419)));
-	}
-
-	@Test
-	public void pointsOfTheSameNameBecomeOneResultWithAllTheirPlaces()
-	{
-		HoverCard card = HoverCard.builder("Bank: Varrock").subtitle("Bank").build();
-		List<Hotspot> group = new ArrayList<>();
-		for (int i = 0; i < 4; i++)
-		{
-			group.add(new Hotspot(0, 3200 + i * 5, 3430, 10, card, null, new ArrayList<>(), Hotspot.Kind.POI, "bank", null));
-		}
-		SearchEntry entry = SearchSources.pointEntry(group);
-		assertEquals(SearchKind.POINT, entry.getKind());
-		assertEquals("Bank: Varrock", entry.getName());
-		assertEquals("Bank (4 places)", entry.getDetail());
-		assertEquals(4, entry.getAlsoAt().size());
-		assertTrue(entry.getX() == 3200);
 	}
 }

@@ -23,35 +23,24 @@ public class BundledDataTest
 	public void mostThingsInDungeonsCanBeReachedFromTheSurfaceThroughDoorways()
 	{
 		MapCatalog catalog = MapCatalog.load(GSON);
-		List<Hotspot> hotspots = HotspotLoader.load(GSON, catalog);
+		List<Hotspot> hotspots = com.worldmapplus.data.MapElements.load(GSON).loaded(java.util.Collections.emptyList());
 		DoorwayGraph graph = new DoorwayGraph(hotspots);
-		com.google.gson.JsonObject names = GSON.fromJson(new java.io.InputStreamReader(
-			BundledDataTest.class.getResourceAsStream("/com/worldmapplus/place-names.json"), java.nio.charset.StandardCharsets.UTF_8),
-			com.google.gson.JsonObject.class);
-		List<com.worldmapplus.map.MapInfo> entries = new java.util.ArrayList<>();
-		for (com.google.gson.JsonElement row : names.getAsJsonArray("spawns"))
-		{
-			com.worldmapplus.map.MapInfo at = catalog.mapFor(row.getAsJsonArray().get(1).getAsInt(), row.getAsJsonArray().get(2).getAsInt());
-			if (at != null)
-			{
-				entries.add(at);
-			}
-		}
+		List<SearchEntry> entries = com.worldmapplus.search.BundledSearch.spawns();
 
 		Set<Integer> underground = new HashSet<>();
 		Map<Integer, Integer> unreachable = new HashMap<>();
-		for (com.worldmapplus.map.MapInfo entry : entries)
+		for (SearchEntry entry : entries)
 		{
-			if (entry.getId() == 0 || entry.getId() >= com.worldmapplus.map.MapInfo.FIRST_EXTRA)
+			if (entry.getMapId() == 0 || entry.getMapId() >= com.worldmapplus.map.MapInfo.FIRST_EXTRA)
 			{
 				// The wiki's extra maps are single rooms and cutscene areas that are mostly reached from
 				// inside another map, so only the standard maps are expected to have a doorway.
 				continue;
 			}
-			underground.add(entry.getId());
-			if (graph.firstSteps(0, entry.getId()).isEmpty())
+			underground.add(entry.getMapId());
+			if (graph.firstSteps(0, entry.getMapId()).isEmpty())
 			{
-				unreachable.merge(entry.getId(), 1, Integer::sum);
+				unreachable.merge(entry.getMapId(), 1, Integer::sum);
 			}
 		}
 		assertTrue("expected spawns in dungeons, found maps " + underground, underground.size() >= 10);
@@ -86,7 +75,7 @@ public class BundledDataTest
 	{
 		MapCatalog catalog = MapCatalog.load(GSON);
 		List<Hotspot> doorways = new java.util.ArrayList<>();
-		for (Hotspot hotspot : HotspotLoader.load(GSON, catalog))
+		for (Hotspot hotspot : com.worldmapplus.data.MapElements.load(GSON).loaded(java.util.Collections.emptyList()))
 		{
 			if (hotspot.getKind() == Hotspot.Kind.DOORWAY)
 			{
@@ -115,15 +104,11 @@ public class BundledDataTest
 	}
 
 	@Test
-	public void shopCardsStayNearTheWikisPinsAndMostSitOnAnIcon() throws Exception
+	public void shopCardsStayNearTheWikisPinsAndMostSitOnAnIcon()
 	{
-		org.junit.Assume.assumeTrue("the build inputs are not in this copy", java.nio.file.Files.exists(java.nio.file.Paths.get("tools", "input", "shops.json")));
-		com.google.gson.JsonObject file;
-		try (java.io.Reader reader = java.nio.file.Files.newBufferedReader(java.nio.file.Paths.get("tools", "input", "shops.json"),
-			java.nio.charset.StandardCharsets.UTF_8))
-		{
-			file = GSON.fromJson(reader, com.google.gson.JsonObject.class);
-		}
+		com.google.gson.JsonObject file = GSON.fromJson(new java.io.InputStreamReader(
+			com.worldmapplus.data.ToolInputs.stream("shops.json"),
+			java.nio.charset.StandardCharsets.UTF_8), com.google.gson.JsonObject.class);
 		int shops = 0;
 		int moved = 0;
 		for (com.google.gson.JsonElement element : file.getAsJsonArray("shops"))
@@ -141,6 +126,23 @@ public class BundledDataTest
 			}
 		}
 		assertTrue("shops moved onto icons: " + moved + " of " + shops, moved * 4 >= shops);
+	}
+
+	@Test
+	public void everyShopHotspotIsOnAKnownMapAndHasStock()
+	{
+		MapCatalog catalog = MapCatalog.load(GSON);
+		int shops = 0;
+		for (Hotspot hotspot : com.worldmapplus.data.MapElements.load(GSON).loaded(java.util.Collections.emptyList()))
+		{
+			if (hotspot.getKind() == Hotspot.Kind.SHOP)
+			{
+				shops++;
+				assertTrue(catalog.byId(hotspot.getMapId()) != null);
+				assertTrue(!hotspot.getCard().getRows().isEmpty());
+			}
+		}
+		assertTrue("shops: " + shops, shops > 300);
 	}
 
 	@Test

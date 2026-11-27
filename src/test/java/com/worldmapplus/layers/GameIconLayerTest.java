@@ -58,7 +58,7 @@ public class GameIconLayerTest
 				assertEquals(view.screenX(100.5), layer.drawnCenterX(0), 1.0);
 				assertEquals(view.screenY(200.5), layer.drawnCenterY(0), 1.0);
 				int side = layer.drawnSize();
-				BufferedImage drawn = sprites.get(picture, side);
+				BufferedImage drawn = sprites.get(picture, side, GameIconLayer.NORMAL);
 				assertNotNull(drawn);
 				assertEquals(side, drawn.getWidth());
 				// Every pixel that shows something is inside the hit area, and a pixel just outside the margin is not.
@@ -369,7 +369,7 @@ public class GameIconLayerTest
 		layer.paint(g, view, new MapInfo(0, "Surface", 0, 0, 4096, 4096, 0, 0), 0);
 		g.dispose();
 		int side = layer.drawnSize();
-		BufferedImage picture = sprites.get(12, side);
+		BufferedImage picture = sprites.get(12, side, GameIconLayer.NORMAL);
 		assertNotNull(picture);
 		int left = layer.drawnLeft(0);
 		int top = layer.drawnTop(0);

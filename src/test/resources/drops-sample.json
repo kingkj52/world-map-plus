@@ -1,0 +1,11 @@
+{"fetched":"2026-11-05",
+"words":["Bones","Always","Always, 1","Bronze dagger","1/128","Rare, 1","Coins","Rare, 5-15 (noted), 3 rolls","1/5,461.33","Very rare, 5-15, pickpocket","Mystery item","~Rare","Rare","Goblin (Drop table 1)","Combat 2-5, 1","Goblin","Combat 2-5, 5-15 (noted), 3 rolls","Man","5-15, pickpocket",""],
+"label":[0,3,6,6,10,13,13,13,17,17],
+"rarity":[1,4,4,8,11,1,4,4,8,11],
+"text":[2,5,7,9,12,14,14,16,18,19],
+"base":[-1,-1,-1,-1,-1,15,15,15,17,17],
+"id":[526,1205,995,995,-1,526,1205,995,995,-1],
+"order":[1.0,0.0078125,0.0078125,0.00018310558050877717,0.00390625,1.0,0.0078125,0.0078125,0.00018310558050877717,0.00390625],
+"perKill":[1.0,0.0078125,0.234375,0.0018310558050877717,-1.0,1.0,0.0078125,0.234375,0.0018310558050877717,-1.0],
+"drops":{"goblin":{"summary":"Combat 2-5. Drops 3 items","total":true,"rows":[0,1,2]},"man":{"summary":"Drops 2 items","total":true,"rows":[3,4]}},
+"droppedBy":{"bones":{"rows":[5]},"bronze dagger":{"rows":[6]},"coins":{"rows":[7,8]},"mystery item":{"rows":[9]}}}

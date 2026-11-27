@@ -1,10 +1,11 @@
 package com.worldmapplus.panel;
 
+import static com.worldmapplus.theme.Palette.colour;
+
 import com.worldmapplus.theme.*;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.IntConsumer;
 import java.util.function.UnaryOperator;
@@ -21,44 +22,9 @@ import javax.swing.border.*;
 public final class PanelTheme
 {
 	/*
-	 * The colours are copies of the palette in use (Palettes.current()), refreshed by apply() when the theme changes, so
-	 * painting reads a field and makes nothing. Fonts are the palette's, the same in every theme.
+	 * Every colour is looked up by name in the palette in use ({@link Palette#colour}): the pages take theirs when they are built (and
+	 * Recolour moves them when the theme changes), the pieces drawn here as they paint. Fonts are the palette's, the same in every theme.
 	 */
-	/** The page behind everything. */
-	public static Color PAGE;
-	/** A card: one place, route, share or group of controls. */
-	public static Color CARD;
-	public static Color CARD_HOVER;
-	/** A card that is the one being used (the route being followed, a share just opened). */
-	public static Color CARD_ACTIVE;
-	public static Color EDGE;
-	/** A field to type in, and the inside of a code. */
-	public static Color FIELD;
-
-	/** The map's accent: titles, the selected tab, the main button. */
-	public static Color ACCENT;
-	public static Color ACCENT_DEEP;
-
-	public static Color TEXT;
-	public static Color TEXT_DIM;
-	public static Color TEXT_FAINT;
-	public static Color GOOD;
-	public static Color BAD;
-
-	static Color BUTTON;
-	static Color BUTTON_TOP;
-	static Color BUTTON_HOVER;
-	static Color BUTTON_PRESSED;
-	static Color BUTTON_EDGE;
-	static Color PRIMARY;
-	static Color PRIMARY_TOP;
-	static Color PRIMARY_HOVER;
-	static Color PRIMARY_PRESSED;
-	static Color PRIMARY_TEXT;
-	static Color DISABLED_TEXT;
-	static Color BADGE;
-	/** The ring round the control the keyboard is on. */
-	static Color FOCUS;
 	private static Stroke EDGE_STROKE;
 	private static int edgeInset;
 
@@ -81,7 +47,7 @@ public final class PanelTheme
 
 	static
 	{
-		apply(Palettes.current());
+		apply(Palette.current());
 	}
 
 	private PanelTheme()
@@ -91,32 +57,6 @@ public final class PanelTheme
 	/** Takes the colours of a palette. Called when the theme is chosen. */
 	public static void apply(Palette p)
 	{
-		PAGE = p.get(Role.PAGE);
-		CARD = p.get(Role.CARD);
-		CARD_HOVER = p.get(Role.CARD_HOVER);
-		CARD_ACTIVE = p.get(Role.CARD_ACTIVE);
-		EDGE = p.get(Role.EDGE);
-		FIELD = p.get(Role.FIELD);
-		ACCENT = p.get(Role.ACCENT);
-		ACCENT_DEEP = p.get(Role.ACCENT_DEEP);
-		TEXT = p.get(Role.TEXT);
-		TEXT_DIM = p.get(Role.TEXT_DIM);
-		TEXT_FAINT = p.get(Role.TEXT_FAINT);
-		GOOD = p.get(Role.GOOD);
-		BAD = p.get(Role.BAD);
-		BUTTON = p.get(Role.BUTTON);
-		BUTTON_TOP = p.get(Role.BUTTON_TOP);
-		BUTTON_HOVER = p.get(Role.BUTTON_HOVER);
-		BUTTON_PRESSED = p.get(Role.BUTTON_PRESSED);
-		BUTTON_EDGE = p.get(Role.BUTTON_EDGE);
-		PRIMARY = p.get(Role.PRIMARY);
-		PRIMARY_TOP = p.get(Role.PRIMARY_TOP);
-		PRIMARY_HOVER = p.get(Role.PRIMARY_HOVER);
-		PRIMARY_PRESSED = p.get(Role.PRIMARY_PRESSED);
-		PRIMARY_TEXT = p.get(Role.PRIMARY_TEXT);
-		DISABLED_TEXT = p.get(Role.DISABLED_TEXT);
-		BADGE = p.get(Role.BADGE);
-		FOCUS = p.get(Role.FOCUS);
 		EDGE_STROKE = p.edge();
 		edgeInset = (int) p.edgeWidth() / 2;
 	}
@@ -187,8 +127,8 @@ public final class PanelTheme
 	static void style(JComboBox<?> box)
 	{
 		box.setFont(BODY);
-		box.setForeground(TEXT);
-		box.setBackground(FIELD);
+		box.setForeground(colour("TEXT"));
+		box.setBackground(colour("FIELD"));
 		box.setFocusable(false);
 	}
 
@@ -230,15 +170,15 @@ public final class PanelTheme
 		{
 			Graphics2D g = (Graphics2D) graphics.create();
 			smooth(g);
-			g.setColor(on ? PRIMARY : FIELD);
+			g.setColor(on ? colour("PRIMARY") : colour("FIELD"));
 			g.fillRoundRect(x, y, SIZE, SIZE, 5, 5);
 			g.setStroke(ONE);
-			g.setColor(on ? PRIMARY_TOP : hover ? ACCENT_DEEP : BUTTON_EDGE);
+			g.setColor(on ? colour("PRIMARY_TOP") : hover ? colour("ACCENT_DEEP") : colour("BUTTON_EDGE"));
 			g.drawRoundRect(x, y, SIZE - 1, SIZE - 1, 5, 5);
 			if (on)
 			{
 				g.setStroke(TICK);
-				g.setColor(PRIMARY_TEXT);
+				g.setColor(colour("PRIMARY_TEXT"));
 				g.drawLine(x + 3, y + 7, x + 6, y + 10);
 				g.drawLine(x + 6, y + 10, x + 11, y + 4);
 			}
@@ -285,14 +225,14 @@ public final class PanelTheme
 			g.setFont(TITLE);
 			FontMetrics m = g.getFontMetrics();
 			int base = 15;
-			g.setColor(ACCENT);
+			g.setColor(colour("ACCENT"));
 			g.drawString(title, 2, base);
 			int x = 2 + m.stringWidth(title) + 6;
 			if (count != null)
 			{
 				x = paintBadge(g, x, base - 11, count) + 6;
 			}
-			g.setColor(EDGE);
+			g.setColor(colour("EDGE"));
 			g.fillRect(x, base - 4, Math.max(0, getWidth() - x - 2), 1);
 			g.dispose();
 		}
@@ -304,9 +244,9 @@ public final class PanelTheme
 		g.setFont(SMALL_BOLD);
 		FontMetrics m = g.getFontMetrics();
 		int width = Math.max(16, m.stringWidth(text) + 10);
-		g.setColor(BADGE);
+		g.setColor(colour("BADGE"));
 		g.fillRoundRect(x, y, width, 14, 14, 14);
-		g.setColor(ACCENT);
+		g.setColor(colour("ACCENT"));
 		g.drawString(text, x + (width - m.stringWidth(text)) / 2, y + 11);
 		return x + width;
 	}
@@ -339,7 +279,7 @@ public final class PanelTheme
 			this.primary = primary;
 			putClientProperty("html.disable", Boolean.TRUE);
 			setFont(primary ? SMALL_BOLD : SMALL);
-			setForeground(primary ? PRIMARY_TEXT : TEXT);
+			setForeground(primary ? colour("PRIMARY_TEXT") : colour("TEXT"));
 			// Reachable with the keyboard (Tab, then Space), with a ring while it has the focus, and a hand over it.
 			setFocusable(true);
 			setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -376,20 +316,21 @@ public final class PanelTheme
 			boolean enabled = isEnabled();
 			if (shadeHeight != h)
 			{
-				shade = new GradientPaint(0, 0, primary ? PRIMARY_TOP : BUTTON_TOP, 0, h, primary ? PRIMARY : BUTTON);
+				shade = new GradientPaint(0, 0, colour(primary ? "PRIMARY_TOP" : "BUTTON_TOP"), 0, h,
+					colour(primary ? "PRIMARY" : "BUTTON"));
 				shadeHeight = h;
 			}
 			if (!enabled)
 			{
-				g.setColor(BUTTON_PRESSED);
+				g.setColor(colour("BUTTON_PRESSED"));
 			}
 			else if (model.isPressed())
 			{
-				g.setColor(primary ? PRIMARY_PRESSED : BUTTON_PRESSED);
+				g.setColor(colour(primary ? "PRIMARY_PRESSED" : "BUTTON_PRESSED"));
 			}
 			else if (model.isRollover())
 			{
-				g.setColor(primary ? PRIMARY_HOVER : BUTTON_HOVER);
+				g.setColor(colour(primary ? "PRIMARY_HOVER" : "BUTTON_HOVER"));
 			}
 			else
 			{
@@ -397,16 +338,16 @@ public final class PanelTheme
 			}
 			g.fillRoundRect(0, 0, w, h, h, h);
 			g.setStroke(ONE);
-			g.setColor(primary && enabled ? ACCENT_DEEP : BUTTON_EDGE);
+			g.setColor(primary && enabled ? colour("ACCENT_DEEP") : colour("BUTTON_EDGE"));
 			g.drawRoundRect(0, 0, w - 1, h - 1, h, h);
 			g.setFont(getFont());
 			FontMetrics m = g.getFontMetrics();
 			String text = getText();
-			g.setColor(enabled ? getForeground() : DISABLED_TEXT);
+			g.setColor(enabled ? getForeground() : colour("DISABLED_TEXT"));
 			g.drawString(text, (w - m.stringWidth(text)) / 2, (h - m.getHeight()) / 2 + m.getAscent());
 			if (isFocusOwner())
 			{
-				g.setColor(FOCUS);
+				g.setColor(colour("FOCUS"));
 				g.setStroke(FOCUS_RING);
 				g.drawRoundRect(1, 1, w - 3, h - 3, h - 2, h - 2);
 			}
@@ -420,8 +361,8 @@ public final class PanelTheme
 	 */
 	public static final class Segments extends JComponent
 	{
-		private String[] names;
-		private String[] counts;
+		private final String[] names;
+		private final String[] counts;
 		private int chosen;
 		private IntConsumer listener = i -> { };
 
@@ -437,18 +378,9 @@ public final class PanelTheme
 				public void mousePressed(MouseEvent e)
 				{
 					int width = Math.max(1, getWidth());
-					choose(Math.max(0, Math.min(Segments.this.names.length - 1, e.getX() * Segments.this.names.length / width)));
+					choose(Math.max(0, Math.min(names.length - 1, e.getX() * names.length / width)));
 				}
 			});
-		}
-
-		/** Replaces the names, for tabs that other plugins add. A choice past the new end goes back to the last. */
-		public void setNames(String... names)
-		{
-			this.names = names.clone();
-			this.counts = Arrays.copyOf(counts, names.length);
-			chosen = Math.min(chosen, names.length - 1);
-			repaint();
 		}
 
 		public void onChoose(IntConsumer listener)
@@ -486,10 +418,10 @@ public final class PanelTheme
 			smooth(g);
 			int w = getWidth();
 			int h = getHeight();
-			g.setColor(FIELD);
+			g.setColor(colour("FIELD"));
 			g.fillRoundRect(0, 0, w, h, h, h);
 			g.setStroke(ONE);
-			g.setColor(EDGE);
+			g.setColor(colour("EDGE"));
 			g.drawRoundRect(0, 0, w - 1, h - 1, h, h);
 			int each = w / names.length;
 			for (int i = 0; i < names.length; i++)
@@ -499,9 +431,9 @@ public final class PanelTheme
 				boolean on = i == chosen;
 				if (on)
 				{
-					g.setColor(CARD_ACTIVE);
+					g.setColor(colour("CARD_ACTIVE"));
 					g.fillRoundRect(x + 2, 2, segment - 4, h - 4, h - 4, h - 4);
-					g.setColor(ACCENT_DEEP);
+					g.setColor(colour("ACCENT_DEEP"));
 					g.drawRoundRect(x + 2, 2, segment - 5, h - 5, h - 4, h - 4);
 				}
 				g.setFont(on ? BODY_BOLD : BODY);
@@ -509,7 +441,7 @@ public final class PanelTheme
 				int textWidth = m.stringWidth(names[i]);
 				int badgeWidth = counts[i] == null ? 0 : Math.max(16, g.getFontMetrics(SMALL_BOLD).stringWidth(counts[i]) + 10) + 5;
 				int tx = x + (segment - textWidth - badgeWidth) / 2;
-				g.setColor(on ? ACCENT : TEXT_DIM);
+				g.setColor(on ? colour("ACCENT") : colour("TEXT_DIM"));
 				g.drawString(names[i], tx, (h - m.getHeight()) / 2 + m.getAscent());
 				if (counts[i] != null)
 				{
@@ -570,7 +502,7 @@ public final class PanelTheme
 		protected void paintComponent(Graphics graphics)
 		{
 			Graphics2D g = (Graphics2D) graphics.create();
-			paintCard(g, getWidth(), getHeight(), fill, EDGE, bar);
+			paintCard(g, getWidth(), getHeight(), fill, colour("EDGE"), bar);
 			g.dispose();
 		}
 	}

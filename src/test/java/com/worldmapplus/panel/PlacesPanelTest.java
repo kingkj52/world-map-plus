@@ -238,4 +238,130 @@ public class PlacesPanelTest
 		assertTrue(new javax.swing.JLabel("<html><b>Bank</b>")
 			.getClientProperty(javax.swing.plaf.basic.BasicHTML.propertyKey) != null);
 	}
+
+	@Test
+	public void aSharedRouteWaitsInTheInboxAndIsSavedOnlyWhenAsked() throws Exception
+	{
+		com.worldmapplus.share.ShareInbox inbox = new com.worldmapplus.share.ShareInbox();
+		com.worldmapplus.share.Share route = com.worldmapplus.share.Share.route(Arrays.asList(
+			new com.worldmapplus.share.SharePoint(3226, 3220, 0), new com.worldmapplus.share.SharePoint(3230, 3223, 0),
+			new com.worldmapplus.share.SharePoint(3226, 3220, 0)), false);
+		inbox.receive(com.worldmapplus.share.ShareCodec.encode(route), "test", 1, null, true);
+		pins.add("Mine", "shop", 0, 3226.5, 3220.5, 0);
+		PlacesPanel shared = new PlacesPanel(pins, routes, null, new MapActions(new EventBus(), new ExternalOverlays()),
+			new ExternalOverlays(), null, id -> "Gielinor", inbox,
+			new com.worldmapplus.share.ShareImport(pins, routes, () -> com.worldmapplus.map.MapCatalog.load(new Gson())));
+		shared.onActivate();
+		assertEquals("nothing is added by itself", 1, pins.all().size());
+		assertEquals(0, routes.all().size());
+
+		List<Component> all = new ArrayList<>();
+		collect(shared, all);
+		boolean save = false;
+		for (Component component : all)
+		{
+			save |= component instanceof javax.swing.JButton && "Save".equals(((javax.swing.JButton) component).getText());
+		}
+		assertTrue("a Save button is shown for the route", save);
+		// The panel's Save asks for a name in a dialog; the importer it calls is the same one.
+		com.worldmapplus.share.ShareImport importer = new com.worldmapplus.share.ShareImport(pins, routes,
+			() -> com.worldmapplus.map.MapCatalog.load(new Gson()));
+		String message = importer.saveRoute(inbox.offers().get(0).getShare(), "From a friend");
+		assertTrue(message, message.startsWith("Saved"));
+		assertEquals("the place the player had is used again, the new one saved once", 2, pins.all().size());
+		assertEquals(1, routes.all().size());
+		List<Long> stops = routes.all().get(0).getStops();
+		assertEquals(3, stops.size());
+		assertEquals("Mine", pins.get(stops.get(0)).getName());
+		assertEquals(stops.get(0), stops.get(2));
+		assertEquals("Pin at 3230, 3223", pins.get(stops.get(1)).getName());
+		assertEquals("the recipient's usual colour", 0, pins.get(stops.get(1)).getColor());
+		shared.shutDown();
+	}
+
+	private static com.worldmapplus.share.Share scatteredRoute(int stops)
+	{
+		java.util.Random random = new java.util.Random(7);
+		List<com.worldmapplus.share.SharePoint> points = new ArrayList<>();
+		for (int i = 0; i < stops; i++)
+		{
+			points.add(new com.worldmapplus.share.SharePoint(960 + random.nextInt(3072), 2048 + random.nextInt(2176), 0));
+		}
+		return com.worldmapplus.share.Share.route(points, false);
+	}
+
+	private PlacesPanel importPanel(com.worldmapplus.share.ShareInbox inbox)
+	{
+		return new PlacesPanel(pins, routes, null, new MapActions(new EventBus(), new ExternalOverlays()), new ExternalOverlays(), null,
+			id -> "Gielinor", inbox, new com.worldmapplus.share.ShareImport(pins, routes, () -> com.worldmapplus.map.MapCatalog.load(new Gson())));
+	}
+
+	@Test
+	public void aCodePastedIntoTheImportBoxIsListedAndNothingIsSaved() throws Exception
+	{
+		com.worldmapplus.share.ShareInbox inbox = new com.worldmapplus.share.ShareInbox();
+		PlacesPanel panel = importPanel(inbox);
+		panel.shares.showImport(true);
+		com.worldmapplus.share.ShareInbox.Pasted result = panel.shares.importForTest("!wmp p10kgkm86a");
+		assertEquals(1, result.getAdded());
+		assertTrue(panel.shares.importStatusText(), panel.shares.importStatusText().contains("Added 1 share to Shared with you"));
+		assertEquals("the box is emptied once everything in it was read", "", panel.shares.importBoxText());
+		assertEquals(1, inbox.offers().size());
+		assertEquals("nothing is saved until Save", 0, pins.all().size());
+		assertEquals(0, routes.all().size());
+		panel.shutDown();
+	}
+
+	@Test
+	public void aCodeInPartsIsPastedPieceByPiece() throws Exception
+	{
+		com.worldmapplus.share.ShareInbox inbox = new com.worldmapplus.share.ShareInbox();
+		PlacesPanel panel = importPanel(inbox);
+		List<String> messages = com.worldmapplus.share.ShareCodec.messages(scatteredRoute(15));
+		assertEquals(2, messages.size());
+		panel.shares.importForTest(messages.get(1));
+		assertTrue(panel.shares.importStatusText(), panel.shares.importStatusText().contains("1 of 2 parts added, paste the rest"));
+		assertEquals(0, inbox.offers().size());
+		panel.shares.importForTest(messages.get(0));
+		assertTrue(panel.shares.importStatusText(), panel.shares.importStatusText().contains("Added 1 share"));
+		assertEquals(scatteredRoute(15), inbox.offers().get(0).getShare());
+		assertEquals(0, pins.all().size());
+		panel.shutDown();
+	}
+
+	@Test
+	public void aCodeThatDoesNotReadStaysInTheBoxWithItsReason() throws Exception
+	{
+		com.worldmapplus.share.ShareInbox inbox = new com.worldmapplus.share.ShareInbox();
+		PlacesPanel panel = importPanel(inbox);
+		panel.shares.importForTest("!wmp p10kgkm86b");
+		assertTrue(panel.shares.importStatusText(), panel.shares.importStatusText().contains("Checksum mismatch"));
+		assertEquals("!wmp p10kgkm86b", panel.shares.importBoxText());
+		assertEquals(0, inbox.offers().size());
+		panel.shutDown();
+	}
+
+	@Test
+	public void theWholeCodeAndAllPartsCopiesReadBackAsTheSameShare() throws Exception
+	{
+		com.worldmapplus.share.Share route = scatteredRoute(30);
+		PlacesPanel panel = importPanel(new com.worldmapplus.share.ShareInbox());
+		panel.shares.show(route);
+		String whole = panel.shares.wholeCode();
+		assertEquals("!wmp " + com.worldmapplus.share.ShareCodec.encode(route), whole);
+		List<String> messages = panel.shares.shownMessages();
+		assertEquals(3, messages.size());
+		String all = String.join("\n", messages);
+		for (String line : all.split("\n"))
+		{
+			assertTrue(line, line.startsWith("!wmp c1") && line.length() <= com.worldmapplus.share.ShareCodec.MAX_MESSAGE);
+		}
+		for (String copy : new String[] {whole, all})
+		{
+			com.worldmapplus.share.ShareInbox other = new com.worldmapplus.share.ShareInbox();
+			assertEquals(1, other.importPasted(copy, 1).getAdded());
+			assertEquals(route, other.offers().get(0).getShare());
+		}
+		panel.shutDown();
+	}
 }

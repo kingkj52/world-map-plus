@@ -106,7 +106,7 @@ public class GameIconSurfaceTest
 		com.worldmapplus.pins.PanelLauncher launcher = new com.worldmapplus.pins.PanelLauncher();
 		com.worldmapplus.pins.RouteStore routes = new com.worldmapplus.pins.RouteStore(PinStore.Storage.inMemory(), new Gson(), pins);
 		SurfaceServices services = new SurfaceServices(memory, pins, external, new MapActions(new EventBus(), external),
-			settings, routes, launcher);
+			settings, null, routes, launcher);
 		surface = new MapSurface(client, assets, new WorldMapPlusConfig()
 		{
 			@Override
@@ -154,9 +154,9 @@ public class GameIconSurfaceTest
 	private void lookAt(double x, double y, double zoom)
 	{
 		frames(10);
-		surface.viewer().getCamera().setFollowing(false);
+		surface.viewer().setFollowing(false);
 		surface.viewer().showMap(assets.getCatalog().surface(), x, y);
-		surface.viewer().getZoom().jumpTo(zoom);
+		surface.viewer().jumpZoom(zoom);
 		frames(5);
 	}
 
@@ -179,7 +179,12 @@ public class GameIconSurfaceTest
 	/** A marker of another plugin, such as a group member's icon, one tile east of the cave entrance. */
 	private void memberBesideTheCave()
 	{
-		TestMarker.show(external, new WorldPoint(3320, 3122, 0), "Member", new java.awt.Color(0, 255, 0));
+		Map<String, Object> data = new HashMap<>();
+		data.put("id", "member");
+		data.put("point", new WorldPoint(3320, 3122, 0));
+		data.put("name", "Member");
+		data.put("color", new java.awt.Color(0, 255, 0));
+		external.onPluginMessage(new PluginMessage(ExternalOverlays.NAMESPACE, "marker", data));
 		frames(2);
 	}
 
@@ -208,7 +213,7 @@ public class GameIconSurfaceTest
 
 		// And the lair, which had its link before.
 		surface.viewer().showMap(assets.getCatalog().surface(), 3226.5, 3108.5);
-		surface.viewer().getZoom().jumpTo(8.0);
+		surface.viewer().jumpZoom(8.0);
 		frames(5);
 		view = surface.currentView();
 		click((int) Math.round(view.screenX(3226.5)), (int) Math.round(view.screenY(3108.5)));

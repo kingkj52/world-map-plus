@@ -205,6 +205,48 @@ public class SearchIndexTest
 		assertEquals(found, index.search("cath", 5));
 	}
 
+	private static SearchEntry kindAt(String plural, String singular, String town, double x)
+	{
+		return com.worldmapplus.search.KindEntries.ofKind(plural + " in " + town, "2 places", 0, x, 1, new ArrayList<>(), java.util.Arrays.asList(plural, singular),
+			plural.toLowerCase(), 0, town);
+	}
+
+	@Test
+	public void aKindAtAPlaceNeedsWordsForBoth()
+	{
+		SearchIndex index = index(
+			kindAt("Shark fishing spots", "Shark fishing spot", "Catherby", 10),
+			kindAt("Banks", "Bank", "Catherby", 20),
+			kindAt("Banks", "Bank", "Varrock", 30),
+			entry(SearchKind.PLACE, "Catherby", null, 40, 40),
+			entry(SearchKind.ITEM, "Raw shark", "Sold at a shop", 50, 50));
+		// The town alone lists the town, and the kind alone none of the towns.
+		List<SearchEntry> town = index.search("catherby", 10);
+		assertEquals(1, town.size());
+		assertEquals("Catherby", town.get(0).getName());
+		for (SearchEntry entry : index.search("bank", 10))
+		{
+			assertTrue(entry.getName(), !entry.isKindAtPlace());
+		}
+		// Both, in any order and with a slip, find the one place.
+		assertEquals("Shark fishing spots in Catherby", index.search("shark catherby", 10).get(0).getName());
+		assertEquals("Shark fishing spots in Catherby", index.search("catherby shark", 10).get(0).getName());
+		assertEquals("Shark fishing spots in Catherby", index.search("shrak catherby", 10).get(0).getName());
+		assertEquals("Banks in Varrock", index.search("bank varrock", 10).get(0).getName());
+		assertEquals(1, index.search("bank varrock", 10).size());
+	}
+
+	@Test
+	public void aKindIsFoundByItsSingularBeforeThePlacesOfThatName()
+	{
+		SearchIndex index = index(
+			entry(SearchKind.POINT, "Bank: Al Kharid", "Bank", 1, 1),
+			com.worldmapplus.search.KindEntries.ofKind("Banks", "Every bank", 0, 5, 5, new ArrayList<>(), java.util.Arrays.asList("bank", "banks", "every bank"),
+				"bank", -1, null));
+		assertEquals("Banks", index.search("bank", 5).get(0).getName());
+		assertEquals("Banks", index.search("every bank", 5).get(0).getName());
+	}
+
 	@Test
 	public void shorterNamesWinTies()
 	{

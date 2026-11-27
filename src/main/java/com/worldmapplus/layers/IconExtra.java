@@ -12,14 +12,21 @@ import lombok.*;
  */
 public final class IconExtra
 {
-	private final String layer;
+	private String layer;
 	@Getter
-	private final String name;
-	private final String detail;
+	private String name = "";
+	private String detail;
 	@Getter
-	private final int tileX;
+	private int tileX;
 	@Getter
-	private final int tileY;
+	private int tileY;
+	/** The wiki page of the point, worked out at build time, or null. */
+	@Getter
+	private String wiki;
+
+	private IconExtra()
+	{
+	}
 
 	/**
 	 * @param layer the id of the layer that switches this on, or null for information that has no layer of its own and is always shown

@@ -97,12 +97,6 @@ public class ViewerOverlay extends Overlay
 		return surface.getInput();
 	}
 
-	/** The cues of the Sounds setting, or null for none. */
-	public void setSounds(Sounds sounds)
-	{
-		surface.setSounds(sounds);
-	}
-
 	/** Where a middle click on a map link, a result or a step of a route opens a map of its own. */
 	public void setWindowOpener(MapSurface.WindowOpener opener)
 	{
@@ -153,8 +147,8 @@ public class ViewerOverlay extends Overlay
 		PlayerPosition position = locator.get();
 		MapSurface.Options options = new MapSurface.Options()
 			.memorySlot(ViewMemory.WORLD_MAP)
-			.followOnOpen(config.followPlayer())
-			.startAtLastView(config.startAt() == WorldMapPlusConfig.StartAt.LAST_VIEW)
+			.followOnOpen(config.openAt() != WorldMapPlusConfig.OpenAt.WHERE_I_AM)
+			.startAtLastView(config.openAt() == WorldMapPlusConfig.OpenAt.WHERE_I_LAST_LOOKED)
 			.resume(true)
 			.keepClear(gameControls(bounds));
 		surface.render(g, bounds, position, options, System.currentTimeMillis());
@@ -217,7 +211,6 @@ public class ViewerOverlay extends Overlay
 	public void mapClosed()
 	{
 		nativeSync.reset();
-		surface.closedCue();
 		surface.hide();
 	}
 

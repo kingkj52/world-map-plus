@@ -2,7 +2,6 @@ package com.worldmapplus.data;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import com.google.gson.Gson;
@@ -45,7 +44,7 @@ public class LinkTargetAuditTest
 
 	private static JsonObject resource(String name) throws IOException
 	{
-		try (InputStream in = LinkTargetAuditTest.class.getResourceAsStream("/com/worldmapplus/" + name);
+		try (InputStream in = com.worldmapplus.data.ToolInputs.stream(name);
 			Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8))
 		{
 			return GSON.fromJson(reader, JsonObject.class);
@@ -82,10 +81,7 @@ public class LinkTargetAuditTest
 		MapInfo foundry = catalog.mapFor(3490, 9592);
 		assertNotNull(foundry);
 		assertEquals("the smallest map over the tile is the Kharidian Desert Underground", 42, foundry.getId());
-		assertEquals("a link that names the Morytania Underground goes there", 14, MapElements.mapOf(catalog, 14, 3490, 9592).getId());
-		assertNull("a named map with no picture of the tile gives nothing", MapElements.mapOf(catalog, 10116, 3490, 9592));
-		assertNull("an unknown map gives nothing", MapElements.mapOf(catalog, 99_999, 3490, 9592));
-		assertEquals("only a file that names no map falls back", 42, MapElements.mapOf(catalog, -1, 3490, 9592).getId());
+		// Which map a link names is decided by tools/build_cards.py (Maps.map_of, tested in tools/test_build_cards.py).
 	}
 
 	@Test

@@ -65,10 +65,10 @@ drawn by the plugin on top of the map and are not changed, except that a copy at
 Wiki data
 ----------------------------------------------------------------------------------------------------
 What is bundled: shop stock and prices, shop keepers, monster, NPC and ground item spawn locations, quest start
-places and music track unlock spots, as short data files (spawns.bin, shops.json and similar), and monster
-drop tables and pickpocket loot (drops.bin: item, quantity, rarity and combat level per monster, with the item ids,
+places and music track unlock spots, as short data files (search.json and things.json, made from spawns.bin, shops.json and similar), and monster
+drop tables and pickpocket loot (drops.json: item, quantity, rarity and combat level per monster, with the item ids,
 from the wiki's drop, item and monster tables), and what agility courses, minigames, some dungeons, farming patches and
-transport networks ask of the player (requirements.json and the requires fields: levels, quests, quest points, checked
+transport networks ask of the player (in things.json, from requirements.json: levels, quests, quest points, checked
 against the wiki's pages). They were extracted at build time from the Old School RuneScape Wiki
 (https://oldschool.runescape.wiki) by the build tools. Names, numbers, coordinates and short place labels are
 kept. Passages of the wiki's prose are not.
@@ -90,7 +90,8 @@ minecarts, levers, portals, gliders, balloons, mushtrees, quetzals, spirit trees
 rings that drive the transport hover cards, the teleport tables (spells, jewellery and other items,
 minigame teleports, house jewellery boxes, the quetzal whistle and home teleports) that drive the
 teleport cards, the table of which region of the world each map square belongs to that drives the
-region borders. The agility shortcut
+region borders, and the walking data (collision-map.zip) that the walking line of a route is worked out from,
+with the rules for which steps between tiles are possible, ported from its Java source. The agility shortcut
 table (levels, items and where each shortcut comes out) and the few trip rows of the general transport table
 (travel carts, guides, rafts) are also from Shortest Path.
 
@@ -121,10 +122,6 @@ RuneLite (https://github.com/runelite/runelite), BSD 2-Clause
   from the World Map plugin and the icon files in the RuneLite client.
 - The curated dungeon entrance names, from the World Map plugin's dungeon list. Copyright (c) 2018,
   Adam <Adam@sigterm.info>.
-- The farming tables: which value of a patch's game variable means what, how long each crop takes to
-  grow, and which patches each place has, read out of the source of the Time Tracking plugin by
-  a build tool. Copyright (c) 2018, Abex, and (c) 2019, Abex and contributors. The few rules
-  about where the patches of a place apply are translated from that plugin's isInBounds overrides.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted
 provided that the following conditions are met: 1. Redistributions of source code must retain the

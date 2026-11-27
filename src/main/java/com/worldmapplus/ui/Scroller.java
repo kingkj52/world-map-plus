@@ -1,5 +1,7 @@
 package com.worldmapplus.ui;
 
+import static com.worldmapplus.theme.Palette.colour;
+
 import java.awt.*;
 
 /**
@@ -90,10 +92,10 @@ final class Scroller
 		{
 			return;
 		}
-		g.setColor(Theme.SCROLL_TRACK);
+		g.setColor(colour("SCROLL_TRACK"));
 		g.fillRoundRect(track.x, track.y, track.width, track.height, 4, 4);
 		Rectangle thumb = thumb(track);
-		g.setColor(Theme.SCROLL_THUMB);
+		g.setColor(colour("SCROLL_THUMB"));
 		g.fillRoundRect(thumb.x, thumb.y, thumb.width, thumb.height, 4, 4);
 	}
 }

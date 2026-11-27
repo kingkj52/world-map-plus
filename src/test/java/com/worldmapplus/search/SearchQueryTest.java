@@ -38,16 +38,33 @@ public class SearchQueryTest
 	@Test
 	public void theWholeExampleFromTheRequestIsUnderstood()
 	{
-		SearchQuery q = SearchQuery.parse("loc:nearby type:melee_weapon sword");
+		SearchQuery q = SearchQuery.parse("loc:nearby type:melee_weapon cost:500 sword");
 		assertEquals(SearchQuery.NEARBY_TILES, q.getMaxDistance());
 		assertEquals(Arrays.asList("melee_weapon"), q.getKinds());
+		assertEquals(500, q.getMaxCost());
+		assertEquals(-1, q.getMinCost());
 		assertEquals(Arrays.asList("sword"), q.getWords());
+	}
+
+	@Test
+	public void costsCanBeBoundedBothWays()
+	{
+		assertEquals(499, SearchQuery.parse("cost:<500").getMaxCost());
+		assertEquals(500, SearchQuery.parse("cost:<=500").getMaxCost());
+		assertEquals(101, SearchQuery.parse("cost:>100").getMinCost());
+		assertEquals(100, SearchQuery.parse("cost:>=100").getMinCost());
+		SearchQuery range = SearchQuery.parse("price:100-500");
+		assertEquals(100, range.getMinCost());
+		assertEquals(500, range.getMaxCost());
+		assertEquals(10_000, SearchQuery.parse("cost:10k").getMaxCost());
+		assertEquals(2_500_000, SearchQuery.parse("cost:2.5m").getMaxCost());
+		assertEquals(1_200, SearchQuery.parse("cost:1,200").getMaxCost());
 	}
 
 	@Test
 	public void aFilterThatCannotBeReadIsFlaggedNotIgnored()
 	{
-		assertTrue(SearchQuery.parse("sort:cheap").hasBadFilter());
+		assertTrue(SearchQuery.parse("cost:cheap").hasBadFilter());
 		assertTrue(SearchQuery.parse("dist:far").hasBadFilter());
 		assertTrue(SearchQuery.parse("loc:mars").hasBadFilter());
 	}
@@ -95,11 +112,12 @@ public class SearchQueryTest
 	@Test
 	public void numbersAreDigitsOnlyAndDistancesAreNotNegative()
 	{
-		for (String text : new String[] {"dist:-1", "dist:NaN", "dist:1e3"})
+		for (String text : new String[] {"cost:NaN", "cost:Infinity", "cost:1e3", "cost:>Infinity", "dist:-1", "cost:99999999999999"})
 		{
 			SearchQuery query = SearchQuery.parse(text);
 			assertTrue(text + " is a bad filter", query.hasBadFilter());
 		}
+		assertFalse(SearchQuery.parse("cost:2.5k").hasBadFilter());
 		assertFalse(SearchQuery.parse("dist:0").hasBadFilter());
 	}
 
@@ -123,7 +141,7 @@ public class SearchQueryTest
 		assertTrue(q.getRegions().isEmpty());
 		assertEquals(Arrays.asList("sword"), q.getWords());
 		assertTrue("a dash in front of a plain word is just a word", SearchQuery.parse("-dragon").getWords().contains("dragon"));
-		assertTrue("not every filter can be turned round", SearchQuery.parse("-dist:5").hasBadFilter());
+		assertTrue("not every filter can be turned round", SearchQuery.parse("-cost:5").hasBadFilter());
 	}
 
 	@Test
@@ -138,16 +156,28 @@ public class SearchQueryTest
 	@Test
 	public void sortCanBeAskedFor()
 	{
+		assertEquals(SearchQuery.Sort.COST, SearchQuery.parse("sword sort:cost").getSort());
 		assertEquals(SearchQuery.Sort.DISTANCE, SearchQuery.parse("sort:nearest").getSort());
 		assertEquals(SearchQuery.Sort.NAME, SearchQuery.parse("sort:alpha").getSort());
 		assertEquals(SearchQuery.Sort.RELEVANCE, SearchQuery.parse("sword").getSort());
 		assertTrue(SearchQuery.parse("sort:sideways").hasBadFilter());
-		assertTrue("sorting alone counts as a filter", SearchQuery.parse("sort:name sword").hasFilters());
+		assertTrue("sorting alone counts as a filter", SearchQuery.parse("sort:cost sword").hasFilters());
 	}
 
 	@Test
-	public void placesCanBeAskedFor()
+	public void nothingCostsLessThanNothing()
 	{
+		assertTrue(SearchQuery.parse("cost:<0").hasBadFilter());
+		assertTrue(SearchQuery.parse("cost:<1").getMaxCost() == 0);
+	}
+
+	@Test
+	public void freeAndPlacesCanBeAskedFor()
+	{
+		SearchQuery free = SearchQuery.parse("free:yes");
+		assertEquals(0, free.getMinCost());
+		assertEquals(0, free.getMaxCost());
+		assertTrue(SearchQuery.parse("free:maybe").hasBadFilter());
 		assertTrue(SearchQuery.parse("type:place").asksForPlaces());
 		assertTrue(SearchQuery.parse("type:shop,places").asksForPlaces());
 		assertFalse(SearchQuery.parse("type:shop").asksForPlaces());

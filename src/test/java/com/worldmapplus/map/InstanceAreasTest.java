@@ -13,7 +13,7 @@ import com.worldmapplus.layers.Hotspot;
 import com.worldmapplus.search.SearchEntry;
 import com.worldmapplus.search.SearchIndex;
 import com.worldmapplus.search.SearchKind;
-import com.worldmapplus.search.SearchSources;
+import com.worldmapplus.search.BundledSearch;
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -250,7 +250,7 @@ public class InstanceAreasTest
 	public void shopsAndOtherDataWithCoordinatesInTheNewAreasLandOnTheirMaps()
 	{
 		int onNew = 0;
-		for (Hotspot hotspot : com.worldmapplus.data.HotspotLoader.load(GSON, catalog))
+		for (Hotspot hotspot : com.worldmapplus.data.MapElements.load(GSON).loaded(java.util.Collections.emptyList()))
 		{
 			if (hotspot.getMapId() >= FIRST && hotspot.getMapId() <= LAST)
 			{
@@ -265,7 +265,7 @@ public class InstanceAreasTest
 	@Test
 	public void theNamesAreSearchableAsPlaces()
 	{
-		SearchIndex index = new SearchIndex(SearchSources.build(catalog, Collections.<Hotspot>emptyList()));
+		SearchIndex index = new SearchIndex(BundledSearch.maps());
 		for (JsonObject area : areas)
 		{
 			String name = area.get("name").getAsString();

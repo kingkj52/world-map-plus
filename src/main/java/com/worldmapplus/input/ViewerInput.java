@@ -5,6 +5,7 @@ import java.awt.event.*;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.*;
 import java.util.function.*;
 import lombok.*;
 import net.runelite.client.input.KeyListener;
@@ -37,8 +38,11 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 	public static final int KEY_FOCUS_SEARCH = -1;
 	public static final int KEY_SELECT_ALL = -2;
 
-	@Getter
-	private final InputQueue queue = new InputQueue();
+	/** Most events waiting for the render thread. Past it the oldest are dropped, which is harmless for a pointer. */
+	static final int LIMIT = 512;
+
+	private final ConcurrentLinkedQueue<MapInput> queue = new ConcurrentLinkedQueue<>();
+	private final AtomicInteger size = new AtomicInteger();
 
 	/**
 	 * How long input stays taken without the overlay saying again that it is still showing. An
@@ -56,11 +60,7 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 
 	private volatile Rectangle active;
 	private volatile long activeStamp;
-	private volatile long captureStamp;
 	private LongSupplier clock = System::nanoTime;
-
-	/** Set when a pass-through mode is on: events are recorded and never consumed. */
-	private volatile boolean passThrough;
 
 	private volatile boolean pressInside;
 
@@ -90,16 +90,13 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 	@Getter
 	private volatile boolean expandHeld;
 
-	/** True while the search field has the keyboard. */
-	private volatile boolean captureKeys;
+	/** The claims a surface renews every frame: the search has the keyboard, a popup takes Escape, the chat area types the search. */
+	private static final int KEYS = 0;
+	private static final int ESCAPE = 1;
+	private static final int CLICKS = 2;
 
-	/** True while a popup is open over the map, when the Escape key alone is taken. */
-	private volatile boolean captureEscape;
-	private volatile long escapeStamp;
-
-	/** True while the search is typed into the chat area, when only presses away from the map are watched. */
-	private volatile boolean watchClicks;
-	private volatile long watchStamp;
+	/** When each claim was last made, or {@link Long#MIN_VALUE} while it is let go. */
+	private final AtomicLongArray claims = new AtomicLongArray(new long[] {Long.MIN_VALUE, Long.MIN_VALUE, Long.MIN_VALUE});
 
 	/**
 	 * The key codes whose press this input took and whose release has not come yet. The game never saw those presses, so it
@@ -108,8 +105,48 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 	 */
 	private final Set<Integer> taken = ConcurrentHashMap.newKeySet();
 
-	public ViewerInput()
+	/** Queues an event for the render thread, bounded so a stalled renderer cannot make the queue grow without end. */
+	void add(MapInput input)
 	{
+		queue.add(input);
+		if (size.incrementAndGet() > LIMIT && queue.poll() != null)
+		{
+			size.decrementAndGet();
+		}
+	}
+
+	private void add(MapInput.Kind kind, MouseEvent event, double amount, boolean mine)
+	{
+		add(new MapInput(kind, event.getX(), event.getY(), amount, event.getWhen(), mine));
+	}
+
+	private void key(MapInput.Kind kind, int code)
+	{
+		add(new MapInput(kind, 0, 0, code, System.currentTimeMillis(), true));
+	}
+
+	/** Takes everything queued so far, oldest first. */
+	public List<MapInput> drain()
+	{
+		// Called every frame, and nearly always empty, so nothing is made then.
+		MapInput next = queue.poll();
+		if (next == null)
+		{
+			return Collections.emptyList();
+		}
+		List<MapInput> events = new ArrayList<>();
+		do
+		{
+			size.decrementAndGet();
+			events.add(next);
+		}
+		while ((next = queue.poll()) != null);
+		return events;
+	}
+
+	public void clear()
+	{
+		drain();
 	}
 
 	/** Sets what tells that the game is taking text, so the chord that starts a search is not taken then. Null removes it. */
@@ -136,16 +173,19 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 	 */
 	public void setCaptureKeys(boolean capture)
 	{
-		this.captureKeys = capture;
-		if (capture)
-		{
-			captureStamp = clock.getAsLong();
-		}
+		claim(KEYS, capture);
 	}
 
-	private boolean capturing()
+	private void claim(int which, boolean on)
 	{
-		return captureKeys && fresh(captureStamp);
+		claims.set(which, on ? clock.getAsLong() : Long.MIN_VALUE);
+	}
+
+	/** True while a claim is made and has been renewed lately. */
+	private boolean holds(int which)
+	{
+		long stamp = claims.get(which);
+		return stamp != Long.MIN_VALUE && fresh(stamp);
 	}
 
 	/**
@@ -155,16 +195,7 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 	 */
 	public void setCaptureEscape(boolean capture)
 	{
-		this.captureEscape = capture;
-		if (capture)
-		{
-			escapeStamp = clock.getAsLong();
-		}
-	}
-
-	private boolean escaping()
-	{
-		return captureEscape && fresh(escapeStamp);
+		claim(ESCAPE, capture);
 	}
 
 	/**
@@ -174,27 +205,28 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 	 */
 	public void setWatchClicks(boolean watch)
 	{
-		this.watchClicks = watch;
-		if (watch)
-		{
-			watchStamp = clock.getAsLong();
-		}
+		claim(CLICKS, watch);
 	}
 
-	private boolean watchingClicks()
+	/** Lets go of the mouse and keyboard and forgets what was queued, for a map that is not drawn for now. */
+	public void release()
 	{
-		return watchClicks && fresh(watchStamp);
+		setActive(null);
+		claim(KEYS, false);
+		claim(ESCAPE, false);
+		claim(CLICKS, false);
+		clear();
 	}
 
 	@Override
 	public void keyTyped(KeyEvent event)
 	{
-		if (capturing())
+		if (holds(KEYS))
 		{
-			queue.add(MapInput.typed(event.getKeyChar(), System.currentTimeMillis()));
+			key(MapInput.Kind.TYPED, event.getKeyChar());
 			event.consume();
 		}
-		else if (escaping() && event.getKeyChar() == KeyEvent.VK_ESCAPE)
+		else if (holds(ESCAPE) && event.getKeyChar() == KeyEvent.VK_ESCAPE)
 		{
 			// The character Escape types goes with its press.
 			event.consume();
@@ -208,12 +240,9 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 		{
 			expandHeld = true;
 		}
-		if (capturing())
+		if (holds(KEYS))
 		{
-			boolean selectAll = event.isControlDown() && event.getKeyCode() == KeyEvent.VK_A;
-			queue.add(MapInput.key(selectAll ? KEY_SELECT_ALL : event.getKeyCode(), System.currentTimeMillis()));
-			taken.add(event.getKeyCode());
-			event.consume();
+			take(event, event.isControlDown() && event.getKeyCode() == KeyEvent.VK_A ? KEY_SELECT_ALL : event.getKeyCode());
 		}
 		else if (claiming() && (!controlFNeedsPointer || pointerOver) && event.isControlDown() && event.getKeyCode() == KeyEvent.VK_F
 			&& !textGuard.test(event))
@@ -222,17 +251,21 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 			// character the chord types (control F) arrives next and is taken with it, and so is anything typed before the
 			// next frame says whether the search has the keyboard. A frame that finds the search did not start hands the
 			// keys back, and so does a claim that is not renewed.
-			queue.add(MapInput.key(KEY_FOCUS_SEARCH, System.currentTimeMillis()));
-			taken.add(event.getKeyCode());
-			setCaptureKeys(true);
-			event.consume();
+			take(event, KEY_FOCUS_SEARCH);
+			claim(KEYS, true);
 		}
-		else if (escaping() && event.getKeyCode() == KeyEvent.VK_ESCAPE)
+		else if (holds(ESCAPE) && event.getKeyCode() == KeyEvent.VK_ESCAPE)
 		{
-			queue.add(MapInput.key(KeyEvent.VK_ESCAPE, System.currentTimeMillis()));
-			taken.add(event.getKeyCode());
-			event.consume();
+			take(event, KeyEvent.VK_ESCAPE);
 		}
+	}
+
+	/** Queues a key for the map and takes its press from the game, and so its release when it comes. */
+	private void take(KeyEvent event, int code)
+	{
+		key(MapInput.Kind.KEY, code);
+		taken.add(event.getKeyCode());
+		event.consume();
 	}
 
 	@Override
@@ -296,11 +329,6 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 		this.keepClear = areas == null ? Collections.emptyList() : new ArrayList<>(areas);
 	}
 
-	public void setPassThrough(boolean passThrough)
-	{
-		this.passThrough = passThrough;
-	}
-
 	/** Sets which points inside the map are this map's own while it is lined up with the game's, or null when it is not. */
 	public void setTakes(BiPredicate<Integer, Integer> takes)
 	{
@@ -339,12 +367,9 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 		return true;
 	}
 
-	private MouseEvent take(MouseEvent event)
+	private static MouseEvent take(MouseEvent event)
 	{
-		if (!passThrough)
-		{
-			event.consume();
-		}
+		event.consume();
 		return event;
 	}
 
@@ -357,19 +382,19 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 			{
 				// The game takes the click, whether it is on a control inside the map or beside it, such as the map
 				// key. This map only notes where it was, so it can follow what the click did.
-				queue.add(MapInput.gamePress(event.getX(), event.getY(), event.getWhen()));
+				add(MapInput.Kind.GAME_PRESS, event, 0, true);
 			}
-			if (capturing() || watchingClicks())
+			if (holds(KEYS) || holds(CLICKS))
 			{
 				// A click somewhere else, such as the chat box, means the search is over. The click itself
 				// goes on to the game untouched.
-				queue.add(MapInput.outsidePress(event.getX(), event.getY(), event.getWhen()));
+				add(MapInput.Kind.OUTSIDE_PRESS, event, 0, true);
 			}
 			return event;
 		}
 		pressInside = true;
 		pressTaken = mine(event);
-		queue.add(MapInput.press(event.getX(), event.getY(), event.getButton(), event.getWhen(), pressTaken));
+		add(MapInput.Kind.PRESS, event, event.getButton(), pressTaken);
 		return pressTaken ? take(event) : event;
 	}
 
@@ -380,7 +405,7 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 		{
 			return event;
 		}
-		queue.add(MapInput.drag(event.getX(), event.getY(), event.getWhen(), pressTaken));
+		add(MapInput.Kind.DRAG, event, 0, pressTaken);
 		return pressTaken ? take(event) : event;
 	}
 
@@ -392,7 +417,7 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 			return event;
 		}
 		pressInside = false;
-		queue.add(MapInput.release(event.getX(), event.getY(), event.getButton(), event.getWhen(), pressTaken));
+		add(MapInput.Kind.RELEASE, event, event.getButton(), pressTaken);
 		return pressTaken ? take(event) : event;
 	}
 
@@ -411,8 +436,8 @@ public class ViewerInput extends MouseAdapter implements MouseWheelListener, Key
 			return event;
 		}
 		boolean mine = mine(event);
-		queue.add(MapInput.wheel(event.getX(), event.getY(), event.getPreciseWheelRotation(), event.getWhen(), mine));
-		if (mine && !passThrough)
+		add(MapInput.Kind.WHEEL, event, event.getPreciseWheelRotation(), mine);
+		if (mine)
 		{
 			event.consume();
 		}

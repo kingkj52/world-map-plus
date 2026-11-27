@@ -7,12 +7,6 @@ save places and keep a see-through map on screen while you play.
 Everything the map shows comes with the plugin except the detailed map pictures, which are downloaded the first time you look at
 an area (see "Map pictures" below). No other connections are made.
 
-> **Install World Map Plus Helper too.** The Plugin Hub limits how big one plugin can be, so World Map Plus comes in two
-> parts. Install both from the Plugin Hub for everything on this page: sharing, the results panel and drop tables, search for
-> monsters, items, shops and music, shop cards, walking lines on routes, progress marks, farming cards, wiki buttons, nearby
-> NPCs and support for other plugins. World Map Plus works on its own as a map, and anything that needs the Helper says so.
-> All settings stay in World Map Plus.
-
 ![A card on a shop icon, with its stock and prices](docs/images/hover.png)
 
 ## Getting started
@@ -40,7 +34,9 @@ of 0.1 to 0.9 MB; a pack is downloaded once and never again unless the maps are 
 ## The map
 
 - **Zooming.** Use the mouse wheel. It has acceleration, and it always zooms toward the
-  pointer. The + and - buttons in the corner do the same.
+  pointer. The + and - buttons in the corner do the same. **Zoom feel** in the settings picks how it feels: Normal, Gentle,
+  Fast, Steady (every notch the same) or Instant (no easing). The window over the world map and the floating map zoom and
+  drag alike.
 - **Moving.** Drag the map.
 - **Finding yourself.** The map opens on you and follows you as you walk. Press the **Me** button to jump back to
   your position after you have been looking elsewhere. If you are somewhere the map has no picture of, such as an
@@ -71,7 +67,6 @@ Hover over an icon, a doorway, a shop or a transport point and a card tells you 
 - Agility shortcuts give the level, the items and quests needed, how long it takes and whether it works both ways, and
   a line shows where it comes out.
 - Shops list what they stock and the prices.
-- Farming patches show what you last saw growing in them.
 - Where the plugin has more to say about an icon, the card says it while that layer is on in the layers list: the tree
   an icon of rare trees stands for, the fish at a fishing spot, the creatures of a hunter area, the ore of a mining site,
   the name of a minigame or an agility course, the level a salvaging spot or a port asks for. The icon and its basic card
@@ -96,24 +91,22 @@ spelling still comes first. A plain word for a kind of place, such as `bank`, `a
 zoom for a while, and goes to the nearest. Add a town, as in `shark catherby` or `bank varrock`, to get that kind in that
 town alone. A town's name on its own does not list everything in it.
 
-With the **World Map Plus Helper** plugin installed (it is part of World Map Plus, split in two for the Plugin Hub), the **results panel**
-appears after you choose a result with several places. It sits at the left of the map and lists them: how many are at
+After you choose a result with several places, the **results panel** at the left of the map lists them: how many are at
 each place ("Catherby, 2 banks", "3 here") and how far and which way each is from you. Click a row to go there. An item
 has a tab for the shops that sell it, which you can sort by nearest, stock, name or price, and a tab for where it lies on
 the ground; a shop row opens what that shop sells, and **Back** goes through up to twenty earlier lists. The cross closes the
-panel, and **Results panel** in the settings turns it off.
+panel, and **Results panel** in the settings turns it off (Off), or keeps it without the drop tabs (Places).
 
-With the Helper, a monster or NPC also has a **Drops** tab: what it drops (and gives when pickpocketed), how rare, how many, sorted by rarity,
+A monster or NPC also has a **Drops** tab: what it drops (and gives when pickpocketed), how rare, how many, sorted by rarity,
 value or name, with the value of each item and the coins you can expect per kill where they can be worked out. An item has a
 **Dropped by** tab: every monster that drops it, how rare, and the nearest place of that monster, which a click goes to. The
-tables come from the Old School RuneScape Wiki and are bundled in the Helper; the values are RuneLite's own item prices, so this
-plugin makes no request for them, and an item RuneLite has no price for shows none. **Drop tables** in the settings turns the
-tabs off.
+tables come from the Old School RuneScape Wiki and are bundled in the plugin; the values are RuneLite's own item prices, so this
+plugin makes no request for them, and an item RuneLite has no price for shows none. **Results panel** set to Places turns
+the tabs off.
 
 Some keys would not reach a search bar on the map if another plugin used them, such as the `W`, `A`, `S` and `D` camera
 keys of Key Remapping. So **Type in the chat area** is on by default, and the search opens a box in the chat area, where
-every key works. Turn it off in the settings to type in the search bar on the map instead. A map in its own window
-always types straight into its own bar.
+every key works. Turn it off in the settings to type in the search bar on the map instead.
 
 Use `Up`, `Down`, `Enter` and `Escape` in the results. In the chat area, `Enter` goes to the first
 result and `Escape` closes the box, and you click the other results. Click a result to go to it. Some results have several places,
@@ -141,8 +134,8 @@ within 500 coins near you.
 ## Routes
 
 Right-click anywhere and choose **Route here**. If you have the Shortest Path plugin, it works out the route, and the
-map draws it: numbered markers for the boats, teleports and shortcuts, a line for the walking in between (along the walkable
-tiles with the World Map Plus Helper, straight without it), and a list of the steps. Click a step to jump to where it starts.
+map draws it: numbered markers for the boats, teleports and shortcuts, a line along the walkable tiles for the walking
+in between, and a list of the steps. Click a step to jump to where it starts.
 
 Once a route exists, the menu also offers **Set route start here**, to route from a tile you pick instead of from where
 you stand, and **Add route target 2 here** (and 3, and so on) to head for whichever target is nearest. **Clear route**
@@ -163,16 +156,7 @@ press **Start**. The plugin asks Shortest Path for one stop at a time and moves 
 the next stop. Routes still pass through hidden pins. Each route in the side panel lists its stops by number, the first
 three and "+12 more", which shows them all.
 
-**Order** on a route of three to twelve stops puts them in the shortest order. You choose whether the first stop stays
-first and whether the route comes back to it at the end. The lengths are the walks the World Map Plus Helper finds between stops on the
-same map and floor, and the straight line elsewhere (teleports are not counted). The side panel says the length before and
-after, and **Undo order** puts the stops back as they were.
-
 ## Sharing
-
-Sharing is in a second Plugin Hub plugin, **World Map Plus Helper**, which needs this one. Install it for everything in this
-section: the buttons below stay in this plugin's side panel, and without the Helper they say it is missing. The settings stay
-in this plugin's settings, under Sharing, and say "Needs World Map Plus Helper". Codes made before the split still work.
 
 **Share ticked** in the places tab (one ticked place makes a pin code, more make a set of places) and **Share** on a
 route show a short chat command, such as `!wmp p10kgkm86a` for a pin at the Farming Guild. Type it into the game's chat
@@ -181,15 +165,14 @@ the side bar, with its length, its state (not typed, typing, done) and what it h
 **Copy** button that copies the exact message for use outside the game. A pin is 15 characters, a route of five stops in 
 a town about 30. A long route is split into up to eight messages (`!wmp c1...`), numbered, which can be sent in any order.
 
-**Typing guide.** Share also puts the first message on the chat's typing line as see-through letters, where your own
-letters appear. As you type, each right letter turns green and a wrong one red, with the letter that was meant in a small
-tag above it; the next letter is picked out in gold. The see-through letters start just after the game's own cursor. 
-A small card above the line says which part you are on ("Part 2 of 3"), how far you are or where the first typo is, and 
+**Typing guide.** Share also shows the first message in a strip just above the chat's typing line. As you type, each 
+letter of the strip turns green when you typed it right and red when wrong, so a red letter shows the one that was meant; 
+the next letter is picked out in gold. Your own letters on the typing line are left as the game draws them. A small card 
+above the strip says which part you are on ("Part 2 of 3"), how far you are or where the first typo is, and 
 "Matches, checksum ok" when the line is exactly right, with **Back**, **Skip** and **Stop**. When you send a whole part 
 the guide moves on to the next one by itself, and after the last it goes away. Case does not matter, and a channel prefix 
-such as `///` before the code is allowed. The side panel has the same controls and a **Type it** button on each message. 
-If the letters do not sit exactly on yours, set **Typing guide position** to **Just above the typing line**, which 
-shows the whole message in a strip above it; turn **Typing guide** off to leave the chat line alone.
+such as `///` before the code is allowed. The side panel has **Start typing guide** or **Stop typing guide** and a 
+**Type it** button on each message. Turn **Typing guide** off to leave the chat area alone.
 
 ![The typing guide showing a code on the chat line](docs/images/share1.png)
 
@@ -217,11 +200,12 @@ share codes in chat**.
 **Codes outside the game.** **Copy whole code** in the share box copies the whole code as one, however long (no chat
 limit applies in Discord or a forum post), and **Copy all parts** copies a long code's messages one a line, each with
 `!wmp`, for someone who types them into game chat one by one. **Import a code** in the places tab opens a box to paste
-into: a code with or without `!wmp`, among other words, in quotes or code blocks, in any case; a long code as one; or its
-parts, on separate lines, on one line, run together, in any order, or one paste at a time ("Part 1 of 2 added, paste the
-next part"). Every share read is listed under Shared with you, and nothing is saved until you press Save. A code that
-does not read says why, such as "Checksum mismatch near character 11, check what you typed". **Import clipboard** reads
-what is on the clipboard the same way.
+into, which reads codes as the Copy buttons give them: lines that each start with `!wmp` followed by one code (the whole
+code, or its parts one a line, in any order, or one paste at a time: "1 of 3 parts added, paste the rest."). A `!wmp` line
+typed by hand works too, in any case. A code without `!wmp` in front, or in the middle of other words, is not read. Every
+share read is listed under Shared with you, and nothing is saved until you press Save. A code that does not read says why,
+such as "Checksum mismatch: a character is mistyped, missing or extra". **Import clipboard** reads what is on the
+clipboard the same way.
 
 ## Your progress
 
@@ -230,10 +214,10 @@ points. They are in the **Your progress** section of the settings.
 
 - **Hide quests you have finished.** The icon where a quest starts goes away once you have finished that quest, and the
   quest no longer comes up in a search.
-- **Mark what you cannot use yet.** An icon that needs a level, a quest, an achievement diary tier or quest points you do
-  not have is drawn faded, with a small padlock in its corner, and its card has a "Missing" line that says what, such as
+- **Icons you cannot use yet**, set to Dimmed. An icon that needs a level, a quest, an achievement diary tier or quest points
+  you do not have is drawn faded, with a small padlock in its corner, and its card has a "Missing" line that says what, such as
   50 Agility or Hard Ardougne Diary. A search result for such a place says the same in gold under its name.
-- **Only show what you can use.** The icons that would be marked are left off the map instead.
+- **Icons you cannot use yet**, set to Left out. The icons that would be dimmed are left off the map instead.
 - **Colour quest icons by progress.** The icon where a quest starts carries a small dot: red when you have not started the
   quest, yellow when you have, green when it is finished.
 
@@ -250,14 +234,11 @@ cards of teleport destinations, including the teleports of diary rewards such as
 
 The layers button opens a list of things you can switch on and off.
 
-- Nearby NPCs, with names when you are zoomed in
 - Cards on icons, doorways, transports and shops
 - Area names
-- Wilderness levels
 - A grid of the game's regions with their numbers
-- A trail showing where you have walked this session
-- Region borders and names
 - Pins and saved places
+- Other plugins: the points other plugins put on the game's map (see "Other plugins")
 - Points of interest: agility courses, minigames, runecrafting altars, mining, fishing, hunter areas, farming patches,
   rare trees, salvaging spots, ports and teleport destinations. Where the game already draws an icon, these add their
   details to the icon's card, and are not drawn a second time. Where the game draws nothing (runecrafting altars,
@@ -269,9 +250,6 @@ The list sits beside the buttons and never covers them or goes outside the map, 
 it is taller than the room it scrolls: use the mouse wheel over it, or drag the bar down its edge. Names too long for a row
 are cut short, and the whole name shows while the pointer is on it. Close it with the layers button, the cross in its
 corner, `Escape`, or a click on the map. The right click menu and the cards behave the same way on a small map.
-
-The trail for where you've been can fade as it gets older. Set **Trail fades after** to a number of tens of tiles: 1 fades it out over the last
-10 tiles you walked, 2 over 20, 2.1 over 21, and so on. 0 never fades it.
 
 ![The layers panel](docs/images/layers.gif)
 
@@ -289,19 +267,17 @@ cursor in it (a bank or Grand Exchange search, an amount), or the chat area is a
 window that takes keys itself is open, a key you bound to a letter or a number is left for it, and keys held with `Ctrl`
 or `Alt` still work.
 
-## Extra windows
+## Opening a place on the floating map
 
-Middle-click a link to another map, a search result or a step of a route to open that place in a window of its own. Each
-window has its own view, search and menu, and you can have up to six open next to the game.
+Middle-click a link to another map, a search result or a step of a route to open that place on the floating map, which shows
+and goes there (the floating map is the one extra map; there are no separate windows). Over the world map it shows the place
+once you close the world map, and says so. With no **Show or hide** key set the floating map stays off, and the map says so.
 
 ## Other plugins
 
-Support for other plugins is in **World Map Plus Helper**, the second Plugin Hub plugin (it needs this one, and this one
-works without it). With both installed, plugins that put things on the world map keep working; without the Helper this
-map shows what the game's own map shows of them and nothing else. The settings for it stay in this plugin's settings and say
-"Needs World Map Plus Helper". Points they add, such as the golems from Golems Don't Die, show
-on this map too, and so do the other members of your party from RuneLite's own Party plugin, with their names. The layers list names 
-each plugin that has points on the map and lets you hide any of them.
+Plugins that put things on the world map keep working. Points they add, such as the golems from Golems Don't Die, show
+on this map too, and so do the other members of your party from RuneLite's own Party plugin, with their names. **Other plugins** in the layers list
+shows or hides all of them at once.
 
 Right-click a party member and choose **Follow** to keep the map on them as they move, onto another map too if they go
 underground. Dragging the map, searching, or **Locate me** stops it, and so does the member leaving the party or going
@@ -309,9 +285,7 @@ somewhere this map has no picture of. Following only reads the point the Party p
 
 A point on the game's map that jumps somewhere when clicked has **Focus on** in this map's right click menu, as it does
 on the game's map. Plugin authors can add markers, lines, menu entries and layers of their own through a small set of
-plugin messages, described in `docs/COMPAT.md` ("Plugin API v1"), with a one file helper in `docs/api`. Version 3 of the
-same messages (side panel sections, painters on the map, hover card lines, search results, menu entries, saved places) is what a
-second plugin can use to add parts of the interface; it is described in the same file ("Plugin API v3"), with its own helper.
+plugin messages, described in `docs/COMPAT.md` ("Plugin API v1"), with a one file helper in `docs/api`.
 
 Some plugins only fill in the area around where the game's own map is looking. So that they still work here, the game's
 map is moved to the middle of what you are looking at whenever you stop moving this map, even though the two are zoomed
@@ -333,7 +307,7 @@ the lines fall in the right place. In this mode hold `Ctrl` and right-click to o
 | Change floor | The arrows above the layers button |
 | Search | Click the bar |
 | Open a dungeon map | Click its entrance |
-| Open a place in its own window | Middle-click a link, a search result or a step |
+| Open a place on the floating map | Middle-click a link, a search result or a step |
 | See a whole card | Hold `Shift` on it |
 | Menu | Right-click. It has **Open wiki page** for things that have one |
 | Save, route to or open the wiki page of a search result | Right-click it |
@@ -344,22 +318,25 @@ the lines fall in the right place. In this mode hold `Ctrl` and right-click to o
 
 | Section | What it covers |
 | --- | --- |
-| General | **Replace the world map**, **Follow other plugins**, **Show other plugins' points** and **routes**, **Wiki buttons**, **Results panel**, **Drop tables**, **Show share codes in chat**, **Replace my own share lines too** (on by default), **Typing guide** (on by default) and **Typing guide position** (over the typing line by default, or just above it), **Keep the game map with this one**, **Line up with the game map**, **Open at** (where you are or where you last looked), **Follow me**, **Show coordinates**, **Smooth close-up** (blends pixels when you zoom in past the map's native detail, off keeps the crisp pixel look), **Type in the chat area** (the search opens in the chat area, where keys that other plugins take still work; on by default, turn it off to type in the bar on the map) |
-| Zoom | **Zoom speed**, **Zoom acceleration**, **Zoom smoothing** |
-| Map layers | **Cards on map icons, doorways, transports and shops**, **Area names**, **Pins and saved places**, **Wilderness levels**, **Region grid and ids**, **Where I have been** and **Trail fades after**, **Region borders**. The layers button on the map changes the same settings |
-| Floating map | **Enable floating map**, **Show or hide** and **Click-through hotkey**, **Click-through (mouse passes through)**, **Opacity**, **Size**, **Position**, **Opening zoom** |
-| Nearby NPCs | **Show nearby NPCs**, **Show from zoom**, **Radius**, **Filter**, **Show names**, **Names from zoom** |
-| Your progress | **Hide quests you have finished**, **Mark what you cannot use yet**, **Only show what you can use**, **Colour quest icons by progress** |
-| Look and feel | **Theme** (Bronze by default, or Slate, Parchment and High contrast), **Animations** (on by default), **Sounds** (off by default) |
+| General | **Replace the world map**, **Follow other plugins**, **Show other plugins' points** and **routes**, **Wiki buttons**, **Results panel** (Places and drops by default, or Places, or Off), **Show share codes in chat** (From everyone by default, which includes your own lines, or From others, or Off), **Typing guide** (on by default), **Keep the game map with this one**, **Line up with the game map**, **Open at** (Follow me by default, or Where I am, or Where I last looked), **Zoom feel** (Normal by default, or Gentle, Fast, Steady, Instant), **Smooth close-up** (blends pixels when you zoom in past the map's native detail, off keeps the crisp pixel look), **Type in the chat area** (the search opens in the chat area, where keys that other plugins take still work; on by default, turn it off to type in the bar on the map) |
+| Map layers | **Cards on map icons, doorways, transports and shops**, **Area names**, **Pins and saved places**, **Region grid and ids**. The layers button on the map changes the same settings |
+| Floating map | **Show or hide** (with no key set the floating map stays off) and **Click-through hotkey**, **Click-through (mouse passes through)**, **Opacity**, **Size**, **Position**, **Opening zoom** |
+| Your progress | **Hide quests you have finished**, **Icons you cannot use yet** (As usual, Dimmed or Left out), **Colour quest icons by progress** |
+| Look and feel | **Theme** (Bronze by default, or Slate, Parchment and High contrast), **Animations** (On by default, or Off) |
 
 ## Good to know
 
 - Walking lines between jumps are worked out by this plugin, so where two ways are equally short it may pick a
   different one from Shortest Path. Shortest Path's own line in the game view is the one to follow.
 - Floors above the ground are only available on the surface. Dungeons and other maps have a single floor, and show all their icons on it.
-- Farming cards show what you last saw, so a patch you have never walked past says so.
 - Not every NPC has a known spawn, and some quests do not have a start position yet.
 - When getting data from the wiki, a hard limit of only a couple queries/minute over the course of many hours to lighten the load as much as possible.
+
+## Pictures in this README
+
+Some pictures were taken before the latest changes. `share1.png`, `share2.png` and `shareTypo.png` show the older typing guide
+drawn over the chat line (the guide is now a strip just above it). `hover.png`, `search.gif`, `route.gif` and `layers.gif` show
+the map name and tile in the top left corner, which the map no longer draws.
 
 ## Credits
 

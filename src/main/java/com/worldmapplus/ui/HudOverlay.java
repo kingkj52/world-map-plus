@@ -3,6 +3,7 @@ package com.worldmapplus.ui;
 import com.worldmapplus.*;
 import com.worldmapplus.game.*;
 import com.worldmapplus.input.*;
+import com.worldmapplus.map.*;
 import com.worldmapplus.prefs.*;
 import java.awt.*;
 import java.util.*;
@@ -27,6 +28,7 @@ import net.runelite.client.ui.overlay.*;
 public class HudOverlay extends Overlay
 {
 	private final Client client;
+	private final MapAssets assets;
 	private final WorldMapPlusConfig config;
 	private final PlayerLocator locator;
 	private final HudState state;
@@ -37,10 +39,12 @@ public class HudOverlay extends Overlay
 		SurfaceServices services, ViewMemory memory, HudState state)
 	{
 		this.client = client;
+		this.assets = assets;
 		this.config = config;
 		this.locator = locator;
 		this.state = state;
 		this.surface = new MapSurface(client, assets, config, services);
+		surface.setWindowOpener(this::open);
 
 		setPosition(OverlayPosition.DYNAMIC);
 		// Under the widgets, so the game's own interface is always drawn over this map.
@@ -54,16 +58,30 @@ public class HudOverlay extends Overlay
 		return surface.getInput();
 	}
 
-	/** Where a middle click on a map link, a result or a step of a route opens a map of its own. */
-	public void setWindowOpener(MapSurface.WindowOpener opener)
+	/**
+	 * Opens a place on the floating map, for a middle click on a map link, a search result or a step of a route on either map: the
+	 * floating map shows and goes there. Over the world map it waits until the world map closes. With no key to
+	 * show or hide it, it stays off. Client thread. Returns a sentence when it cannot show the place now, or null.
+	 */
+	public String open(int mapId, double x, double y, double zoom)
 	{
-		surface.setWindowOpener(opener);
+		MapInfo map = assets.getCatalog().byId(mapId);
+		if (net.runelite.client.config.Keybind.NOT_SET.equals(config.hudToggleKey()))
+		{
+			return "Set a Show or hide key for the floating map to open places on it.";
+		}
+		if (map != null)
+		{
+			surface.startAt(map, x, y, Math.max(0.05, Math.min(64, zoom)));
+			state.show();
+		}
+		return worldMapIsOpen() ? "The floating map shows it when the world map is closed." : null;
 	}
 
 	@Override
 	public Dimension render(Graphics2D g)
 	{
-		if (!config.hudEnabled() || !state.isVisible() || client.getGameState() != GameState.LOGGED_IN
+		if (!state.isVisible() || client.getGameState() != GameState.LOGGED_IN
 			|| worldMapIsOpen())
 		{
 			surface.hide();

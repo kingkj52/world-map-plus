@@ -5,7 +5,6 @@ import static org.junit.Assert.assertEquals;
 import com.google.gson.Gson;
 import com.worldmapplus.map.MapCatalog;
 import com.worldmapplus.map.MapInfo;
-import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.Test;
@@ -30,12 +29,12 @@ public class PoiLoaderSeasonalTest
 
 	private static int hotspots(int today)
 	{
-		return PoiLoader.read(new StringReader(JSON), GSON, catalog(), today).getHotspots().size();
+		return PoiLoader.read(GSON.fromJson(JSON, PoiLoader.PoiFile.class), catalog(), today).getHotspots().size();
 	}
 
 	private static int categories(int today)
 	{
-		return PoiLoader.read(new StringReader(JSON), GSON, catalog(), today).getCategories().size();
+		return PoiLoader.read(GSON.fromJson(JSON, PoiLoader.PoiFile.class), catalog(), today).getCategories().size();
 	}
 
 	@Test
@@ -77,6 +76,6 @@ public class PoiLoaderSeasonalTest
 	public void theClockOverloadReadsWithoutDatesLikeBefore()
 	{
 		String plain = "{\"categories\":[{\"id\":\"bank\",\"label\":\"Banks\",\"items\":[{\"n\":\"Always\",\"p\":[3000,3000]}]}]}";
-		assertEquals(1, PoiLoader.read(new StringReader(plain), GSON, catalog()).getHotspots().size());
+		assertEquals(1, PoiLoader.read(GSON.fromJson(plain, PoiLoader.PoiFile.class), catalog(), 20261125).getHotspots().size());
 	}
 }

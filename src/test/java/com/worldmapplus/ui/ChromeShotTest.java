@@ -91,7 +91,8 @@ public class ChromeShotTest
 			{
 				return null;
 			}
-		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), routes, new PanelLauncher());
+		}, pins, external, new MapActions(new EventBus(), external), new Settings(null), null,
+			routes, new PanelLauncher(), (com.worldmapplus.input.ChatSearch) null);
 		return new MapSurface(client, assets, new WorldMapPlusConfig()
 		{
 		}, services);
@@ -215,17 +216,17 @@ public class ChromeShotTest
 		Assume.assumeTrue(folder != null && !folder.isEmpty());
 		try
 		{
-			for (com.worldmapplus.theme.Palette palette : com.worldmapplus.theme.Palettes.all())
+			for (com.worldmapplus.theme.Palette palette : com.worldmapplus.theme.Palette.all())
 			{
-				com.worldmapplus.theme.Look.use(palette);
-				String sub = palette == com.worldmapplus.theme.Palettes.BRONZE ? "chrome"
+				com.worldmapplus.theme.Palette.use(palette);
+				String sub = palette == com.worldmapplus.theme.Palette.all()[0] ? "chrome"
 					: palette.name().toLowerCase().replace(' ', '-') + "/chrome";
 				scenes(new File(folder, sub));
 			}
 		}
 		finally
 		{
-			com.worldmapplus.theme.Look.use(com.worldmapplus.theme.Palettes.BRONZE);
+			com.worldmapplus.theme.Palette.use(com.worldmapplus.theme.Palette.all()[0]);
 		}
 	}
 }

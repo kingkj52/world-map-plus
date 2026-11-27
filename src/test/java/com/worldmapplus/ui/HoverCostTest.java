@@ -33,7 +33,7 @@ public class HoverCostTest
 {
 	private static final Rectangle BOUNDS = new Rectangle(0, 0, 1280, 720);
 
-	/** WORLDMAPPLUS_PERF_OFF names the features to leave out, such as trail,labels,hotspots,poi. */
+	/** WORLDMAPPLUS_PERF_OFF names the features to leave out, such as labels,hotspots,poi. */
 	private static boolean on(String feature)
 	{
 		String off = System.getenv("WORLDMAPPLUS_PERF_OFF");
@@ -126,7 +126,7 @@ public class HoverCostTest
 				surface.render(g, BOUNDS, at, options, now);
 				Thread.sleep(5);
 			}
-			surface.viewer().getZoom().jumpTo(4.0);
+			surface.viewer().jumpZoom(4.0);
 			com.sun.management.ThreadMXBean threads = (com.sun.management.ThreadMXBean) java.lang.management.ManagementFactory.getThreadMXBean();
 			long[] results = new long[2];
 			double[] kb = new double[2];

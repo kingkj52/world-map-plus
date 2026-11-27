@@ -16,6 +16,7 @@ import lombok.*;
  *   dist:40             only results within that many tiles of the player
  *   type:shop           only results of a kind: place shop npc monster item quest transport teleport
  *                       doorway point music tile pin route; or an item kind such as melee_weapon   (also kind:)
+ *   cost:500            only items that cost that much or less. Also cost:&lt;500, cost:&gt;100, cost:100-500
  *   map:keldagrim       only results on a map with that in its name
  * </pre>
  * A value with spaces goes in quotes. Anything that is not one of these keys stays a plain word, so a
@@ -31,15 +32,16 @@ public final class SearchQuery
 		"region", "in", "area", "at", "where", "place"));
 
 	private static final Set<String> KEYS = new LinkedHashSet<>(Arrays.asList(
-		"name", "region", "in", "area", "at", "where", "place", "loc", "near", "dist", "type", "kind", "map", "sort"));
+		"name", "region", "in", "area", "at", "where", "place", "loc", "near", "dist", "type", "kind", "cost", "price",
+		"map", "sort", "free"));
 
 	/** The kinds of result that type: knows, for completing what is typed. */
 	public static final String[] RESULT_KINDS = {"place", "shop", "npc", "monster", "item", "quest", "transport",
 		"teleport", "entrance", "point", "music", "tile", "pin", "route"};
 
-	/** The kinds of item that type: knows (the Helper judges them), for completing what is typed. */
-	public static final String[] ITEM_KINDS = {"melee_weapon", "ranged_weapon", "magic_weapon", "ammo", "armour", "food", "potion", "tool", "rune",
-		"seed", "ore", "bar", "log", "jewellery"};
+	/** The kinds of item that tools/build_search.py tells from an item's name, for completing type:. */
+	public static final String[] ITEM_KINDS = {"melee_weapon", "ranged_weapon", "magic_weapon", "ammo", "armour", "food", "potion",
+		"tool", "rune", "seed", "ore", "bar", "log", "jewellery"};
 
 	/** How results are put in order. */
 	public enum Sort
@@ -48,6 +50,8 @@ public final class SearchQuery
 		RELEVANCE,
 		/** Nearest the player first. */
 		DISTANCE,
+		/** Cheapest first. Results with no price come last. */
+		COST,
 		/** A to Z. */
 		NAME
 	}
@@ -78,6 +82,10 @@ public final class SearchQuery
 	/** Tiles from the player a result may be, or -1 for no limit. */
 	@Getter
 	private int maxDistance = -1;
+	@Getter
+	private long minCost = -1;
+	@Getter
+	private long maxCost = -1;
 	private boolean badFilter;
 
 	private SearchQuery()
@@ -174,6 +182,17 @@ public final class SearchQuery
 			case "kind":
 				addKinds(value, not);
 				break;
+			case "free":
+				if (normalized.equals("yes") || normalized.equals("true") || normalized.equals("1"))
+				{
+					minCost = 0;
+					maxCost = 0;
+				}
+				else
+				{
+					badFilter = true;
+				}
+				break;
 			case "sort":
 				sort = sortOf(normalized);
 				if (sort == null)
@@ -182,10 +201,59 @@ public final class SearchQuery
 					badFilter = true;
 				}
 				break;
+			case "cost":
+			case "price":
+				parseCost(value.trim());
+				break;
 			default:
 				break;
 		}
 	}
+
+	private void parseCost(String value)
+	{
+		try
+		{
+			String v = value.replace(",", "").replace(" ", "").toLowerCase(Locale.ROOT);
+			if (v.startsWith("<="))
+			{
+				maxCost = number(v.substring(2));
+			}
+			else if (v.startsWith(">="))
+			{
+				minCost = number(v.substring(2));
+			}
+			else if (v.startsWith("<"))
+			{
+				maxCost = number(v.substring(1)) - 1;
+				if (maxCost < 0)
+				{
+					throw new NumberFormatException("nothing costs less than nothing");
+				}
+			}
+			else if (v.startsWith(">"))
+			{
+				minCost = number(v.substring(1)) + 1;
+			}
+			else if (v.contains("-"))
+			{
+				String[] parts = v.split("-", 2);
+				minCost = number(parts[0]);
+				maxCost = number(parts[1]);
+			}
+			else
+			{
+				maxCost = number(v);
+			}
+		}
+		catch (NumberFormatException e)
+		{
+			badFilter = true;
+		}
+	}
+
+	/** Largest number a filter accepts, far beyond any price in the game. */
+	private static final double MAX_NUMBER = 1e12;
 
 	/** Puts a space inside a camel case word, so kebosLowlands reads as kebos lowlands. */
 	static String splitCamel(String value)
@@ -240,6 +308,11 @@ public final class SearchQuery
 			case "nearest":
 			case "closest":
 				return Sort.DISTANCE;
+			case "cost":
+			case "price":
+			case "cheap":
+			case "cheapest":
+				return Sort.COST;
 			case "name":
 			case "alpha":
 			case "alphabetical":
@@ -251,6 +324,34 @@ public final class SearchQuery
 			default:
 				return null;
 		}
+	}
+
+	/** A whole number that may end in k or m, as 10k or 2.5m. */
+	static long number(String text)
+	{
+		String t = text.trim();
+		double scale = 1;
+		if (t.endsWith("k"))
+		{
+			scale = 1_000;
+			t = t.substring(0, t.length() - 1);
+		}
+		else if (t.endsWith("m"))
+		{
+			scale = 1_000_000;
+			t = t.substring(0, t.length() - 1);
+		}
+		// Plain digits with an optional fraction only. Double.parseDouble would also accept NaN, Infinity and 1e3.
+		if (!t.matches("[0-9]+(\\.[0-9]+)?"))
+		{
+			throw new NumberFormatException("not a plain number: " + text);
+		}
+		double value = Double.parseDouble(t) * scale;
+		if (value > MAX_NUMBER)
+		{
+			throw new NumberFormatException("too large: " + text);
+		}
+		return Math.round(value);
 	}
 
 	private static void addWords(String text, List<String> into)
@@ -328,18 +429,17 @@ public final class SearchQuery
 		return badFilter;
 	}
 
+	public boolean hasCost()
+	{
+		return minCost >= 0 || maxCost >= 0;
+	}
+
 	/** True when anything other than plain words was typed. */
 	public boolean hasFilters()
 	{
 		return !nameWords.isEmpty() || !regions.isEmpty() || !kinds.isEmpty() || !maps.isEmpty() || maxDistance >= 0
-			|| badFilter || !excludedRegions.isEmpty() || !excludedMaps.isEmpty()
+			|| hasCost() || badFilter || !excludedRegions.isEmpty() || !excludedMaps.isEmpty()
 			|| !excludedKinds.isEmpty() || sort != Sort.RELEVANCE;
-	}
-
-	/** True when the text names a place or a map to be in or out of. */
-	public boolean hasPlaceFilter()
-	{
-		return !regions.isEmpty() || !maps.isEmpty() || !excludedRegions.isEmpty() || !excludedMaps.isEmpty();
 	}
 
 	/** True when there is something to look for at all. */

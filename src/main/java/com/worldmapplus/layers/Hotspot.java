@@ -38,22 +38,27 @@ public final class Hotspot
 
 	/** Where a click on the hotspot takes the viewer. */
 	@Getter
-	@RequiredArgsConstructor
+	@AllArgsConstructor
+	@NoArgsConstructor
 	public static final class Target
 	{
-		private final int mapId;
-		private final double x;
-		private final double y;
+		private int mapId;
+		private double x;
+		private double y;
 	}
 
 	/** A line drawn from the hotspot to another place while it is hovered, such as a ship route. */
 	@Getter
 	public static final class Link
 	{
-		private final int mapId;
-		private final double x;
-		private final double y;
-		private final String label;
+		private int mapId;
+		private double x;
+		private double y;
+		private String label = "";
+
+		private Link()
+		{
+		}
 
 		public Link(int mapId, double x, double y, String label)
 		{
